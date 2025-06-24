@@ -1,0 +1,51 @@
+ <div class="content max-w-3xl mx-auto px-4 py-10 text-gray-800 ">
+
+ <div class="container grid grid-cols-2 gap-6 max-w-3xl mx-auto">
+
+  <!-- box1: 한 줄 전체로 2열 span -->
+  <div class="box box1 col-span-2">
+    <%= render partial: "section_box", locals: {
+          title: "이 주의 최신글",
+          subtitle: "",
+          items: ["최신글1", "최신글2", "최신글3", "최신글4"]
+        } %>
+  </div>
+
+  <!-- box2 -->
+  <div class="box box2">
+    <%= render partial: "section_box", locals: {
+          title: "생각과 느낌",
+          subtitle: "페마바사",
+          items: Array.new(4, "가나다라마바사 아자차카타파하")
+        } %>
+  </div>
+
+  <!-- box3 -->
+  <div class="box box3">
+    <%= render partial: "section_box", locals: {
+          title: "자유 토론",
+          subtitle: "페이지 설명 가나다라마바사",
+          items: Array.new(4, "가나다라마바사 아자차카타파하")
+        } %>
+  </div>
+
+  <!-- box4 -->
+  <div class="box box4">
+    <%= render partial: "section_box", locals: {
+          title: "창작 마당",
+          subtitle: "페이지 설명 가나다라마바사",
+          items: Array.new(4, "가나다라마바사 아자차카타파하")
+        } %>
+  </div>
+
+  <!-- box5 -->
+  <div class="box box5">
+    <%= render partial: "section_box", locals: {
+          title: "자유 게시판",
+          subtitle: "페이지 설명 가나다라마바사",
+          items: Array.new(4, "가나다라마바사 아자차카타파하")
+        } %>
+  </div>
+
+
+</div>

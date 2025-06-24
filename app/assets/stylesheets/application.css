@@ -1,0 +1,137 @@
+/*
+ * This is a manifest file that'll be compiled into application.css.
+ *
+ * With Propshaft, assets are served efficiently without preprocessing steps. You can still include
+ * application-wide styles in this file, but keep in mind that CSS precedence will follow the standard
+ * cascading order, meaning styles declared later in the document or manifest will override earlier ones,
+ * depending on specificity.
+ *ㅁ
+ * Consider organizing styles into separate files for maintainability.
+ */
+
+
+  .site-header {
+    position: fixed;
+    top: 0;
+    width: 100%;
+    background: white;
+    border-bottom: 1px solid #eee;
+    z-index: 1000;
+    height: 150;
+
+    .header-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 12px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+  
+    .logo {
+      display: flex;
+      align-items: center;
+  
+      img {
+        height: 32px;
+        margin-right: 8px;
+      }
+  
+      .brand {
+        color: #5C4033; 
+        font-size: 20px;
+        align-items: center;
+        font-family: 'Playfair Display', serif;
+      }
+    }
+  
+    .search-box {
+      flex: 1;
+      max-width: 600px;
+      display: flex;
+      align-items: center;
+      border: 1px solid #A68B77;
+      border-radius: 2px;
+      padding: 4px 8px;
+  
+      input {
+        flex: 1;
+        border: none;
+        outline: none;
+        font-size: 14px;
+        color: #333;
+      }
+  
+      .search-btn {
+        background: none;
+        border: none;
+        font-size: 16px;
+        color: #A68B77;
+        cursor: pointer;
+      }
+    }
+  
+    .nav-links {
+      display: flex;
+      gap: 30px;
+  
+      a {
+        text-decoration: none;
+        color: #333;
+        font-size: 14px;
+      }
+    }
+  }
+  
+  body {
+    padding-top: 80px;
+  }
+  
+  /* .content {
+    max-width: 800px;
+    margin: 40px auto;
+    padding: 20px;
+    font-size: 16px;
+    line-height: 1.7;
+    color: #333;
+  
+    h1 {
+      font-size: 28px;
+      margin-bottom: 20px;
+      color: #5B3B2E;
+    }
+  
+    p {
+      margin-bottom: 20px;
+    } */
+  /* } */
+  .container {
+    max-width: 800px;
+    margin: 40px auto;
+    padding: 20px;
+    font-size: 16px;
+    line-height: 1.7;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr); /* 2열 */
+    grid-template-rows: auto auto auto;   /* 3줄 */
+    gap: 20px; /* 박스 간 간격 */
+  
+    max-width: 800px;
+    margin: 0 auto;
+  }
+  
+  /* 박스1은 2열을 모두 차지 */
+  .box1 {
+    grid-column: 1 / 3; /* 첫 번째부터 세 번째 전까지(2칸 span) */
+    padding: 20px;
+    border-radius: 8px;
+    height: 300px;
+  }
+  
+  /* 나머지 박스들 스타일 */
+  .box {
+    padding: 20px;
+    border-radius: 8px;
+    height: 300px;
+  }
+  

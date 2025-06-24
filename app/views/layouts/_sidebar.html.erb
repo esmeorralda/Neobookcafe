@@ -1,0 +1,21 @@
+<div class="fixed top-20 left-0 w-60 px-4 py-6 space-y-2">
+  <div class="bg-[#efe9df] text-[#9b825e] px-2 py-6 space-y-4 shadow ">
+    <ul class="space-y-4 text-center">
+      <li><%= link_to "생각과 느낌", thoughts_path %></li>
+      <li><%= link_to "자유 토론", discussions_path %></li>
+      <li><%= link_to "창작 마당", creations_path %></li>
+      <li><%= link_to "자유 게시판", boards_path %></li>
+     <li>
+  <hr class="border-t border-[#bfae9b] w-[20%] mx-auto my-4 opacity-60">
+</li>
+
+    <li class="border-t border-[#d8cbb4] pt-4"><%= link_to "책 메모장", book_notes_path %></li>
+    
+    </ul>
+  </div>
+
+  <div class="mt-12 space-y-2 text-center">
+    <%= link_to "글쓰기", new_post_path, class: "block bg-[#7b5845] text-white font-bold py-2 mt-6 " %>
+    <%= link_to "책 메모 쓰기", new_book_note_path, class: "block border border-[#7b5845] bg-white text-[#7b5845] font-bold py-2 " %>
+  </div>
+</div>
