@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>NeoBookClub</title>
+    <%= favicon_link_tag 'favicon.png' %>
+    <title>NeoBookCafe</title>
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
 
@@ -17,10 +18,14 @@
   <body>
     <header class="site-header">
       <div class="header-container">
-        <div class="logo">
-          <%= image_tag "logo.svg", alt: "NeoBookClub Logo", class: "logo" %>
-          <span class="brand">BookCafe</span>
-        </div>
+        <%# <div class="logo">
+          <%= image_tag "logo.svg", alt: "NeoBookCafe Logo", class: "logo" %>
+          <%# <span class="brand">BookCafe</span>
+        </div> %> 
+  <%= link_to root_path, class: "logo flex items-center space-x-2" do %>
+  <%= image_tag "logo.svg", alt: "NeoBookCafe Logo", class: "logo" %>
+  <span class="brand">BookCafe</span>
+<% end %>
 
         <div class="search-box">
           <input type="text" placeholder="책 제목, 저자, 글 제목, 글 저자..." />
@@ -28,17 +33,22 @@
         </div>
 
         <div class="nav-links">
-          <a href="#">프로필</a>
-          <a href="#">설정</a>
+          <%= link_to "프로필", profile_path %>
+          <%= link_to "설정", settings_path %>
+            <%= link_to "로그인", login_path %>
         </div>
+         <%# <button onclick="openModal()" class="bg-blue-600 px-4 py-2">
+            로그인
+          </button> %>
       </div>
     </header>
 
-     <%= render 'layouts/sidebar' %>
+    <%= render 'layouts/sidebar' %>
 
-  <main class="main-content h-[calc(100vh-4rem)] overflow-auto p-6">
-  <%= yield %>
-</main>
+    <main class="main-content h-[calc(100vh-4rem)] overflow-auto p-6">
+      <%= yield %>
+    </main>
+
 
   </body>
 </html>
