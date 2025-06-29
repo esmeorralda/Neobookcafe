@@ -9,23 +9,23 @@ class UsersController < ApplicationController
     @user = User.new
   end
 
-  def create
-    @user = User.new(user_params)
+  # def create
+  #   @user = User.new(user_params)
 
-    if @user.save
-      session[:user_id] = @user.id
-      redirect_to root_path, notice: "회원가입이 완료되었습니다."
-    else
-      render :new, status: :unprocessable_entity
-    end
-  end
+  #   if @user.save
+  #     session[:user_id] = @user.id
+  #     redirect_to root_path, notice: "회원가입이 완료되었습니다."
+  #   else
+  #     render :new, status: :unprocessable_entity
+  #   end
+  # end
 
-  def destroy
-    @user = User.find(params[:id])
-    @user.destroy
-    reset_session
-    redirect_to root_path, notice: "회원 탈퇴가 완료되었습니다."
-  end
+  # def destroy
+  #   @user = User.find(params[:id])
+  #   @user.destroy
+  #   reset_session
+  #   redirect_to root_path, notice: "회원 탈퇴가 완료되었습니다."
+  # end
 
   private
 

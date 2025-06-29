@@ -1,7 +1,12 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <%= favicon_link_tag 'favicon.png' %>
+    <%# <%= favicon_link_tag 'favicon.png'  %>
+    <%= favicon_link_tag 'favicon.svg', rel: 'icon', type: 'image/svg+xml' %>
+   <%= javascript_importmap_tags %> 
+
+
+
     <title>NeoBookCafe</title>
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
@@ -32,11 +37,17 @@
           <button class="search-btn">🔍</button>
         </div>
 
-        <div class="nav-links">
-          <%= link_to "프로필", profile_path %>
-          <%= link_to "설정", settings_path %>
-            <%= link_to "로그인", login_path %>
-        </div>
+   <div class="nav-links">
+  <% if user_signed_in? %>
+    <%= link_to "프로필", profile_path %>
+    <%= link_to "설정", settings_path %>
+      <%= link_to "로그아웃", destroy_user_session_path, method: :delete, data: { turbo_method: :delete }, class: "text-[14px] text-[#333] no-underline" %>
+  <% else %>
+    <%= link_to "로그인", new_user_session_path %>
+  <% end %>
+</div>
+
+
          <%# <button onclick="openModal()" class="bg-blue-600 px-4 py-2">
             로그인
           </button> %>

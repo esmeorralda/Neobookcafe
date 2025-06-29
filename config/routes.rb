@@ -1,11 +1,9 @@
 Rails.application.routes.draw do
-  get "sessions/new"
-  get "sessions/create"
-  get "sessions/destroy"
-  get "users/show"
-  get "users/edit"
+  devise_for :users
+  
   root "home#index"
   get "home/index"
+  
   resources :users
   resources :thoughts
 resources :discussions
@@ -16,13 +14,9 @@ resources :posts, only: [:new, :create]
 
 get '/profile', to: 'users#show', as: 'profile'
   get '/settings', to: 'users#edit', as: 'settings'
-  get '/login', to: 'sessions#new', as: 'login'
 
   # 나중에 로그인 POST 처리도 필요:
-  post '/login', to: 'sessions#create'
-  delete '/logout', to: 'sessions#destroy'
-get '/signup', to: 'users#new', as: 'signup'
-post '/users', to: 'users#create'
+
 
 
 

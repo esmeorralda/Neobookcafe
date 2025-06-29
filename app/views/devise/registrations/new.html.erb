@@ -1,0 +1,35 @@
+<div class="max-w-xs mx-auto mt-20 p-4 bg-white rounded-lg shadow-lg">
+  <h2 class="text-center text-lg font-bold mb-4">회원가입</h2>
+
+  <%= form_for(resource, as: resource_name, url: registration_path(resource_name), html: { class: "flex flex-col space-y-4" }) do |f| %>
+    <%= render "devise/shared/error_messages", resource: resource %>
+
+    <div>
+      <%= f.label :email, "이메일", class: "block mb-1 text-center" %>
+      <%= f.email_field :email, autofocus: true, autocomplete: "email", class: "border p-2", style: "display: block; margin: 0 auto;", required: true %>
+    </div>
+
+    <div>
+      <%= f.label :password, "비밀번호", class: "block mb-1 text-center" %>
+      <%= f.password_field :password, autocomplete: "new-password", class: "border p-2", style: "display: block; margin: 0 auto;", required: true %>
+    </div>
+
+    <div>
+      <%= f.label :password_confirmation, "비밀번호 확인", class: "block mb-1 text-center" %>
+      <%= f.password_field :password_confirmation, autocomplete: "new-password", class: "border p-2", style: "display: block; margin: 0 auto;", required: true %>
+    </div>
+
+    <div>
+      <%= f.label :name, "사용자 이름", class: "block mb-1 text-center" %>
+      <%= f.text_field :name, autocomplete: "name", class: "border p-2", style: "display: block; margin: 0 auto;", required: true %>
+    </div>
+
+    <div class="space-y-2">
+      <%= f.submit "회원가입", class: "w-full bg-yellow-300 py-2 rounded" %>
+    </div>
+  <% end %>
+
+  <div class="flex justify-center items-center mt-4 text-sm">
+    <%= link_to "이미 계정이 있으신가요?", new_session_path(resource_name), class: "w-full bg-gray-300 py-2 text-center block rounded text-black" %>
+  </div>
+</div>

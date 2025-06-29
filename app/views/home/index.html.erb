@@ -1,6 +1,10 @@
  <div class="content max-w-3xl mx-auto px-4 py-10 text-gray-800 ">
 
  <div class="container grid grid-cols-2 gap-6 max-w-3xl mx-auto">
+  
+  <% if user_signed_in? %>
+  <p><%= current_user.name %>님 환영합니다!</p>
+<% end %>
 
   <!-- box1: 한 줄 전체로 2열 span -->
   <div class="box box1 col-span-2">
