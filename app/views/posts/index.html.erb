@@ -1,0 +1,60 @@
+ <div class="bg-[#f3ede3] pt-1 text-sm text-[#7c6243] flex justify-center space-x-8 relative">
+  <%= link_to "전체", posts_path, class: "pb-1 border-b-2 border-transparent hover:border-[#7c6243]" %>
+  <%= link_to "철학", posts_path(genre: "philosophy"), class: "pb-1 border-b-2 border-transparent hover:border-[#7c6243]" %>
+  <%= link_to "문학", posts_path(genre: "literature"), class: "pb-1 border-b-2 border-transparent hover:border-[#7c6243]" %>
+  <%= link_to "역사", posts_path(genre: "history"), class: "pb-1 border-b-2 border-transparent hover:border-[#7c6243]" %>
+  <%= link_to "사회", posts_path(genre: "society"), class: "pb-1 border-b-2 border-transparent hover:border-[#7c6243]" %>
+  <%= link_to "경제", posts_path(genre: "economy"), class: "pb-1 border-b-2 border-transparent hover:border-[#7c6243]" %>
+  <%= link_to "과학/기술", posts_path(genre: "science_tech"), class: "pb-1 border-b-2 border-transparent hover:border-[#7c6243]" %>
+</div>
+
+<div class="max-w-4xl mx-auto mt-10 p-8">
+<h2 class="text-2xl font-bold mb-2">
+  <%= params[:category].present? ? Post.category_korean[params[:category].to_sym] : "전체 글" %>
+</h2>
+
+
+
+<p class="text-sm text-gray-400 mb-4">페이지 설명</p>
+
+<div class="mb-6">
+    <form method="get" action="">
+      <input type="hidden" name="category" value="<%= params[:category] %>" />
+      <select name="sort" onchange="this.form.submit()" class="border border-gray-300 rounded px-2 py-1">
+        <option value="" <%= params[:sort].blank? ? "selected" : "" %>>최신순</option>
+        <option value="popular" <%= params[:sort] == "popular" ? "selected" : "" %>>인기순</option>
+      </select>
+    </form>
+  </div>
+<div class="space-y-6">
+  <% @posts.each do |post| %>
+    <div class="p-6 border-b border-[#ddd6ce]">
+      <div class="flex justify-between items-start">
+        <div>
+          <h3 class="text-lg font-semibold text-[#3a2d20] mb-1">
+            <%= link_to truncate(post.title, length: 40), post_path(post), class: "hover:underline" %>
+            <span class="text-sm text-[#b67c4a] ml-2">책 제목<%= post.id.to_s.rjust(8, "0") %></span>
+          </h3>
+          <p class="text-sm text-[#5e5147] leading-snug mb-2">
+            <%= truncate(post.post_blocks.first&.content || "", length: 120) %>
+          </p>
+          <div class="text-xs text-[#999] space-x-2">
+            <span><%= time_ago_in_korean(post.created_at) %>, <%= post.user&.name || post.user&.email || "익명" %> 씀</span>
+            <span>👁️‍🗨️ <%= post.view_count || 77 %></span>
+            <span>🤍 <%= post.like_count || 77 %></span>
+            <span>💬 77</span>
+          </div>
+        </div>
+
+        <div>
+          <%= link_to "#", class: "text-gray-400 hover:text-gray-600" do %>
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
+            </svg>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  <% end %>
+</div>
+</div>

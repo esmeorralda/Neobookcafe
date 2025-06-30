@@ -1,0 +1,12 @@
+<!-- app/views/layouts/_genre_content.html.erb -->
+<div class="px-6 py-4 bg-[#fdf8f0] shadow-inner">
+  <h2 class="text-lg font-semibold text-[#7c6243] mb-2">장르별 추천 글</h2>
+  <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+    <% @recommended_posts.each do |post| %>
+      <div class="border p-4 rounded-lg bg-white shadow">
+        <h3 class="font-bold text-[#2c1a0d] mb-1"><%= post.book_title %></h3>
+        <p class="text-sm text-gray-600"><%= post.book_author %></p>
+      </div>
+    <% end %>
+  </div>
+</div>

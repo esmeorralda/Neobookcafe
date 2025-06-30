@@ -20,6 +20,25 @@ class PostsController < ApplicationController
     def show
       @post = Post.find(params[:id])
     end
+
+    def index
+      if params[:category].present?
+        @posts = Post.where(category: params[:category])
+      else
+        @posts = Post.all
+      end
+
+      case params[:sort]
+      when "popular"
+        # 좋아요 수 내림차순 (또는 조회수 등으로 변경 가능)
+        @posts = @posts.order(like_count: :desc)
+      when "latest"
+        @posts = @posts.order(created_at: :desc)
+
+      else
+        @posts = @posts.order(created_at: :desc) # 기본 최신순
+      end
+    end
   
     private
   
@@ -30,5 +49,7 @@ class PostsController < ApplicationController
         post_blocks_attributes: [:id, :block_type, :content, :position, :_destroy]
       )
     end
+    
+ 
   end
   

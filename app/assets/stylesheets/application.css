@@ -17,7 +17,7 @@
     background: white;
     border-bottom: 1px solid #eee;
     z-index: 1000;
-    height: 150;
+    height: 60px;
 
     .header-container {
       max-width: 1200px;
@@ -84,7 +84,7 @@
   }
   
   body {
-    padding-top: 80px;
+    padding-top: 60px;
   }
   
   /* .content {
