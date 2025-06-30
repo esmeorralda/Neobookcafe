@@ -1,0 +1,144 @@
+<div class="max-w-4xl mx-auto mt-10 p-8 bg-[#f7f1ea] rounded shadow">
+  <div class="flex justify-between items-center mb-6">
+    <h1 class="text-xl font-bold text-gray-800">새 포스트 작성</h1>
+    <div class="space-x-2">
+      <button class="border border-gray-300 bg-white px-3 py-1 text-sm">미리 보기</button>
+      <button class="border border-gray-300 bg-white px-3 py-1 text-sm">임시 저장</button>
+      <button class="bg-[#5d3b2e] text-white px-4 py-1 rounded text-sm">업로드</button>
+    </div>
+  </div>
+
+  <%= form_with model: @post, local: true, class: "space-y-6", id: "post-form" do |f| %>
+    <!-- 기본 정보 -->
+    <div class="grid grid-cols-2 gap-4 text-sm">
+      <div>
+        <%= f.label :category, "게시판 선택", class: "block mb-1" %>
+        <%= f.select :category, [["감상문", "thought"], ["토론문", "discussion"], ["창작물", "creation"], ["자유게시글", "board"]], {}, class: "w-full border border-gray-300 p-2 rounded bg-white" %>
+      </div>
+      <div>
+        <%= f.label :book_title, "책 제목", class: "block mb-1" %>
+        <%= f.text_field :book_title, class: "w-full border border-gray-300 p-2 rounded" %>
+      </div>
+      <div>
+        <%= f.label :book_author, "책 저자", class: "block mb-1" %>
+        <%= f.text_field :book_author, class: "w-full border border-gray-300 p-2 rounded" %>
+      </div>
+    </div>
+
+    <div class="text-sm">
+      <%= f.label :title, "제목", class: "block mb-1" %>
+      <%= f.text_field :title, class: "w-full border border-gray-300 p-2 rounded" %>
+    </div>
+
+    <div>
+      <span class="text-sm mr-2">장르</span>
+      <% ["철학", "문학", "역사", "사회", "경제", "과학/기술"].each do |genre| %>
+        <label class="mr-2 text-sm">
+          <%= check_box_tag "genres[]", genre %> <%= genre %>
+        </label>
+      <% end %>
+      <label class="ml-4 text-sm">
+        <%= check_box_tag :allow_comments, true %> 댓글 허용
+      </label>
+    </div>
+
+    <!-- 문단 블록 -->
+    <div>
+      <label class="block text-sm font-semibold mb-2">문단 내용</label>
+      <%= f.fields_for :post_blocks, f.object.post_blocks.build(block_type: :paragraph, position: 0) do |block_form| %>
+        <%= block_form.hidden_field :block_type, value: "paragraph" %>
+        <%= block_form.text_area :content, rows: 4, class: "w-full border border-gray-300 p-2 rounded bg-white" %>
+      <% end %>
+    </div>
+
+    <!-- 동적 블록 추가 영역 -->
+    <div id="blocks-container" class="space-y-4 mt-4"></div>
+
+    <!-- 추가 버튼들 -->
+    <div class="flex space-x-2 mt-4">
+      <button type="button" class="bg-[#5d3b2e] text-white px-3 py-1 rounded text-sm" data-block-type="paragraph">+ 문단</button>
+      <button type="button" class="bg-[#5d3b2e] text-white px-3 py-1 rounded text-sm" data-block-type="quote">+ 인용</button>
+      <button type="button" class="bg-[#5d3b2e] text-white px-3 py-1 rounded text-sm" data-block-type="subtitle">+ 소제목</button>
+    </div>
+
+    <%= f.submit "포스트 저장", class: "block mx-auto mt-6 bg-[#a47148] hover:bg-[#8a5c36] text-white font-semibold px-6 py-2 rounded" %>
+  <% end %>
+</div>
+
+<!-- 템플릿 -->
+<!-- 템플릿에 모든 타입을 담고 각 타입마다 data-block-type 속성 부여 -->
+<template id="block-template">
+  <div class="block-item mb-4" data-block-type="paragraph">
+    <input type="hidden" name="post[post_blocks_attributes][__INDEX__][block_type]" value="paragraph">
+    <textarea 
+      name="post[post_blocks_attributes][__INDEX__][content]" 
+      rows="4" 
+      placeholder="문단을 입력해주세요"
+      class="w-full border border-gray-300 p-2 rounded"
+    ></textarea>
+    <input type="hidden" name="post[post_blocks_attributes][__INDEX__][_destroy]" value="false">
+    <button type="button" class="mt-1 text-red-500 text-sm remove-block">삭제 ✕</button>
+  </div>
+
+  <div class="block-item mb-4" data-block-type="quote">
+    <input type="hidden" name="post[post_blocks_attributes][__INDEX__][block_type]" value="quote">
+    <input 
+      type="text" 
+      name="post[post_blocks_attributes][__INDEX__][content]" 
+      placeholder="“ 인용 문구를 입력해주세요"
+      class="w-full border border-gray-300 p-2 rounded text-sm italic"
+    >
+    <input type="hidden" name="post[post_blocks_attributes][__INDEX__][_destroy]" value="false">
+    <button type="button" class="mt-1 text-red-500 text-sm remove-block">삭제 ✕</button>
+  </div>
+
+  <div class="block-item mb-4" data-block-type="subtitle">
+    <input type="hidden" name="post[post_blocks_attributes][__INDEX__][block_type]" value="subtitle">
+    <input 
+      type="text" 
+      name="post[post_blocks_attributes][__INDEX__][content]" 
+      placeholder="소제목을 입력해주세요"
+      class="w-full border border-gray-300 p-2 rounded text-sm"
+    >
+    <input type="hidden" name="post[post_blocks_attributes][__INDEX__][_destroy]" value="false">
+    <button type="button" class="mt-1 text-red-500 text-sm remove-block">삭제 ✕</button>
+  </div>
+</template>
+
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  let index = 1;
+
+  const container = document.getElementById("blocks-container");
+  const template = document.getElementById("block-template");
+
+  document.querySelectorAll("button[data-block-type]").forEach(button => {
+    button.addEventListener("click", () => {
+      const blockType = button.getAttribute("data-block-type");
+      const blockTemplate = template.content.querySelector(`div[data-block-type="${blockType}"]`);
+
+      if (!blockTemplate) return;
+
+      const newBlock = blockTemplate.cloneNode(true);
+
+      // Replace __INDEX__ placeholders with actual index
+      newBlock.innerHTML = newBlock.innerHTML.replace(/__INDEX__/g, index);
+
+      container.appendChild(newBlock);
+      index++;
+    });
+  });
+
+  container.addEventListener("click", (e) => {
+    if (e.target.classList.contains("remove-block")) {
+      const blockDiv = e.target.closest(".block-item");
+      const destroyInput = blockDiv.querySelector('input[name*="_destroy"]');
+      if (destroyInput) destroyInput.value = "1";
+      blockDiv.style.display = "none";
+    }
+  });
+});
+
+
+</script>

@@ -10,7 +10,7 @@ resources :discussions
 resources :creations
 resources :boards
 resources :book_notes, only: [:new, :create]
-resources :posts, only: [:new, :create]
+resources :posts
 
 get '/profile', to: 'users#show', as: 'profile'
   get '/settings', to: 'users#edit', as: 'settings'
