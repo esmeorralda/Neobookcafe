@@ -1,0 +1,42 @@
+<div class="relative max-w-3xl mx-auto space-y-4">
+  <!-- 책 제목 + 목차: 배경 밖 상단 -->
+  <h2 class="text-2xl font-semibold text-black mt-5">
+    <%= @note.book.title %>
+    <span class="text-sm text-[#926f6f]">
+      #<%= @note.chapter.position %> <%= @note.chapter.title %>
+    </span>
+  </h2>
+
+  <!-- 편집/삭제 버튼: 메모지 바깥 오른쪽 -->
+  <div class="absolute mt-25 -right-20 top-0 flex flex-col space-y-2">
+    <%= link_to "편집", edit_note_path(@note),
+        class: "border border-gray-400 text-gray-800 px-3 py-1 rounded hover:bg-gray-100 text-sm" %>
+    <%= link_to "삭제", note_path(@note),
+        method: :delete,
+        data: { confirm: "정말 삭제하시겠습니까?" },
+        class: "border border-gray-400 text-gray-800 px-3 py-1 rounded hover:bg-red-50 text-sm" %>
+  </div>
+
+  <!-- 메모지 (노란 배경 영역) -->
+  <div class="p-8 mt-15 bg-[#fcfcf0] shadow-md rounded-tr-none rounded-bl-none rounded-2xl relative">
+    <!-- 쪽수 / 날짜 -->
+    <div class="flex justify-between items-start mb-6">
+      <p class="text-sm text-gray-500"><%= @note.page_from %>~<%= @note.page_to %>쪽</p>
+      <p class="text-sm text-gray-500"><%= @note.created_at.strftime('%d/%m/%Y') %></p>
+    </div>
+
+    <!-- 메모 내용 -->
+    <div class="whitespace-pre-wrap text-black leading-relaxed space-y-2">
+      <%= @note.memo %>
+    </div>
+
+    <!-- 페이지 접힌 효과 -->
+    <div class="absolute bottom-0 right-0 w-12 h-12 bg-[#e5e5d7] clip-path-corner"></div>
+  </div>
+</div>
+
+<style>
+  .clip-path-corner {
+    clip-path: polygon(100% 0, 100% 100%, 0 100%);
+  }
+</style>

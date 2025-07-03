@@ -9,8 +9,17 @@ Rails.application.routes.draw do
 resources :discussions
 resources :creations
 resources :boards
-resources :book_notes, only: [:new, :create]
 resources :posts
+resources :books do
+  resources :notes, only: [:new, :create, :edit, :update, :destroy]
+end
+resources :books do
+  resources :chapters, only: [:index]
+end
+
+resources :notes
+resources :books
+
 
 get '/profile', to: 'users#show', as: 'profile'
   get '/settings', to: 'users#edit', as: 'settings'

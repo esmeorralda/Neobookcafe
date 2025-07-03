@@ -9,10 +9,16 @@
 #   end
 # db/seeds.rb
 
+
+
 categories = [:thought, :discussion, :creation, :board]
 book_genres = [:philosophy, :literature, :history, :society, :economy, :science_technology]
 
-users = User.pluck(:id)
+user = User.find_or_create_by!(email: "test@example.com") do |u|
+    u.password = "password"
+    u.password_confirmation = "password"
+  end
+  
 
 categories.each do |category|
   3.times do
@@ -22,7 +28,7 @@ categories.each do |category|
       title: "#{category.to_s.humanize} - #{genre.to_s.humanize} 글 제목 #{SecureRandom.hex(3)}",
       book_title: "#{genre.to_s.humanize} 책 제목 #{SecureRandom.hex(2)}",
       book_author: "#{genre.to_s.humanize} 저자 #{SecureRandom.hex(2)}",
-      user_id: users.sample,
+      user: user, 
       category: category,
       draft: false,
       allow_comments: true,

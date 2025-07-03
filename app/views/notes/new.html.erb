@@ -1,0 +1,182 @@
+<div class="max-w-2xl mx-auto bg-white p-6 rounded-xl shadow space-y-6">
+  <h2 class="text-xl font-bold text-gray-800">
+    <%= @note.book&.title.presence || "새로운 메모" %>
+  </h2>
+
+  <%= form_with(model: @note, local: true) do |f| %>
+
+    <!-- 📘 책 선택 -->
+    <!-- 📘 책 선택 -->
+<div class="mb-4" id="book_select_container">
+  <%= label_tag :book_id, "책 선택 또는 새로 입력", class: "block font-medium mb-1" %>
+  <%= select_tag "note[book_id]",
+      options_for_select(
+        [["📖 새로운 책 입력", "new_book"]] + current_user.books.pluck(:title, :id),
+        selected: @note.book_id
+      ),
+      prompt: "책을 선택하세요",
+      class: "w-full border border-gray-300 rounded p-2",
+      id: "book_select" %>
+</div>
+
+<!-- 새 책 제목 입력 필드 (초기엔 숨김) -->
+<div id="new_book_title_field" class="mb-4 hidden">
+  <%= label_tag "note[book_title]", "새 책 제목", class: "block font-medium mb-1" %>
+  <%= text_field_tag "note[book_title]", nil, placeholder: "예: 나미야 잡화점의 기적", class: "w-full border border-gray-300 rounded p-2" %>
+</div>
+
+  <%= f.label :chapter, "범위", class: "block text-sm font-medium text-gray-700" %>
+    <!-- ✏️ 페이지, 목차, 색상 -->
+    <div class="grid grid-cols-2 gap-4">
+    
+    <!-- ✅ 쪽 범위 입력 한 줄에 표시 -->
+<div class="flex items-center space-x-2">
+  <%= f.number_field :page_from, class: "w-20 border border-gray-300 rounded-md p-2 text-sm" %>
+  <span class="text-sm text-gray-700">쪽부터 ~ </span>
+  <%= f.number_field :page_to, class: "w-20 border border-gray-300 rounded-md p-2 text-sm" %>
+  <span class="text-sm text-gray-700">쪽까지</span>
+</div>
+
+
+
+<!-- 목차 드롭다운 영역 -->
+<!-- 목차 드롭다운 영역 -->
+<div class="mb-4">
+  <%= label_tag :chapter_id, "목차 선택 또는 새로 입력", class: "block font-medium mb-1" %>
+  <%= select_tag "note[chapter_id]",
+      options_for_select(
+        (@chapters || []).map { |ch| [ch.title, ch.id] } + [["➕ 새로운 목차 입력", "new_chapter"]],
+        selected: @note.chapter_id
+      ),
+      prompt: "목차를 선택하세요",
+      class: "w-full border border-gray-300 rounded p-2",
+      id: "chapter_select" %>
+</div>
+
+
+<!-- 새로운 목차 입력란 (초기엔 숨김) -->
+<div id="new_chapter_title_field" class="mb-4 hidden">
+  <%= label_tag "note[chapter_title]", "새 목차 제목", class: "block font-medium mb-1" %>
+  <%= text_field_tag "note[chapter_title]", nil, placeholder: "예: 1장 시작하기", class: "w-full border border-gray-300 rounded p-2" %>
+</div>
+
+<div class="col-span-2">
+  <%= f.label :color, "색상", class: "block text-sm font-medium text-gray-700 mb-2" %>
+  <div class="flex space-x-4">
+    <% [['#FFFACD'], ['#ADD8E6'], ['#FFB6C1']].each_with_index do |(hex), index| %>
+      <label class="cursor-pointer">
+        <%= f.radio_button :color, hex, id: "color_#{index}", class: "hidden peer" %>
+        <span class="w-8 h-8 rounded-full border-2 border-gray-300 peer-checked:ring-2 ring-offset-2 ring-blue-500 inline-block" style="background-color: <%= hex %>"></span>
+      </label>
+    <% end %>
+  </div>
+</div>
+
+    <!-- 🧠 메모 입력 -->
+  <div class="space-y-6"> <!-- 전체 세로 간격 -->
+  <div>
+    <%= f.label :memo, "메모를 남겨주세요", class: "block text-sm font-medium text-gray-700" %>
+   <%= f.text_area :memo, rows: 10, class: "mt-1 block w-[600px] border border-gray-300 rounded-md shadow-sm p-3 resize-y" %>
+
+  </div>
+
+  <div class="flex justify-center gap-4">
+    <%= f.submit "저장", class: "bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-xl" %>
+    <%= link_to "취소", new_note_path, class: "bg-gray-300 hover:bg-gray-400 text-gray-800 py-2 px-4 rounded-xl flex items-center justify-center" %>
+    <% if @note.persisted? %>
+      <%= link_to "삭제", note_path(@note), method: :delete, data: { confirm: "정말 삭제할까요?" }, class: "bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded-xl flex items-center justify-center" %>
+    <% end %>
+  </div>
+</div>
+
+  <% end %>
+</div>
+<!-- ✅ JS: 책 선택 → 새 입력란 표시 + 목차 로딩 및 새로운 목차 입력란 토글 -->
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  const bookSelect = document.getElementById("book_select");
+  const newBookField = document.getElementById("new_book_title_field");
+
+  const chapterSelectContainer = document.getElementById("chapter_select_container");
+  const chapterSelect = document.getElementById("chapter_select");
+  const newChapterField = document.getElementById("new_chapter_title_field");
+
+  function toggleBookAndChapterFields() {
+    if (bookSelect.value === "new_book") {
+      newBookField.classList.remove("hidden");    // 새 책 입력란 보임
+      chapterSelectContainer.classList.remove("hidden"); // 목차 드롭다운 보임
+      newChapterField.classList.add("hidden"); // 새 목차 입력란 초기엔 숨김
+    } else {
+      newBookField.classList.add("hidden");      // 새 책 입력란 숨김
+      newChapterField.classList.add("hidden");   // 새 목차 입력란 숨김
+      chapterSelectContainer.classList.remove("hidden"); // 목차 드롭다운 보임
+    }
+  }
+
+  async function loadChapters(bookId) {
+    try {
+      const response = await fetch(`/books/${bookId}/chapters`);
+      if (!response.ok) throw new Error("Failed to fetch chapters");
+      const chapters = await response.json();
+
+      chapterSelect.innerHTML = "";
+
+      if (chapters.length > 0) {
+        chapters.forEach(ch => {
+          const option = document.createElement("option");
+          option.value = ch.id;
+          option.text = ch.title;
+          chapterSelect.appendChild(option);
+        });
+      }
+
+      // 항상 '새로운 목차 입력' 옵션 추가
+      const newOption = document.createElement("option");
+      newOption.value = "new_chapter";
+      newOption.text = "➕ 새로운 목차 입력";
+      chapterSelect.appendChild(newOption);
+
+    } catch (error) {
+      console.error(error);
+      chapterSelect.innerHTML = "";
+
+      // 오류 시에도 '새로운 목차 입력' 옵션 추가
+      const newOption = document.createElement("option");
+      newOption.value = "new_chapter";
+      newOption.text = "➕ 새로운 목차 입력";
+      chapterSelect.appendChild(newOption);
+    }
+  }
+
+  function toggleNewChapterField() {
+    if (chapterSelect.value === "new_chapter") {
+      newChapterField.classList.remove("hidden"); // 입력 필드 보여주기
+    } else {
+      newChapterField.classList.add("hidden");    // 입력 필드 숨기기
+    }
+  }
+
+  bookSelect.addEventListener("change", () => {
+    toggleBookAndChapterFields();
+
+    if (bookSelect.value && bookSelect.value !== "new_book") {
+      loadChapters(bookSelect.value);
+    } else {
+      chapterSelect.innerHTML = "";
+    }
+  });
+
+  chapterSelect.addEventListener("change", toggleNewChapterField);
+
+  // 초기 상태 설정
+  toggleBookAndChapterFields();
+
+  if (bookSelect.value && bookSelect.value !== "new_book") {
+    loadChapters(bookSelect.value);
+  }
+
+  toggleNewChapterField();
+});
+
+
+</script>

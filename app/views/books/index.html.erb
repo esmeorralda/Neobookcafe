@@ -1,0 +1,54 @@
+<div class="relative max-w-3xl mx-auto space-y-4">
+  <h1 class="text-3xl font-bold text-gray-800 mb-10">📚 독서 기록장</h1>
+
+  <% @books.each do |book| %>
+    <% recent_notes = book.notes.order(position: :desc).limit(3) %>
+    
+    <div>
+      <!-- 책 제목 + 전체 쪽수 + 진행률 -->
+      <div class="flex justify-between items-center mb-4">
+        <div class="text-xl font-semibold text-gray-800">
+          <%= book.title %>
+          <% total_pages = book.total_pages || 0 %>
+          <% read_pages = book.notes.sum { |n| (n.page_to || 0) - (n.page_from || 0) + 1 } %>
+          <span class="ml-4 text-sm text-gray-500">
+            <%= read_pages %>쪽 · <%= total_pages > 0 ? number_to_percentage((read_pages.to_f / total_pages) * 100, precision: 0) : "0%" %>
+          </span>
+        </div>
+        <%= link_to "편집", edit_book_path(book), class: "border border-gray-400 text-gray-800 px-3 py-1 rounded hover:bg-gray-100 text-sm" %>
+      </div>
+
+      <!-- 노트 카드 -->
+      <div class="flex flex-wrap gap-4">
+        <% recent_notes.each do |note| %>
+          <div class="relative w-56 p-4 pb-6 rounded-xl shadow-md" style="background-color: <%= note.color || '#fcfcf0' %>">
+            <!-- 페이지와 날짜 -->
+            <div class="flex justify-between text-xs text-gray-700 mb-2">
+              <span><%= note.page_from %>~<%= note.page_to %>쪽</span>
+              <span><%= note.created_at.strftime('%d/%m/%Y') %></span>
+            </div>
+
+            <!-- 메모 내용 -->
+            <div class="whitespace-pre-wrap text-black text-sm leading-relaxed">
+              <%= truncate(note.memo, length: 140) %>
+            </div>
+
+            <!-- 페이지 접힌 효과 -->
+            <div class="absolute bottom-0 right-0 w-10 h-10 bg-[#e5e5d7] clip-path-corner"></div>
+
+            <!-- 더보기 버튼 -->
+            <%= link_to "더보기 »", note_path(note), class: "absolute bottom-2 right-4 text-xs text-gray-600 hover:underline" %>
+          </div>
+        <% end %>
+      </div>
+
+      <hr class="my-10 border-t border-gray-300">
+    </div>
+  <% end %>
+</div>
+
+<style>
+  .clip-path-corner {
+    clip-path: polygon(100% 0, 100% 100%, 0 100%);
+  }
+</style>

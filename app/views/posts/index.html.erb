@@ -23,6 +23,8 @@
       <select name="sort" onchange="this.form.submit()" class="border border-gray-300 rounded px-2 py-1">
         <option value="" <%= params[:sort].blank? ? "selected" : "" %>>최신순</option>
         <option value="popular" <%= params[:sort] == "popular" ? "selected" : "" %>>인기순</option>
+           <%# <option value="popular" <%= params[:sort] == "popular" ? "selected" : "" %>>추천순</option>
+            <option value="popular" <%= params[:sort] == "popular" ? "selected" : "" %>>댓글순</option> %>
       </select>
     </form>
   </div>
