@@ -22,7 +22,7 @@ class Post < ApplicationRecord
   def self.category_korean
     {
       thought: "감상문",
-      discussion: "토론문",
+      discussion: "논설문",
       creation: "창작물",
       board: "자유게시글"
     }
