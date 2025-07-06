@@ -17,8 +17,10 @@
         class: "border border-gray-400 text-gray-800 px-3 py-1 rounded hover:bg-red-50 text-sm" %>
   </div>
 
-  <!-- 메모지 (노란 배경 영역) -->
-  <div class="p-8 mt-15 bg-[#fcfcf0] shadow-md rounded-tr-none rounded-bl-none rounded-2xl relative">
+  <!-- 메모지 (동적 배경색 적용) -->
+  <div class="p-8 mt-15 shadow-md rounded-tr-none rounded-bl-none rounded-2xl relative"
+       style="background-color: <%= @note.color %>;">
+       
     <!-- 쪽수 / 날짜 -->
     <div class="flex justify-between items-start mb-6">
       <p class="text-sm text-gray-500"><%= @note.page_from %>~<%= @note.page_to %>쪽</p>
