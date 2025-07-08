@@ -138,49 +138,49 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   // 3) 책 선택시 목차 데이터 AJAX로 불러오기
-  async function loadChapters(bookId) {
-    if (!bookId || bookId === "new_book") return;
+async function loadChapters(bookId) {
+  if (!bookId || bookId === "new_book") return;
 
-    try {
-      const response = await fetch(`/books/${bookId}/chapters_and_current_page`);
-      if (!response.ok) throw new Error("Failed to fetch chapters");
-      const chapters = await response.json();
+  try {
+    const response = await fetch(`/books/${bookId}/chapters_and_current_page`);
+    if (!response.ok) throw new Error("Failed to fetch chapters");
 
-      chapterSelect.innerHTML = "";
+    const data = await response.json();
+    const chapters = data.chapters;
 
-      chapters.forEach(ch => {
-        const option = document.createElement("option");
-        option.value = ch.id;
-        option.text = ch.title;
-        chapterSelect.appendChild(option);
-      });
+    // chapter select 채우기
+    chapterSelect.innerHTML = "";
+    chapters.forEach(ch => {
+      const option = document.createElement("option");
+      option.value = ch.id;
+      option.text = ch.title;
+      chapterSelect.appendChild(option);
+    });
 
-      const newOption = document.createElement("option");
-      newOption.value = "new_chapter";
-      newOption.text = "➕ 새로운 목차 입력";
-      chapterSelect.appendChild(newOption);
+    const newOption = document.createElement("option");
+    newOption.value = "new_chapter";
+    newOption.text = "➕ 새로운 목차 입력";
+    chapterSelect.appendChild(newOption);
 
-      chapterWrapper.classList.remove("hidden");
-      newChapterField.classList.add("hidden");
+    chapterWrapper.classList.remove("hidden");
+    newChapterField.classList.add("hidden");
 
-      // 라벨도 보이게
-      if (chapterLabel) {
-        chapterLabel.classList.remove("hidden");
-      }
-    } catch (error) {
-      console.error(error);
-      chapterSelect.innerHTML = "";
+    // 라벨도 보이게
+    if (chapterLabel) {
+      chapterLabel.classList.remove("hidden");
     }
 
-     const pageFromField = document.getElementById("page_from_field");
+    // ✅ page_from에 current_page 채우기
+    const pageFromField = document.getElementById("page_from_field");
     if (pageFromField) {
       pageFromField.value = data.current_page || 0;
     }
+
   } catch (error) {
     console.error(error);
     chapterSelect.innerHTML = "";
   }
-  }
+}
 
   // 이벤트 바인딩
   bookSelect.addEventListener("change", () => {
