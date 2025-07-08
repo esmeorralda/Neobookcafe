@@ -19,9 +19,13 @@ resources :books do
 end
 
 resources :notes
-resources :books
+
 resources :books do
   get 'chapters_and_current_page', to: 'books#chapters_and_current_page'
+end
+
+resources :posts do
+  resources :comments, only: [:create]
 end
 
 

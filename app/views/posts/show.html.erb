@@ -41,4 +41,64 @@
       <% end %>
     <% end %>
   </div>
+
+  <div class="mt-10 space-y-6">
+  <% @post.comments.each do |comment| %>
+    <div class="bg-[#f7f1eb] p-4 rounded">
+      <p class="text-sm text-gray-800 font-semibold"><%= comment.user.name %></p>
+      <p class="text-base text-gray-900"><%= comment.content %></p>
+      <div class="text-xs text-gray-500 mt-1">
+        <%= comment.created_at.strftime('%Y년 %-m월 %-d일') %> |
+      <a href="#" class="reply-toggle text-blue-500" data-target="reply-form-<%= comment.id %>">답글쓰기</a>
+
+      </div>
+
+      <!-- 대댓글 목록 -->
+      <% comment.replies.each do |reply| %>
+        <div class="ml-6 mt-4 p-3 bg-[#fcfaf8] border-l-4 border-[#c9a77e]">
+          <p class="text-sm text-gray-800 font-semibold"><%= reply.user.name %></p>
+          <p class="text-sm text-gray-900"><%= reply.content %></p>
+          <p class="text-xs text-gray-500 mt-1"><%= reply.created_at.strftime('%Y년 %-m월 %-d일') %></p>
+        </div>
+      <% end %>
+
+      <!-- 대댓글 폼 -->
+ <!-- 대댓글 입력 폼 -->
+<div id="reply-form-<%= comment.id %>" class="reply-form hidden mt-4 ml-6">
+  <%= form_with model: Comment.new, url: post_comments_path(@post), local: true do |f| %>
+    <%= f.hidden_field :post_id, value: @post.id %>
+    <%= f.hidden_field :parent_id, value: comment.id %>
+    <%= f.text_area :content, placeholder: "답글을 입력하세요", rows: 2, class: "w-full p-2 border rounded" %>
+    <%= f.submit "답글 등록", class: "mt-2 px-4 py-1 bg-[#c9a77e] text-white rounded" %>
+  <% end %>
 </div>
+
+    </div>
+  <% end %>
+</div>
+
+<div class="mt-10">
+<%= form_with model: Comment.new, url: post_comments_path(@post), local: true do |f| %>
+  <%= f.hidden_field :post_id, value: @post.id %>
+  <%= f.text_area :content, placeholder: "댓글을 작성해주세요", rows: 3, class: "w-full p-2 border rounded" %>
+  <%= f.submit "댓글 등록", class: "mt-2 px-4 py-2 bg-[#8b5e3c] text-white rounded" %>
+<% end %>
+</div>
+
+</div>
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.reply-toggle').forEach(button => {
+      button.addEventListener('click', event => {
+        event.preventDefault();
+
+        const targetId = button.dataset.target;
+        const targetForm = document.getElementById(targetId);
+        if (targetForm) {
+          targetForm.classList.toggle('hidden');
+        }
+      });
+    });
+  });
+</script>
+

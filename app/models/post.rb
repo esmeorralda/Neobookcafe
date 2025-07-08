@@ -1,7 +1,7 @@
 class Post < ApplicationRecord
   belongs_to :user
   has_many :post_blocks, -> { order(:position) }, dependent: :destroy
-
+  has_many :comments, -> { where(parent_id: nil).order(created_at: :asc) }, dependent: :destroy
   enum :category, [ :thought, :discussion, :creation, :board ]
   enum :book_genre, [ :philosophy, :literature, :history, :society, :economy,
     :science_technology ]
