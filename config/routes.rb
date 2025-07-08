@@ -11,6 +11,7 @@ resources :discussions
 resources :creations
 resources :boards
 resources :posts
+resources :likes
 resources :books do
   resources :notes, only: [:new, :create, :edit, :update, :destroy]
 end
@@ -19,7 +20,6 @@ resources :books do
 end
 
 resources :notes
-
 resources :books do
   get 'chapters_and_current_page', to: 'books#chapters_and_current_page'
 end

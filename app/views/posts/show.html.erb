@@ -1,25 +1,27 @@
-<div class="max-w-4xl mx-auto px-4 py-10">
+<!-- app/views/posts/show.html.erb -->
+
+<head>
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/font-kopub@1.0/kopubbatang.min.css">
+</head>
+
+<div class="max-w-4xl mx-auto px-4 py-10 kopub-batang">
   <!-- 제목 -->
   <div class="flex items-start justify-between mb-6">
     <div>
       <h1 class="text-3xl font-bold text-[#2c1a0d] mb-2"><%= @post.title %></h1>
       <p class="text-sm text-gray-700">
-        책 제목<%= @post.book_title %> (<%= @post.book_author %>)
+        책 제목 <%= @post.book_title %> (<%= @post.book_author %>)
       </p>
     </div>
     <div class="text-right text-sm text-gray-500 space-y-1">
-      <%# <p><%= @post.genre_list.join(', ') if @post.respond_to?(:genre_list) %>
- <%= @post.book_genre_kr%>, <%= @post.category_kr %>
-
+      <p><%= @post.book_genre_kr %>, <%= @post.category_kr %></p>
       <p>
-        작성자 이름, <%= @post.created_at.strftime('%Y년 %-m월 %-d일') %> 씀
+        작성자 <%= @post.user.name %>, <%= @post.created_at.strftime('%Y년 %-m월 %-d일') %> 씀
       </p>
       <div class="flex justify-end space-x-4 text-gray-500 mt-1">
-   <p class="text-xs text-gray-500 text-right">
-  조회 <%= @post.view_count.to_i %>회 · 좋아요 <%= @post.like_count.to_i %>개 · 저장 <%= @post.save_count.to_i %>개
-</p>
-
-
+        <p class="text-xs text-gray-500 text-right">
+          조회 <%= @post.view_count.to_i %>회 · 좋아요 <%= @post.like_count.to_i %>개 · 저장 <%= @post.save_count.to_i %>개
+        </p>
       </div>
     </div>
   </div>
@@ -42,56 +44,92 @@
     <% end %>
   </div>
 
+  <!-- 댓글 목록 -->
   <div class="mt-10 space-y-6">
-  <% @post.comments.each do |comment| %>
-    <div class="bg-[#f7f1eb] p-4 rounded">
-      <p class="text-sm text-gray-800 font-semibold"><%= comment.user.name %></p>
-      <p class="text-base text-gray-900"><%= comment.content %></p>
-      <div class="text-xs text-gray-500 mt-1">
-        <%= comment.created_at.strftime('%Y년 %-m월 %-d일') %> |
-      <a href="#" class="reply-toggle text-blue-500" data-target="reply-form-<%= comment.id %>">답글쓰기</a>
+    <% @post.comments.where(parent_id: nil).each do |comment| %>
+      <div class="bg-[#f7f1eb] p-4 rounded">
+        <!-- 댓글 작성자 -->
+        <p class="text-sm text-gray-800 font-semibold"><%= comment.user.name %></p>
 
-      </div>
+        <!-- 댓글 좋아요 개수 및 버튼 -->
+        <p class="text-xs text-gray-500 flex items-center space-x-2">
+          <span><%= comment.likes.count %>개 좋아요</span>
+          <% if user_signed_in? %>
+        <% like = comment.likes.find_by(user: current_user) %>
+<% if like %>
+<%= button_to "좋아요 취소", like_path(like), method: :delete, params: { likeable_type: like.likeable_type, likeable_id: like.likeable_id }, form_class: "inline" %>
 
-      <!-- 대댓글 목록 -->
-      <% comment.replies.each do |reply| %>
-        <div class="ml-6 mt-4 p-3 bg-[#fcfaf8] border-l-4 border-[#c9a77e]">
-          <p class="text-sm text-gray-800 font-semibold"><%= reply.user.name %></p>
-          <p class="text-sm text-gray-900"><%= reply.content %></p>
-          <p class="text-xs text-gray-500 mt-1"><%= reply.created_at.strftime('%Y년 %-m월 %-d일') %></p>
-        </div>
-      <% end %>
-
-      <!-- 대댓글 폼 -->
- <!-- 대댓글 입력 폼 -->
-<div id="reply-form-<%= comment.id %>" class="reply-form hidden mt-4 ml-6">
-  <%= form_with model: Comment.new, url: post_comments_path(@post), local: true do |f| %>
-    <%= f.hidden_field :post_id, value: @post.id %>
-    <%= f.hidden_field :parent_id, value: comment.id %>
-    <%= f.text_area :content, placeholder: "답글을 입력하세요", rows: 2, class: "w-full p-2 border rounded" %>
-    <%= f.submit "답글 등록", class: "mt-2 px-4 py-1 bg-[#c9a77e] text-white rounded" %>
-  <% end %>
-</div>
-
-    </div>
-  <% end %>
-</div>
-
-<div class="mt-10">
-<%= form_with model: Comment.new, url: post_comments_path(@post), local: true do |f| %>
-  <%= f.hidden_field :post_id, value: @post.id %>
-  <%= f.text_area :content, placeholder: "댓글을 작성해주세요", rows: 3, class: "w-full p-2 border rounded" %>
-  <%= f.submit "댓글 등록", class: "mt-2 px-4 py-2 bg-[#8b5e3c] text-white rounded" %>
+<% else %>
+  <%= button_to "좋아요 추가", likes_path(likeable_type: "Comment", likeable_id: comment.id), method: :post, form_class: "inline" %>
 <% end %>
+
+          <% end %>
+        </p>
+
+        <!-- 댓글 내용 -->
+        <p class="text-sm text-gray-700 mt-1"><%= comment.content %></p>
+
+        <!-- 댓글 작성일 및 답글쓰기 토글 -->
+        <div class="text-xs text-gray-500 mt-1 flex justify-between items-center">
+          <span><%= comment.created_at.strftime('%Y년 %-m월 %-d일') %></span>
+          <a href="#" class="reply-toggle text-blue-500" data-target="reply-form-<%= comment.id %>">답글쓰기</a>
+        </div>
+
+        <!-- 대댓글 목록 -->
+        <% comment.replies.each do |reply| %>
+          <div class="ml-6 mt-4 p-3 bg-[#fcfaf8] border-l-4 border-[#c9a77e] rounded">
+            <!-- 대댓글 작성자 -->
+            <p class="text-sm text-gray-800 font-semibold"><%= reply.user.name %></p>
+
+            <!-- 대댓글 좋아요 개수 및 버튼 -->
+            <p class="text-xs text-gray-500 flex items-center space-x-2">
+              <span><%= reply.likes.count %>개 좋아요</span>
+              <% if user_signed_in? %>
+                <% if reply.likes.exists?(user: current_user) %>
+                 <%= button_to "좋아요 취소", like_path(reply.likes.find_by(user: current_user)), method: :delete, params: { likeable_type: "Comment", likeable_id: reply.id }, form_class: "inline" %>
+
+                <% else %>
+                  <%= button_to "좋아요 추가", likes_path(likeable_type: "Comment", likeable_id: reply.id), method: :post, form_class: "inline" %>
+                <% end %>
+              <% end %>
+            </p>
+
+            <!-- 대댓글 내용 -->
+            <p class="text-xs text-gray-700 mt-1"><%= reply.content %></p>
+
+            <!-- 대댓글 작성일 -->
+            <p class="text-xs text-gray-500 mt-1"><%= reply.created_at.strftime('%Y년 %-m월 %-d일') %></p>
+          </div>
+        <% end %>
+
+        <!-- 대댓글 입력 폼 -->
+        <div id="reply-form-<%= comment.id %>" class="reply-form hidden mt-4 ml-6">
+          <%= form_with model: Comment.new, url: post_comments_path(@post), local: true do |f| %>
+            <%= f.hidden_field :post_id, value: @post.id %>
+            <%= f.hidden_field :parent_id, value: comment.id %>
+            <%= f.text_area :content, placeholder: "답글을 입력하세요", rows: 2, class: "w-full p-2 border rounded" %>
+            <%= f.submit "답글 등록", class: "mt-2 px-4 py-1 bg-[#c9a77e] text-white rounded" %>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+  </div>
+
+  <!-- 댓글 작성 폼 -->
+  <div class="mt-10">
+    <%= form_with model: Comment.new, url: post_comments_path(@post), local: true do |f| %>
+      <%= f.hidden_field :post_id, value: @post.id %>
+      <%= f.text_area :content, placeholder: "댓글을 작성해주세요", rows: 3, class: "w-full p-2 border rounded" %>
+      <%= f.submit "댓글 등록", class: "mt-2 px-4 py-2 bg-[#8b5e3c] text-white rounded" %>
+    <% end %>
+  </div>
 </div>
 
-</div>
 <script>
   document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('.reply-toggle').forEach(button => {
       button.addEventListener('click', event => {
         event.preventDefault();
-
         const targetId = button.dataset.target;
         const targetForm = document.getElementById(targetId);
         if (targetForm) {
@@ -101,4 +139,3 @@
     });
   });
 </script>
-

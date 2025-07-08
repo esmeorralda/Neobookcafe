@@ -8,6 +8,10 @@
  *ㅁ
  * Consider organizing styles into separate files for maintainability.
  */
+ .kopub-batang {
+  font-family: 'KoPub Batang', serif !important;
+  font-weight: 300 !important; /* Medium 굵기 */
+}
 
 
   .site-header {
