@@ -6,8 +6,7 @@
   <%= form_with(model: @note, local: true) do |f| %>
 
     <!-- 📘 책 선택 -->
-    <!-- 📘 책 선택 -->
-<div class="mb-4" id="book_select_container">
+<div id="book_select_wrapper" class="mb-4">
   <%= label_tag :book_id, "책 선택 또는 새로 입력", class: "block font-medium mb-1" %>
   <%= select_tag "note[book_id]",
       options_for_select(
@@ -18,6 +17,7 @@
       class: "w-full border border-gray-300 rounded p-2",
       id: "book_select" %>
 </div>
+
 
 <!-- 새 책 제목 입력 필드 (초기엔 숨김) -->
 <div id="new_book_title_field" class="mb-4 hidden">
@@ -41,8 +41,8 @@
 
 <!-- 목차 드롭다운 영역 -->
 <!-- 목차 드롭다운 영역 -->
-<div class="mb-4">
-  <%= label_tag :chapter_id, "목차 선택 또는 새로 입력", class: "block font-medium mb-1" %>
+<div id="chapter_select_wrapper" class="mb-4">
+  <%= label_tag :chapter_id, "목차 선택 또는 새로 입력", class: "block font-medium mb-1", id: "chapter_select_label" %>
   <%= select_tag "note[chapter_id]",
       options_for_select(
         (@chapters || []).map { |ch| [ch.title, ch.id] } + [["➕ 새로운 목차 입력", "new_chapter"]],
@@ -52,7 +52,6 @@
       class: "w-full border border-gray-300 rounded p-2",
       id: "chapter_select" %>
 </div>
-
 
 <!-- 새로운 목차 입력란 (초기엔 숨김) -->
 <div id="new_chapter_title_field" class="mb-4 hidden">
@@ -94,26 +93,54 @@
 <!-- ✅ JS: 책 선택 → 새 입력란 표시 + 목차 로딩 및 새로운 목차 입력란 토글 -->
 <script>
 document.addEventListener("DOMContentLoaded", function () {
+  // DOM 요소
   const bookSelect = document.getElementById("book_select");
+  const bookWrapper = document.getElementById("book_select_wrapper");
   const newBookField = document.getElementById("new_book_title_field");
 
-  const chapterSelectContainer = document.getElementById("chapter_select_container");
   const chapterSelect = document.getElementById("chapter_select");
+  const chapterWrapper = document.getElementById("chapter_select_wrapper");
   const newChapterField = document.getElementById("new_chapter_title_field");
 
-  function toggleBookAndChapterFields() {
-    if (bookSelect.value === "new_book") {
-      newBookField.classList.remove("hidden");    // 새 책 입력란 보임
-      chapterSelectContainer.classList.remove("hidden"); // 목차 드롭다운 보임
-      newChapterField.classList.add("hidden"); // 새 목차 입력란 초기엔 숨김
-    } else {
-      newBookField.classList.add("hidden");      // 새 책 입력란 숨김
-      newChapterField.classList.add("hidden");   // 새 목차 입력란 숨김
-      chapterSelectContainer.classList.remove("hidden"); // 목차 드롭다운 보임
+  // 새로 추가한 목차 라벨 id
+  const chapterLabel = document.getElementById("chapter_select_label");
+
+  // 1) 책 선택 상태 토글 함수
+  function toggleBookField() {
+    const isNewBook = bookSelect.value === "new_book";
+
+    newBookField.classList.toggle("hidden", !isNewBook);
+  bookWrapper.classList.toggle("hidden", isNewBook);
+
+  if (isNewBook) {
+    // 새 책 입력 시
+    chapterWrapper.classList.add("hidden");       // 목차 드롭다운 숨김
+    chapterLabel.classList.add("hidden");         // 목차 라벨 숨김
+    newChapterField.classList.remove("hidden");   // 새 목차 입력 필드 보임
+  } else {
+    // 책 선택 시
+    chapterWrapper.classList.remove("hidden");    // 목차 드롭다운 보임
+    chapterLabel.classList.remove("hidden");      // 목차 라벨 보임
+    newChapterField.classList.add("hidden");      // 새 목차 입력 필드 숨김
+  }
+  }
+
+  // 2) 목차 선택 상태 토글 함수 (라벨도 같이 토글)
+  function toggleChapterField() {
+    const isNewChapter = chapterSelect.value === "new_chapter";
+
+    chapterSelect.classList.toggle("hidden", isNewChapter);
+    newChapterField.classList.toggle("hidden", !isNewChapter);
+
+    if (chapterLabel) {
+      chapterLabel.classList.toggle("hidden", isNewChapter);
     }
   }
 
+  // 3) 책 선택시 목차 데이터 AJAX로 불러오기
   async function loadChapters(bookId) {
+    if (!bookId || bookId === "new_book") return;
+
     try {
       const response = await fetch(`/books/${bookId}/chapters`);
       if (!response.ok) throw new Error("Failed to fetch chapters");
@@ -121,61 +148,50 @@ document.addEventListener("DOMContentLoaded", function () {
 
       chapterSelect.innerHTML = "";
 
-      if (chapters.length > 0) {
-        chapters.forEach(ch => {
-          const option = document.createElement("option");
-          option.value = ch.id;
-          option.text = ch.title;
-          chapterSelect.appendChild(option);
-        });
-      }
+      chapters.forEach(ch => {
+        const option = document.createElement("option");
+        option.value = ch.id;
+        option.text = ch.title;
+        chapterSelect.appendChild(option);
+      });
 
-      // 항상 '새로운 목차 입력' 옵션 추가
       const newOption = document.createElement("option");
       newOption.value = "new_chapter";
       newOption.text = "➕ 새로운 목차 입력";
       chapterSelect.appendChild(newOption);
 
+      chapterWrapper.classList.remove("hidden");
+      newChapterField.classList.add("hidden");
+
+      // 라벨도 보이게
+      if (chapterLabel) {
+        chapterLabel.classList.remove("hidden");
+      }
     } catch (error) {
       console.error(error);
       chapterSelect.innerHTML = "";
-
-      // 오류 시에도 '새로운 목차 입력' 옵션 추가
-      const newOption = document.createElement("option");
-      newOption.value = "new_chapter";
-      newOption.text = "➕ 새로운 목차 입력";
-      chapterSelect.appendChild(newOption);
     }
   }
 
-  function toggleNewChapterField() {
-    if (chapterSelect.value === "new_chapter") {
-      newChapterField.classList.remove("hidden"); // 입력 필드 보여주기
-    } else {
-      newChapterField.classList.add("hidden");    // 입력 필드 숨기기
-    }
-  }
-
+  // 이벤트 바인딩
   bookSelect.addEventListener("change", () => {
-    toggleBookAndChapterFields();
+    toggleBookField();
 
     if (bookSelect.value && bookSelect.value !== "new_book") {
       loadChapters(bookSelect.value);
-    } else {
-      chapterSelect.innerHTML = "";
     }
   });
 
-  chapterSelect.addEventListener("change", toggleNewChapterField);
+  chapterSelect.addEventListener("change", toggleChapterField);
 
-  // 초기 상태 설정
-  toggleBookAndChapterFields();
+  // 초기 로딩 시 상태 반영
+  toggleBookField();
 
   if (bookSelect.value && bookSelect.value !== "new_book") {
     loadChapters(bookSelect.value);
   }
 
-  toggleNewChapterField();
+  toggleChapterField();
 });
 
 

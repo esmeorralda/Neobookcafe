@@ -4,6 +4,13 @@ class NotesController < ApplicationController
   def new
     @note = Note.new
     @show_new_book_field = false
+     # URL 파라미터로 들어온 book_id가 있으면 미리 설정
+  @note.book_id = params[:book_id] if params[:book_id].present?
+
+  # 책에 따른 목차도 미리 로드
+  if @note.book_id
+    @chapters = Book.find_by(id: @note.book_id)&.chapters
+  end
   end
 
   def create
