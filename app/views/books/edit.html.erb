@@ -1,0 +1,26 @@
+<!-- app/views/books/edit.html.erb -->
+<div class="max-w-2xl mx-auto bg-white p-6 rounded-xl shadow space-y-6">
+  <h2 class="text-2xl font-bold text-gray-800 mb-6">책 정보 수정</h2>
+
+  <%= form_with(model: @book, local: true) do |f| %>
+    <div class="mb-4">
+      <%= f.label :title, "책 제목", class: "block font-medium mb-1" %>
+      <%= f.text_field :title, class: "w-full border border-gray-300 rounded p-2" %>
+    </div>
+
+    <div class="mb-4">
+      <%= f.label :author, "책 저자", class: "block font-medium mb-1" %>
+      <%= f.text_field :author, class: "w-full border border-gray-300 rounded p-2" %>
+    </div>
+
+    <div class="mb-6">
+      <%= f.label :total_pages, "총 페이지 수", class: "block font-medium mb-1" %>
+      <%= f.number_field :total_pages, min: 1, class: "w-32 border border-gray-300 rounded p-2" %>
+    </div>
+
+    <div class="flex gap-4">
+      <%= f.submit "저장", class: "bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded" %>
+      <%= link_to "취소", book_path(@book), class: "bg-gray-300 hover:bg-gray-400 text-gray-800 py-2 px-4 rounded" %>
+    </div>
+  <% end %>
+</div>

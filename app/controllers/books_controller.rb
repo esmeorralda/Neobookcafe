@@ -5,6 +5,20 @@ class BooksController < ApplicationController
       @books = Book.includes(:notes).order(created_at: :desc)
     end
     
+    def edit
+      @book = current_user.books.find(params[:id])
+    end
+    
+    def update
+      @book = current_user.books.find(params[:id])
+      
+      if @book.update(book_params)
+        redirect_to @book, notice: "책 정보가 수정되었습니다."
+      else
+        render :edit
+      end
+    end
+    
     def show
       @book = current_user.books.find(params[:id])
       @notes = @book.notes
@@ -36,7 +50,12 @@ class BooksController < ApplicationController
     private
   
     def book_params
-      params.require(:book).permit(:title)
+      if action_name == "create"
+        params.require(:book).permit(:title)
+      else # update 등
+        params.require(:book).permit(:title, :author, :total_pages)
+      end
     end
+    
 
 end

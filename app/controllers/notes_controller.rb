@@ -57,7 +57,14 @@ class NotesController < ApplicationController
     @note = current_user.notes.find(params[:id])
     book = @note.book
     @note.destroy
-    update_book_current_page(book)
+  
+    # 노트 삭제 후 해당 책에 노트가 하나도 없으면 책도 삭제
+    if book.notes.count.zero?
+      book.destroy
+    else
+      update_book_current_page(book)
+    end
+  
     redirect_to notes_path, notice: "노트가 삭제되었습니다."
   end
   
