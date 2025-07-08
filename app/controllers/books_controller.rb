@@ -22,10 +22,21 @@ class BooksController < ApplicationController
         render :new
       end
     end
+
+    def chapters_and_current_page
+      book = Book.find(params[:book_id])
+      chapters = book.chapters.select(:id, :title).order(:position)
+    
+      render json: {
+        chapters: chapters.as_json(only: [:id, :title]),
+        current_page: book.current_page || 0
+      }
+    end
   
     private
   
     def book_params
       params.require(:book).permit(:title)
     end
+
 end

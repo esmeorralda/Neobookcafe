@@ -31,7 +31,7 @@
     
     <!-- ✅ 쪽 범위 입력 한 줄에 표시 -->
 <div class="flex items-center space-x-2">
-  <%= f.number_field :page_from, class: "w-20 border border-gray-300 rounded-md p-2 text-sm" %>
+<%= f.number_field :page_from, id: "page_from_field", class: "w-20 border border-gray-300 rounded-md p-2 text-sm" %>
   <span class="text-sm text-gray-700">쪽부터 ~ </span>
   <%= f.number_field :page_to, class: "w-20 border border-gray-300 rounded-md p-2 text-sm" %>
   <span class="text-sm text-gray-700">쪽까지</span>
@@ -142,7 +142,7 @@ document.addEventListener("DOMContentLoaded", function () {
     if (!bookId || bookId === "new_book") return;
 
     try {
-      const response = await fetch(`/books/${bookId}/chapters`);
+      const response = await fetch(`/books/${bookId}/chapters_and_current_page`);
       if (!response.ok) throw new Error("Failed to fetch chapters");
       const chapters = await response.json();
 
@@ -171,6 +171,15 @@ document.addEventListener("DOMContentLoaded", function () {
       console.error(error);
       chapterSelect.innerHTML = "";
     }
+
+     const pageFromField = document.getElementById("page_from_field");
+    if (pageFromField) {
+      pageFromField.value = data.current_page || 0;
+    }
+  } catch (error) {
+    console.error(error);
+    chapterSelect.innerHTML = "";
+  }
   }
 
   // 이벤트 바인딩

@@ -19,35 +19,46 @@ class NotesController < ApplicationController
     else
       @book = current_user.books.find_by(id: params[:note][:book_id])
     end
-
+  
     if @book.nil?
       flash[:alert] = "책을 선택하거나 제목을 입력해주세요."
       redirect_to new_note_path and return
     end
-
+  
     if params[:note][:chapter_id] == "new_chapter"
       @chapter = @book.chapters.create(title: params[:note][:chapter_title])
     elsif params[:note][:chapter_id].present?
       @chapter = Chapter.find_by(id: params[:note][:chapter_id])
     end
-
+  
     @note = @book.notes.new(note_params)
     @note.chapter = @chapter if @chapter.present?
-
-    max_position = @book.notes.maximum(:position) || 0
-  @note.position = max_position + 1
-
-    if @note.save
-      redirect_to note_path(@note), notice: "메모가 저장되었습니다."
-    else
-      @show_new_book_field = params[:note][:book_id] == "new_book"
-      render :new
+  
+    ActiveRecord::Base.transaction do
+      max_position = @book.notes.lock.maximum(:position) || 0
+      @note.position = max_position + 1
+      @note.save!
     end
+  
+    update_book_current_page(@note.book)
+    redirect_to note_path(@note), notice: "메모가 저장되었습니다."
+  
+  rescue ActiveRecord::RecordInvalid
+    @show_new_book_field = params[:note][:book_id] == "new_book"
+    render :new
   end
-
+  
 
   def show
     @note = Note.find(params[:id])
+  end
+  
+  def destroy
+    @note = current_user.notes.find(params[:id])
+    book = @note.book
+    @note.destroy
+    update_book_current_page(book)
+    redirect_to notes_path, notice: "노트가 삭제되었습니다."
   end
   
   private
@@ -56,4 +67,15 @@ class NotesController < ApplicationController
     params.require(:note).permit(:color, :memo, :page_from, :page_to)
   end
 
+  def update_book_current_page(book)
+    return unless book
+
+    # book의 노트 중 가장 큰 page_to 찾기 (최대 읽은 페이지)
+    max_page_to = book.notes.maximum(:page_to) || 0
+
+    # 현재 current_page 보다 크면 업데이트
+    if book.current_page.nil? || max_page_to > book.current_page
+      book.update(current_page: max_page_to)
+    end
+  end
 end

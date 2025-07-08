@@ -10,11 +10,12 @@
 <div class="flex justify-between items-center mb-4">
   <div class="text-xl font-semibold text-gray-800">
     <%= book.title %>
-    <% total_pages = book.total_pages || 0 %>
-    <% read_pages = book.notes.sum { |n| (n.page_to || 0) - (n.page_from || 0) + 1 } %>
-    <span class="ml-4 text-sm text-gray-500">
-      <%= read_pages %>쪽 · <%= total_pages > 0 ? number_to_percentage((read_pages.to_f / total_pages) * 100, precision: 0) : "0%" %>
-    </span>
+   <% total_pages = book.total_pages || 0 %>
+<% current_page = book.current_page || 0 %>
+<span class="ml-4 text-sm text-gray-500">
+  <%= current_page %>쪽 · <%= total_pages > 0 ? number_to_percentage((current_page.to_f / total_pages) * 100, precision: 0) : "0%" %>
+</span>
+
   </div>
 
   <!-- 책 전체 노트 더보기 버튼 -->

@@ -23,7 +23,7 @@
 
   <!-- 노트 메모지 그리드 -->
   <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
-    <% @book.notes.order(position: :desc).each do |note| %>
+    <% @book.notes.where.not(position: nil).order(position: :desc).each do |note| %>
       <%= link_to note_path(note), class: "block" do %>
         <div class="relative text-base shadow-md p-6 pt-10 pb-8 w-full aspect-square font-serif overflow-hidden hover:shadow-lg transition"
          style="background-color: <%= note.color  %>; clip-path: polygon(0 0, 100% 0, 100% 95%, 95% 100%, 0 100%);">
