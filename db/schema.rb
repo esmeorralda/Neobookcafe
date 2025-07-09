@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_07_08_050612) do
+ActiveRecord::Schema[8.0].define(version: 2025_07_09_090651) do
   create_table "books", force: :cascade do |t|
     t.string "title"
     t.string "author"
@@ -33,11 +33,15 @@ ActiveRecord::Schema[8.0].define(version: 2025_07_08_050612) do
 
   create_table "comments", force: :cascade do |t|
     t.text "content"
-    t.integer "post_id", null: false
+    t.integer "post_id"
     t.integer "user_id", null: false
     t.integer "parent_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "post_block_id"
+    t.integer "highlight_start"
+    t.integer "highlight_end"
+    t.index ["post_block_id"], name: "index_comments_on_post_block_id"
     t.index ["post_id"], name: "index_comments_on_post_id"
     t.index ["user_id"], name: "index_comments_on_user_id"
   end
