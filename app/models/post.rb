@@ -7,6 +7,7 @@ class Post < ApplicationRecord
     :science_technology ]
 
   accepts_nested_attributes_for :post_blocks, allow_destroy: true
+  after_commit :clear_post_cache
 
   def self.book_genre_korean
     {
@@ -38,4 +39,7 @@ class Post < ApplicationRecord
     Post.category_korean[category.to_sym]
   end
   
+  def clear_post_cache
+    Rails.cache.delete_matched("posts/*")
+  end 
 end

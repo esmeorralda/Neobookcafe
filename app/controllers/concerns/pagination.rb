@@ -2,7 +2,7 @@ module Pagination
   extend ActiveSupport::Concern
 
   def default_per_page
-    5
+    20
   end
 
   def page_no
