@@ -1,7 +1,8 @@
 class ApplicationController < ActionController::Base
   # Only allow modern browsers supporting webp images, web push, badges, import maps, CSS nesting, and CSS :has.
   allow_browser versions: :modern
-
+   include Pagination
+    helper_method :page_no, :per_page 
   protected
 
   # 로그인 성공 후 루트로 이동
@@ -20,4 +21,6 @@ class ApplicationController < ActionController::Base
     # 계정 수정 시 name 허용 (선택)
     devise_parameter_sanitizer.permit(:account_update, keys: [:name])
   end
+
+
 end

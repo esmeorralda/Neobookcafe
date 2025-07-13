@@ -64,5 +64,19 @@
         </div>
       </div>
     <% end %>
-  </div>
+
+
+<div class="pagination flex space-x-2 mt-4">
+
+  <% (1..@total_pages).each do |page| %>
+    <% if page == page_no %>
+      <span class="px-3 py-1 bg-gray-300 rounded font-bold"><%= page %></span>
+    <% else %>
+     <%= link_to page, root_path(page: page, per_page: per_page, category: params[:category], sort: params[:sort]), class: "..." %>
+
+    <% end %>
+  <% end %>
+</div>
+
+
 </div>

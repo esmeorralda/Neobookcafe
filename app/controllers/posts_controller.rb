@@ -20,26 +20,40 @@ class PostsController < ApplicationController
     def show
       @post = Post.find(params[:id])
     end
-
-    def index
-      if params[:category].present?
-        @posts = Post.where(category: params[:category])
-      else
-        @posts = Post.all
-      end
-
-      case params[:sort]
-      when "popular"
-        # 좋아요 수 내림차순 (또는 조회수 등으로 변경 가능)
-        @posts = @posts.order(like_count: :desc)
-      when "latest"
-        @posts = @posts.order(created_at: :desc)
-
-      else
-        @posts = @posts.order(created_at: :desc) # 기본 최신순
-      end
-    end
   
+  def index
+    @posts = if params[:category].present?
+               Post.where(category: params[:category])
+             else
+               Post.all
+             end
+
+    @posts = case params[:sort]
+             when "popular"
+               @posts.order(like_count: :desc)
+             when "latest"
+               @posts.order(created_at: :desc)
+             else
+               @posts.order(created_at: :desc)
+             end
+
+     @posts = paginate.call(@posts)
+
+    total_count = if params[:category].present?
+                Post.where(category: params[:category]).count
+              else
+                Post.count
+              end
+@total_pages = (total_count / per_page.to_f).ceil
+
+
+    Rails.logger.debug "page_no: #{page_no}, per_page: #{per_page}, total_pages: #{@total_pages}"
+  end
+def test_helper
+  render plain: "page_no is #{page_no}"
+end
+
+
     private
   
     def post_params
