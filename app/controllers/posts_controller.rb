@@ -49,7 +49,59 @@ params[:category]}"
 
 end
 
-    private
+def search
+  @query = params[:q].to_s.strip.downcase
+  return redirect_to root_path if @query.blank?
+
+  base_query = Post.includes(:user, :post_blocks)
+                  .joins(:user, :post_blocks)
+                  .distinct
+                  .where(
+                    "LOWER(posts.title) LIKE :q OR 
+                     LOWER(posts.book_title) LIKE :q OR 
+                     LOWER(posts.book_author) LIKE :q OR 
+                     LOWER(users.name) LIKE :q OR 
+                     LOWER(post_blocks.content) LIKE :q",
+                    q: "%#{@query}%"
+                  )
+
+  @posts = apply_sorting(base_query)
+  @total_count = @posts.size
+  @posts = Kaminari.paginate_array(@posts).page(params[:page]).per(20)
+  
+  # Changed to render search template
+  render 'search'
+end
+
+private
+
+def apply_sorting(posts)
+  scored_posts = posts.map { |post| [post, calculate_relevance(post)] }
+                     .select { |_, score| score.positive? }
+
+  case params[:sort]
+  when 'popular'
+    scored_posts.sort_by { |post, _| -post.like_count }
+  when 'recent' 
+    scored_posts.sort_by { |post, _| -post.created_at.to_i }
+  else
+    scored_posts.sort_by { |_, score| -score }
+  end.map(&:first)
+end
+
+def calculate_relevance(post)
+  score = 0
+  query = params[:q].to_s.downcase
+  
+  score += 3 if post.title&.downcase&.include?(query)
+  score += 2 if post.book_title&.downcase&.include?(query)
+  score += 2 if post.book_author&.downcase&.include?(query)
+  score += 1 if post.user&.name&.downcase&.include?(query)
+  score += 1 if post.post_blocks.any? { |block| block.content&.downcase&.include?(query) }
+  
+  score
+end
+
 
 def fetch_cached_posts
     category = params[:category].presence || "all"
@@ -75,4 +127,3 @@ def fetch_cached_posts
     
  
   end
-  

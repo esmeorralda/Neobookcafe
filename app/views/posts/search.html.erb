@@ -1,0 +1,69 @@
+<div class="max-w-4xl mx-auto mt-10 p-8">
+  <h2 class="text-2xl font-bold mb-2">
+    “<%= h @query %>” 검색 결과 (<%= @posts.total_count %>건)
+  </h2>
+
+  <p class="text-sm text-gray-400 mb-4">검색 결과에 대한 설명을 여기에 넣어보세요</p>
+
+  <div class="mb-6">
+    <form method="get" action="">
+      <input type="hidden" name="q" value="<%= h @query %>" />
+      <select name="sort" onchange="this.form.submit()" class="border border-gray-300 rounded px-2 py-1">
+        <option value="" <%= params[:sort].blank? ? "selected" : "" %>>최신순</option>
+        <option value="popular" <%= params[:sort] == "popular" ? "selected" : "" %>>인기순</option>
+        <option value="accuracy" <%= params[:sort] == "accuracy" ? "selected" : "" %>>정확도순</option>
+      </select>
+    </form>
+  </div>
+
+  <% if @posts.any? %>
+    <div class="space-y-6">
+      <% @posts.each do |post| %>
+        <div class="p-6 border-b border-[#ddd6ce]">
+          <div class="flex justify-between items-start">
+            <div>
+              <h3 class="text-lg font-semibold text-[#3a2d20] mb-1">
+                <%= link_to truncate(post.title, length: 40), post_path(post), class: "hover:underline" %>
+                <span class="text-sm text-[#b67c4a] ml-2">책 제목<%= post.id.to_s.rjust(8, "0") %></span>
+              </h3>
+              <p class="text-sm text-[#5e5147] leading-snug mb-2">
+                <%= truncate(post.post_blocks.first&.content || "", length: 120) %>
+              </p>
+              <div class="text-xs text-[#999] space-x-2">
+                <span><%= time_ago_in_korean(post.created_at) %>, <%= post.user&.name || "익명" %> 씀</span>
+                <span>👁️‍🗨️ <%= post.view_count || 0 %></span>
+                <span>🤍 <%= post.like_count || 0 %></span>
+                <span>💬 댓글수는 나중에</span>
+              </div>
+            </div>
+            <div>
+              <%= link_to "#", class: "text-gray-400 hover:text-gray-600" do %>
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
+                </svg>
+              <% end %>
+            </div>
+          </div>
+        </div>
+      <% end %>
+    </div>
+
+    <!-- 페이지네이션 -->
+    <div class="pagination flex space-x-2 mt-4">
+      <% current_page = @posts.current_page %>
+      <% total_pages = @posts.total_pages %>
+
+      <% (1..total_pages).each do |page| %>
+        <% if page == current_page %>
+          <span class="px-3 py-1 bg-gray-300 rounded font-bold"><%= page %></span>
+        <% else %>
+          <%= link_to page,
+                search_posts_path(q: @query, page: page, sort: params[:sort]),
+                class: "px-3 py-1 border rounded hover:bg-gray-100" %>
+        <% end %>
+      <% end %>
+    </div>
+  <% else %>
+    <p class="text-gray-500 mt-4">검색 결과가 없습니다.</p>
+  <% end %>
+</div>

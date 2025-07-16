@@ -37,10 +37,17 @@
   <span class="brand">BookCafe</span>
 <% end %>
 
-        <div class="search-box">
-          <input type="text" placeholder="책 제목, 저자, 글 제목, 글 저자..." />
-          <button class="search-btn">🔍</button>
-        </div>
+      <%= form_with url: search_path, method: :get, class: "search-box", data: { turbo: false } do |f| %>
+  <%= f.text_field :q, 
+      value: params[:q], 
+      placeholder: "책 제목, 저자, 글 제목, 글 저자...", 
+      class: "search-input" %>
+  <%= f.button "🔍", 
+      type: "submit", 
+      class: "search-btn",
+      name: nil %>
+<% end %>
+
 
    <div class="nav-links">
   <% if user_signed_in? %>

@@ -24,10 +24,12 @@ resources :books do
   get 'chapters_and_current_page', to: 'books#chapters_and_current_page'
 end
 
+
+get '/search', to: 'posts#search', as: :search
+
 resources :posts do
   resources :comments, only: [:create]
 end
-
 
 get '/profile', to: 'users#show', as: 'profile'
   get '/settings', to: 'users#edit', as: 'settings'

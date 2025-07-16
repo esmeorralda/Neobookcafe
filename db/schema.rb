@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_07_09_090651) do
+ActiveRecord::Schema[8.0].define(version: 2025_07_16_021722) do
   create_table "books", force: :cascade do |t|
     t.string "title"
     t.string "author"
@@ -78,6 +78,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_07_09_090651) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.integer "block_type", default: 0, null: false
+    t.index ["content"], name: "index_post_blocks_on_content"
     t.index ["post_id"], name: "index_post_blocks_on_post_id"
   end
 
@@ -95,6 +96,9 @@ ActiveRecord::Schema[8.0].define(version: 2025_07_09_090651) do
     t.boolean "draft", default: false, null: false
     t.boolean "allow_comments", default: true
     t.integer "book_genre", default: 0, null: false
+    t.index ["book_author"], name: "index_posts_on_book_author"
+    t.index ["book_title"], name: "index_posts_on_book_title"
+    t.index ["title"], name: "index_posts_on_title"
     t.index ["user_id"], name: "index_posts_on_user_id"
   end
 
@@ -107,6 +111,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_07_09_090651) do
     t.datetime "reset_password_sent_at"
     t.datetime "remember_created_at"
     t.string "name"
+    t.index ["name"], name: "index_users_on_name"
     t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
   end
 

@@ -1,6 +1,3 @@
-
-
-
 <div class="max-w-4xl mx-auto mt-10 p-8">
 <h2 class="text-2xl font-bold mb-2">
   <%= params[:category].present? ? Post.category_korean[params[:category].to_sym] : "전체 글" %>
@@ -51,7 +48,6 @@
     </div>
   <% end %>
 </div>
-
 
 <div class="pagination flex space-x-2 mt-4">
 
