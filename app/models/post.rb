@@ -2,6 +2,8 @@ class Post < ApplicationRecord
   belongs_to :user
   has_many :post_blocks, -> { order(:position) }, dependent: :destroy
   has_many :comments, -> { where(parent_id: nil).order(created_at: :asc) }, dependent: :destroy
+  has_many :bookmarks, dependent: :destroy
+  has_many :bookmarked_by, through: :bookmarks, source: :user
   enum :category, [ :thought, :discussion, :creation, :board ]
   enum :book_genre, [ :philosophy, :literature, :history, :society, :economy,
     :science_technology ]
@@ -42,4 +44,21 @@ class Post < ApplicationRecord
   def clear_post_cache
     Rails.cache.delete_matched("posts/*")
   end 
+
+  # Check if post is bookmarked by a specific user
+  def bookmarked_by?(user)
+    return false unless user
+    bookmarks.exists?(user_id: user.id)
+  end
+
+  # Get bookmark count
+  def bookmark_count
+    bookmarks.count
+  end
+
+  # Find specific bookmark by user
+  def find_bookmark_by(user)
+    return nil unless user
+    bookmarks.find_by(user_id: user.id)
+  end
 end

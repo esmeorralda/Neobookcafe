@@ -1,6 +1,6 @@
 # app/controllers/posts_controller.rb
 class PostsController < ApplicationController
-    before_action :authenticate_user!, only: [:new, :create]
+    before_action :authenticate_user!, only: [:new, :create, :bookmark, :unbookmark]
     def new
       @post = Post.new
       3.times { @post.post_blocks.build } # 기본 3개 블록 생성
@@ -71,6 +71,19 @@ def search
   
   # Changed to render search template
   render 'search'
+end
+
+def bookmark
+  @post = Post.find(params[:post_id])
+  current_user.bookmarks.create(post: @post)
+  redirect_back(fallback_location: post_path(@post), notice: '게시글을 북마크했습니다.')
+end
+
+def unbookmark
+  @post = Post.find(params[:post_id])
+  bookmark = current_user.bookmarks.find_by(post: @post)
+  bookmark&.destroy
+  redirect_back(fallback_location: post_path(@post), notice: '북마크를 취소했습니다.')
 end
 
 private

@@ -10,7 +10,10 @@ Rails.application.routes.draw do
 resources :discussions
 resources :creations
 resources :boards
-resources :posts
+resources :posts do
+  post 'bookmark', to: 'posts#bookmark'
+  delete 'unbookmark', to: 'posts#unbookmark'
+end
 resources :likes
 resources :books do
   resources :notes, only: [:new, :create, :edit, :update, :destroy]
