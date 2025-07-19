@@ -62,4 +62,8 @@ class Post < ApplicationRecord
     return nil unless user
     bookmarks.find_by(user_id: user.id)
   end
+
+  def increment_view_count
+    update_column(:view_count, (view_count || 0) + 1)
+  end
 end

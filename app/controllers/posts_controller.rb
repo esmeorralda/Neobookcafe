@@ -19,6 +19,11 @@ class PostsController < ApplicationController
       
     def show
       @post = Post.find(params[:id])
+      
+      # Increment view count
+      @post.increment!(:view_count)
+      # Or if you want to ensure it's not nil:
+      # @post.update(view_count: (@post.view_count || 0) + 1)
     end
 
 def index
