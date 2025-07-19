@@ -49,7 +49,34 @@
 
 
           <div class="flex justify-end">
-          
+          <!-- Add like button before bookmark button -->
+          <% if user_signed_in? %>
+            <% like = @post.likes.find_by(user: current_user) %>
+            <% if like %>
+              <%= button_to like_path(like), 
+                  method: :delete, 
+                  params: { likeable_type: 'Post', likeable_id: @post.id },
+                  class: "flex items-center mr-2" do %>
+                <%= image_tag "icon/post/filledheart.svg", class: "w-5 h-5 text-red-500" %>
+                <span class="ml-1 text-xs text-gray-600"><%= @post.likes.count %></span>
+              <% end %>
+            <% else %>
+              <%= button_to likes_path(likeable_type: 'Post', likeable_id: @post.id),
+                  method: :post,
+                  class: "flex items-center mr-2" do %>
+                <%= image_tag "icon/post/emptyheart.svg", class: "w-5 h-5 text-gray-400" %>
+                <span class="ml-1 text-xs text-gray-600"><%= @post.likes.count %></span>
+              <% end %>
+            <% end %>
+          <% else %>
+            <div class="flex items-center mr-2">
+              <%= image_tag "icon/post/emptyheart.svg", class: "w-5 h-5 text-gray-400" %>
+              <span class="ml-1 text-xs text-gray-600"><%= @post.likes.count %></span>
+            </div>
+          <% end %>
+
+          <!-- Existing bookmark button -->
+          <% if user_signed_in? %>
             <% if current_user.bookmarked_posts.exists?(@post.id) %>
               <%= button_to post_unbookmark_path(@post), method: :delete, class: "flex items-center" do %>
                 <%= image_tag "icon/post/Vector 41.svg", class: "w-4 h-6 fill-current text-[#97705E]" %>
@@ -59,8 +86,9 @@
                 <%= image_tag "icon/post/Vector 40.svg", class: "w-4 h-6 fill-current text-gray-400" %>
               <% end %>
             <% end %>
-          </div>
-        <% end %>
+          <% end %>
+        </div>
+      <% end %>
     </div>
   </div>
 

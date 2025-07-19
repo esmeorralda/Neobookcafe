@@ -4,6 +4,7 @@ class Post < ApplicationRecord
   has_many :comments, -> { where(parent_id: nil).order(created_at: :asc) }, dependent: :destroy
   has_many :bookmarks, dependent: :destroy
   has_many :bookmarked_by, through: :bookmarks, source: :user
+  has_many :likes, as: :likeable, dependent: :destroy
   enum :category, [ :thought, :discussion, :creation, :board ]
   enum :book_genre, [ :philosophy, :literature, :history, :society, :economy,
     :science_technology ]
