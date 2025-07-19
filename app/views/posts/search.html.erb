@@ -9,9 +9,10 @@
     <form method="get" action="">
       <input type="hidden" name="q" value="<%= h @query %>" />
       <select name="sort" onchange="this.form.submit()" class="border border-gray-300 rounded px-2 py-1">
-        <option value="" <%= params[:sort].blank? ? "selected" : "" %>>최신순</option>
-        <option value="popular" <%= params[:sort] == "popular" ? "selected" : "" %>>인기순</option>
-        <option value="accuracy" <%= params[:sort] == "accuracy" ? "selected" : "" %>>정확도순</option>
+      <option value="newest" <%= params[:sort] == "newest" || params[:sort].blank? ? "selected" : "" %>>최신순</option>
+        <option value="most_comments" <%= params[:sort] == "most_comments" ? "selected" : "" %>>댓글순</option>
+        <option value="most_views" <%= params[:sort] == "most_views" ? "selected" : "" %>>조회순</option>
+        <option value="most_likes" <%= params[:sort] == "most_likes" ? "selected" : "" %>>좋아요순</option>
       </select>
     </form>
   </div>

@@ -31,10 +31,18 @@ def index
 
   @posts = case params[:sort]
            when "popular"
-             sorted_posts.sort_by { |p| -p.like_count }
-           else
-             sorted_posts
-           end
+             sorted_posts.sort_by { |p| -p.like_count.to_i }
+           when "most_comments"
+             sorted_posts.sort_by { |p| -p.comments.count }
+           when "most_views"
+           sorted_posts.sort_by { |p| -p.view_count.to_i }
+         when "newest"
+           sorted_posts.sort_by { |p| -p.created_at.to_i }
+         when "most_likes"
+           sorted_posts.sort_by { |p| -p.like_count.to_i }
+         else
+           sorted_posts
+         end
 
   total_count = @posts.size
   @total_pages = (total_count / per_page.to_f).ceil
@@ -93,18 +101,17 @@ end
 
 private
 
-def apply_sorting(posts)
-  scored_posts = posts.map { |post| [post, calculate_relevance(post)] }
-                     .select { |_, score| score.positive? }
-
+def apply_sorting(scope)
   case params[:sort]
-  when 'popular'
-    scored_posts.sort_by { |post, _| -post.like_count }
-  when 'recent' 
-    scored_posts.sort_by { |post, _| -post.created_at.to_i }
-  else
-    scored_posts.sort_by { |_, score| -score }
-  end.map(&:first)
+  when "most_comments"
+    scope.left_joins(:comments).group("posts.id").order("COUNT(comments.id) DESC")
+  when "most_views"
+    scope.order(view_count: :desc)
+  when "most_likes"
+    scope.order(like_count: :desc)
+  else # 기본은 최신순
+    scope.order(created_at: :desc)
+  end
 end
 
 def calculate_relevance(post)

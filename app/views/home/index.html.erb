@@ -1,5 +1,3 @@
-
-
 <div class="max-w-4xl mx-auto mt-10 p-8">
   <h2 class="text-2xl font-bold mb-2">
     <%= params[:category].present? ? Post.category_korean[params[:category].to_sym] : "전체 글" %>
@@ -11,10 +9,10 @@
     <form method="get" action="">
       <input type="hidden" name="category" value="<%= params[:category] %>" />
       <select name="sort" onchange="this.form.submit()" class="border border-gray-300 rounded px-2 py-1">
-        <option value="" <%= params[:sort].blank? ? "selected" : "" %>>최신순</option>
-        <option value="popular" <%= params[:sort] == "popular" ? "selected" : "" %>>조회수순</option>
-          <%# <option value="popular" <%= params[:sort] == "popular" ? "selected" : "" %>>추천순</option>
-            <option value="popular" <%= params[:sort] == "popular" ? "selected" : "" %>>댓글순</option> %>
+        <option value="newest" <%= params[:sort] == "newest" || params[:sort].blank? ? "selected" : "" %>>최신순</option>
+        <option value="most_comments" <%= params[:sort] == "most_comments" ? "selected" : "" %>>댓글순</option>
+        <option value="most_views" <%= params[:sort] == "most_views" ? "selected" : "" %>>조회순</option>
+        <option value="most_likes" <%= params[:sort] == "most_likes" ? "selected" : "" %>>좋아요순</option>
       </select>
     </form>
   </div>
@@ -40,9 +38,9 @@
 
             <div class="text-xs text-[#999] space-x-2">
               <span><%= time_ago_in_korean(post.created_at) %>, <%= post.user&.name || post.user&.email || "익명" %> 씀</span>
-              <span>👁️‍🗨️ <%= post.view_count || 77 %></span>
-              <span>🤍 <%= post.like_count || 77 %></span>
-              <span>💬 77</span>
+              <span>👁️‍🗨️ <%= post.view_count || 0 %></span>
+              <span>🤍 <%= post.like_count || 0 %></span>
+              <span>💬 <%= post.comments.count %></span>
             </div>
           </div>
 
