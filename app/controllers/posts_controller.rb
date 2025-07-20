@@ -17,14 +17,17 @@ class PostsController < ApplicationController
         end
       end
       
-    def show
-      @post = Post.find(params[:id])
-      
-      # Increment view count
-      @post.increment!(:view_count)
-      # Or if you want to ensure it's not nil:
-      # @post.update(view_count: (@post.view_count || 0) + 1)
-    end
+  def show
+  @post = Post.find(params[:id])
+
+  session[:viewed_posts] ||= []
+
+  unless session[:viewed_posts].include?(@post.id)
+    @post.increment!(:view_count)
+    session[:viewed_posts] << @post.id
+  end
+end
+
 
 def index
   sorted_posts = fetch_cached_posts
