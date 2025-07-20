@@ -1,32 +1,41 @@
-<div class="max-w-xs mx-auto mt-20 p-4 bg-white rounded-lg shadow-lg">
-  <h2 class="text-center text-lg font-bold mb-4">로그인</h2>
+<div class="flex justify-center items-center min-h-screen">
+  <div class="w-full max-w-md bg-white rounded-lg shadow-md p-8">
+    <h2 class="text-2xl font-bold text-center mb-6">로그인</h2>
 
-  <%= form_for(resource, as: resource_name, url: session_path(resource_name), html: { class: "flex flex-col space-y-4" }) do |f| %>
-    <div>
-      <%= f.label :email, "이메일", class: "block mb-1 text-center" %>
-      <%= f.email_field :email, autofocus: true, autocomplete: "email", class: "border p-2", style: "display: block; margin: 0 auto;", required: true %>
-    </div>
+    <%= form_for(resource, as: resource_name, url: session_path(resource_name), html: { class: "space-y-6" }) do |f| %>
+      <div>
+        <%= f.label :email, "이메일", class: "block text-sm font-medium text-gray-700 mb-1" %>
+        <%= f.email_field :email, autofocus: true, autocomplete: "email", required: true,
+    class: "w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#efe9df]" %>
 
-    <div>
-      <%= f.label :password, "비밀번호", class: "block mb-1 text-center" %>
-      <%= f.password_field :password, autocomplete: "current-password", class: "border p-2", style: "display: block; margin: 0 auto;", required: true %>
-    </div>
+      </div>
 
+      <div>
+        <%= f.label :password, "비밀번호", class: "block text-sm font-medium text-gray-700 mb-1" %>
+        <%= f.password_field :password, autocomplete: "current-password", required: true,
+            class: "w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2",
+            style: "focus:ring-color: #efe9df;" %>
+      </div>
 
-    <% if devise_mapping.rememberable? %>
-      <div class="flex items-center ">
-  <%= f.check_box :remember_me, class: "w-full bg-gray-300 py-2 block text-center rounded" %>
-  <%= f.label :remember_me, "로그인 상태 유지", class: "w-full bg-gray-300 py-2 block text-center rounded" %>
-</div>
+      <% if devise_mapping.rememberable? %>
+        <div class="flex items-center">
+          <%= f.check_box :remember_me, class: "mr-2" %>
+          <%= f.label :remember_me, "로그인 상태 유지", class: "text-sm text-gray-600" %>
+        </div>
+      <% end %>
+
+      <div class="space-y-2">
+        <%= f.submit "로그인", 
+            class: "w-full text-white font-bold py-2 px-4 rounded hover:opacity-90",
+            style: "background-color: #7b5845;" %>
+        <%= link_to "비밀번호 찾기", new_password_path(resource_name),
+            class: "block w-full text-center text-sm text-blue-500 hover:underline" %>
+      </div>
     <% end %>
 
-    <div class="space-y-2">
-      <%= f.submit "로그인", class: "w-full bg-yellow-300 py-2 rounded" %>
-      <%= link_to "비밀번호 찾기", new_password_path(resource_name), class: "w-full bg-gray-300 py-2 block text-center rounded" %>
+    <div class="mt-6 text-center text-sm">
+      <%= link_to "계정이 없으신가요? 회원가입", new_registration_path(resource_name),
+          class: "text-blue-500 hover:underline" %>
     </div>
-  <% end %>
-
-  <div class="flex justify-center items-center mt-4 text-sm">
-    <%= link_to "계정이 없으신가요?", new_registration_path(resource_name), class: "w-full bg-gray-300 py-2 text-center block rounded text-black" %>
   </div>
 </div>
