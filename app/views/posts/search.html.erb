@@ -6,16 +6,18 @@
   <p class="text-sm text-gray-400 mb-4">검색 결과에 대한 설명을 여기에 넣어보세요</p>
 
   <div class="mb-6">
-    <form method="get" action="">
-      <input type="hidden" name="q" value="<%= h @query %>" />
-      <select name="sort" onchange="this.form.submit()" class="border border-gray-300 rounded px-2 py-1">
-      <option value="newest" <%= params[:sort] == "newest" || params[:sort].blank? ? "selected" : "" %>>최신순</option>
-        <option value="most_comments" <%= params[:sort] == "most_comments" ? "selected" : "" %>>댓글순</option>
-        <option value="most_views" <%= params[:sort] == "most_views" ? "selected" : "" %>>조회순</option>
-        <option value="most_likes" <%= params[:sort] == "most_likes" ? "selected" : "" %>>좋아요순</option>
-      </select>
-    </form>
-  </div>
+  <form method="get" action="">
+    <input type="hidden" name="q" value="<%= h @query %>" />
+    <select name="sort" onchange="this.form.submit()" class="border border-gray-300 rounded px-2 py-1">
+      <option value="relevance" <%= params[:sort] == "relevance" || params[:sort].blank? ? "selected" : "" %>>관련도순</option>
+      <option value="newest" <%= params[:sort] == "newest" ? "selected" : "" %>>최신순</option>
+      <option value="most_comments" <%= params[:sort] == "most_comments" ? "selected" : "" %>>댓글순</option>
+      <option value="most_views" <%= params[:sort] == "most_views" ? "selected" : "" %>>조회순</option>
+      <option value="most_likes" <%= params[:sort] == "most_likes" ? "selected" : "" %>>좋아요순</option>
+    </select>
+  </form>
+</div>
+
 
   <% if @posts.any? %>
     <div class="space-y-6">
@@ -49,21 +51,17 @@
       <% end %>
     </div>
 
-    <!-- 페이지네이션 -->
+ 
     <div class="pagination flex space-x-2 mt-4">
-      <% current_page = @posts.current_page %>
-      <% total_pages = @posts.total_pages %>
+  <% (1..@total_pages).each do |page| %>
+    <% if page == @posts.current_page %>
+      <span class="px-3 py-1 bg-gray-300 rounded font-bold"><%= page %></span>
+    <% else %>
+      <%= link_to page, search_posts_path(q: @query, page: page, sort: params[:sort]), class: "px-3 py-1 border rounded hover:bg-gray-100" %>
+    <% end %>
+  <% end %>
+</div>
 
-      <% (1..total_pages).each do |page| %>
-        <% if page == current_page %>
-          <span class="px-3 py-1 bg-gray-300 rounded font-bold"><%= page %></span>
-        <% else %>
-          <%= link_to page,
-                search_posts_path(q: @query, page: page, sort: params[:sort]),
-                class: "px-3 py-1 border rounded hover:bg-gray-100" %>
-        <% end %>
-      <% end %>
-    </div>
   <% else %>
     <p class="text-gray-500 mt-4">검색 결과가 없습니다.</p>
   <% end %>

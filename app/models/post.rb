@@ -1,4 +1,5 @@
 class Post < ApplicationRecord
+  include PgSearch::Model
   belongs_to :user
   has_many :post_blocks, -> { order(:position) }, dependent: :destroy
   has_many :comments, -> { where(parent_id: nil).order(created_at: :asc) }, dependent: :destroy
@@ -12,6 +13,17 @@ class Post < ApplicationRecord
   accepts_nested_attributes_for :post_blocks, allow_destroy: true
   after_commit :clear_post_cache
 
+  pg_search_scope :pg_search,
+    against: [:title, :book_title, :book_author],
+    associated_against: {
+      user: :name,
+      post_blocks: :content
+    },
+    using: {
+      tsearch: { prefix: true, dictionary: "simple" }
+    }
+
+    
   def self.book_genre_korean
     {
       philosophy: "철학",

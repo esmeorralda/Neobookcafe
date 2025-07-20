@@ -62,29 +62,57 @@ params[:category]}"
 
 end
 
+# def search
+#   @query = params[:q].to_s.strip.downcase
+#   return redirect_to root_path if @query.blank?
+
+#   base_query = Post.includes(:user, :post_blocks)
+#                   .joins(:user, :post_blocks)
+#                   .distinct
+#                   .where(
+#                     "LOWER(posts.title) LIKE :q OR 
+#                      LOWER(posts.book_title) LIKE :q OR 
+#                      LOWER(posts.book_author) LIKE :q OR 
+#                      LOWER(users.name) LIKE :q OR 
+#                      LOWER(post_blocks.content) LIKE :q",
+#                     q: "%#{@query}%"
+#                   )
+
+#   @posts = apply_sorting(base_query)
+#   @total_count = @posts.size
+#   @posts = Kaminari.paginate_array(@posts).page(params[:page]).per(20)
+  
+#   # Changed to render search template
+#   render 'search'
+# end
+
 def search
-  @query = params[:q].to_s.strip.downcase
+  @query = params[:q].to_s.strip
   return redirect_to root_path if @query.blank?
 
-  base_query = Post.includes(:user, :post_blocks)
-                  .joins(:user, :post_blocks)
-                  .distinct
-                  .where(
-                    "LOWER(posts.title) LIKE :q OR 
-                     LOWER(posts.book_title) LIKE :q OR 
-                     LOWER(posts.book_author) LIKE :q OR 
-                     LOWER(users.name) LIKE :q OR 
-                     LOWER(post_blocks.content) LIKE :q",
-                    q: "%#{@query}%"
-                  )
+  base_scope = Post.pg_search(@query)
+                   .includes(:user, :post_blocks) # 여기 포함!
 
-  @posts = apply_sorting(base_query)
-  @total_count = @posts.size
-  @posts = Kaminari.paginate_array(@posts).page(params[:page]).per(20)
-  
-  # Changed to render search template
+@posts = case params[:sort]
+         when "most_views"
+           base_scope.reorder(view_count: :desc)
+         when "most_likes"
+           base_scope.reorder(like_count: :desc)
+         when "newest"
+           base_scope.reorder(created_at: :desc)
+         when "relevance"
+           base_scope.order("rank DESC")
+         else
+           base_scope.order("rank DESC") # 기본은 관련도순
+         end
+
+  @posts = @posts.page(params[:page]).per(20)
+  @total_pages = @posts.total_pages
   render 'search'
 end
+
+
+
 
 def bookmark
   @post = Post.find(params[:post_id])
@@ -103,8 +131,10 @@ private
 
 def apply_sorting(scope)
   case params[:sort]
-  when "most_comments"
-    scope.left_joins(:comments).group("posts.id").order("COUNT(comments.id) DESC")
+when "most_comments"
+  scope.left_joins(:comments)
+       .group("posts.id")
+       .order("COUNT(comments.id) DESC")
   when "most_views"
     scope.order(view_count: :desc)
   when "most_likes"
@@ -113,6 +143,7 @@ def apply_sorting(scope)
     scope.order(created_at: :desc)
   end
 end
+
 
 def calculate_relevance(post)
   score = 0

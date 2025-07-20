@@ -27,6 +27,12 @@ resources :books do
   get 'chapters_and_current_page', to: 'books#chapters_and_current_page'
 end
 
+resources :posts do
+  collection do
+    get :search
+  end
+end
+
 
 get '/search', to: 'posts#search', as: :search
 
