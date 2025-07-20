@@ -93,6 +93,16 @@ def search
   base_scope = Post.pg_search(@query)
                    .includes(:user, :post_blocks) # 여기 포함!
 
+   # category 필터
+  if params[:category].present?
+    base_scope = base_scope.where(category: params[:category])
+  end
+
+  # genre 필터
+  if params[:genre].present?
+    base_scope = base_scope.where(book_genre: params[:genre])
+  end
+
 @posts = case params[:sort]
          when "most_views"
            base_scope.reorder(view_count: :desc)

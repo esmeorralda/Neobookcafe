@@ -8,7 +8,25 @@
   <div class="mb-6">
   <form method="get" action="">
     <input type="hidden" name="q" value="<%= h @query %>" />
-    <select name="sort" onchange="this.form.submit()" class="border border-gray-300 rounded px-2 py-1">
+
+    <label for="category">카테고리:</label>
+    <select name="category" id="category" onchange="this.form.submit()" class="border border-gray-300 rounded px-2 py-1 mr-2">
+      <option value="">전체</option>
+      <% Post.category_korean.each do |key, value| %>
+        <option value="<%= key %>" <%= params[:category] == key.to_s ? "selected" : "" %>><%= value %></option>
+      <% end %>
+    </select>
+
+    <label for="genre">장르:</label>
+    <select name="genre" id="genre" onchange="this.form.submit()" class="border border-gray-300 rounded px-2 py-1 mr-2">
+      <option value="">전체</option>
+      <% Post.book_genre_korean.each do |key, value| %>
+        <option value="<%= key %>" <%= params[:genre] == key.to_s ? "selected" : "" %>><%= value %></option>
+      <% end %>
+    </select>
+
+    <label for="sort">정렬:</label>
+    <select name="sort" id="sort" onchange="this.form.submit()" class="border border-gray-300 rounded px-2 py-1">
       <option value="relevance" <%= params[:sort] == "relevance" || params[:sort].blank? ? "selected" : "" %>>관련도순</option>
       <option value="newest" <%= params[:sort] == "newest" ? "selected" : "" %>>최신순</option>
       <option value="most_comments" <%= params[:sort] == "most_comments" ? "selected" : "" %>>댓글순</option>
