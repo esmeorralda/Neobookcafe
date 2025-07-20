@@ -87,6 +87,7 @@ end
 # end
 
 def search
+   @is_search_result = true
   @query = params[:q].to_s.strip
   return redirect_to root_path if @query.blank?
 
