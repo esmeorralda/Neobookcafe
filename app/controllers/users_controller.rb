@@ -27,6 +27,15 @@ class UsersController < ApplicationController
   #   redirect_to root_path, notice: "회원 탈퇴가 완료되었습니다."
   # end
 
+  def my_posts
+  @posts = current_user.posts.order(created_at: :desc)
+end
+
+def saved_posts
+  @posts = current_user.bookmarked_posts.order(created_at: :desc)
+end
+
+
   private
 
   def user_params

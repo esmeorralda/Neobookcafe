@@ -1,4 +1,7 @@
 Rails.application.routes.draw do
+  get "feedbacks/new"
+  get "feedbacks/create"
+  get "feedbacks/index"
   get "chapters/index"
   devise_for :users
   
@@ -33,6 +36,7 @@ resources :posts do
   end
 end
 
+resources :feedbacks, only: [:new, :create, :index]
 
 get '/search', to: 'posts#search', as: :search
 
@@ -41,7 +45,10 @@ resources :posts do
 end
 
 get '/profile', to: 'users#show', as: 'profile'
-  get '/settings', to: 'users#edit', as: 'settings'
+get '/settings', to: 'users#edit', as: 'settings'
+get '/my_posts', to: 'users#my_posts', as: 'my_posts'
+  get '/feedback', to: 'feedbacks#new', as: 'feedback'
+
 
   # 나중에 로그인 POST 처리도 필요:
 
