@@ -23,6 +23,7 @@
     <%= stylesheet_link_tag "tailwind", "data-turbo-track": "reload" %>
     <%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
     <%= javascript_include_tag "application", "data-turbo-track": "reload", defer: true %>
+    <%= javascript_importmap_tags %>
   </head>
 
   <body>
@@ -51,7 +52,7 @@
 
    <div class="nav-links">
   <% if user_signed_in? %>
-    <%= link_to "프로필", profile_path %>
+    <button id="toggle-right-sidebar" class="text-[14px] text-[#333] no-underline">프로필</button>
     <%= link_to "설정", settings_path %>
       <%= link_to "로그아웃", destroy_user_session_path, method: :delete, data: { turbo_method: :delete }, class: "text-[14px] text-[#333] no-underline" %>
   <% else %>
@@ -87,7 +88,6 @@
 
 
 
-
     <%= render 'layouts/sidebar' %>
 
     <main class="main-content h-[calc(100vh-4rem)] overflow-auto p-6">
@@ -95,5 +95,12 @@
     </main>
 
 
+
+<div id="right-sidebar" class="hidden fixed top-16 right-0 h-[calc(100vh-4rem)] w-64 bg-[#f0ece3] text-[#7c6243] shadow-lg z-50">
+
+     <%= render 'layouts/right_sidebar' %>
+
+</div>
   </body>
 </html>
+

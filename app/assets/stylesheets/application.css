@@ -139,3 +139,15 @@
     height: 300px;
   }
   
+  #right-sidebar {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 16rem; /* 256px */
+  height: 100vh;
+  background-color: #f0ece3;
+  color: #7c6243;
+  box-shadow: -2px 0 5px rgba(0,0,0,0.1);
+  z-index: 50;
+  padding: 1rem;
+}
