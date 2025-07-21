@@ -1,4 +1,45 @@
-<div>
-  <h1 class="font-bold text-4xl">Users#edit</h1>
-  <p>Find me in app/views/users/edit.html.erb</p>
+<div class="max-w-4xl mx-auto px-6 py-12 text-[#3e2f23] font-serif">
+  <div class="flex justify-between items-center">
+    <h1 class="text-4xl font-bold">계정 이름</h1>
+    <div class="space-y-2">
+      <%= link_to "자기 소개 편집", user_path(current_user), class: "block border border-[#3e2f23] px-4 py-2 text-sm hover:bg-[#f3ede3] text-center" %>
+      <%= link_to "개인 정보 수정", edit_user_registration_path, class: "block border border-[#3e2f23] px-4 py-2 text-sm hover:bg-[#f3ede3]" %>
+    </div>
+  </div>
+
+  <p class="text-sm mt-1 text-[#a09388]">님의 공간</p>
+
+  <div class="mt-10 border-y py-6 flex justify-between items-center text-center text-lg text-[#3e2f23] font-serif italic">
+    <span class="text-xl font-light">“우리는 모습이 없는 까닭에 그것을 두려워한다.”</span>
+    <span class="text-sm text-[#a09388]">&lt;책 제목&gt; 저자이름</span>
+  </div>
+
+  <div class="mt-10 flex space-x-10 justify-center text-[#a09388] text-sm">
+    <div class="border-b-2 border-[#3e2f23] pb-1 font-medium">내가 쓴 글</div>
+    <div class="hover:text-[#3e2f23]">좋아요 한 글</div>
+    <div class="hover:text-[#3e2f23]">저장 한 글</div>
+    <div class="hover:text-[#3e2f23]">댓글/토론</div>
+  </div>
+
+  <% 2.times do %>
+    <div class="mt-10 border-b pb-8">
+      <h2 class="text-xl font-semibold mb-2">제목 제목 제목 가나다라마바사 아자차카...</h2>
+      <p class="text-sm leading-relaxed text-[#5b5045]">
+        미리보기미리보기 가나다라마바사.....가나다라마바사 미리보기미리보기 가나다라마바사.....
+        미리보기미리보기 가나다라마바사.....가나다라마바사 미리보기미리보기 가나다라마바사
+      </p>
+
+      <div class="flex justify-between items-end mt-4 text-xs text-[#a09388]">
+        <div class="space-x-2">
+          <span>카테고리</span>
+          <span>3달 전, 이름이 씀</span>
+        </div>
+        <div class="flex space-x-4 items-center">
+          <span>👁 77</span>
+          <span>♡ 77</span>
+          <span>💬 77</span>
+        </div>
+      </div>
+    </div>
+  <% end %>
 </div>

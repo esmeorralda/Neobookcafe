@@ -11,4 +11,5 @@ class User < ApplicationRecord
   has_many :likes, dependent: :destroy
   has_many :bookmarks, dependent: :destroy
   has_many :bookmarked_posts, through: :bookmarks, source: :post  # posts user bookmarked
+  has_many :book_intros, dependent: :destroy
 end

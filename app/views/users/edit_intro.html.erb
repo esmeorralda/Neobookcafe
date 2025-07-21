@@ -1,0 +1,74 @@
+<div class="max-w-4xl mx-auto mt-10">
+  <!-- 이름 입력 -->
+  <div class="mb-6 flex items-end justify-between">
+    <div>
+      <label for="user_name" class="block text-xl font-semibold mb-2">계정 이름</label>
+      <input type="text" id="user_name" name="user[name]" value="<%= current_user.name %>" class="border border-[#3e2f23] w-full text-2xl px-2 py-1 focus:outline-none">
+    </div>
+    <span class="text-sm text-gray-500">님의 공간</span>
+  </div>
+
+  <!-- 명언 입력 반복 영역 -->
+  <div id="quotes-container">
+    <% (current_user.intros || [{}]).each_with_index do |intro, index| %>
+      <div class="bg-[#faf5ef] p-4 mb-4 relative">
+        <button type="button" class="absolute top-2 right-2 text-[#3e2f23]">✖</button>
+        <p class="text-[#3e2f23] text-xl mb-2">“</p>
+        <textarea name="user[intros_attributes][<%= index %>][quote]" rows="2" placeholder="인상 깊은 한 구절을 입력해주세요" class="w-full bg-transparent focus:outline-none resize-none"><%= intro[:quote] %></textarea>
+        <p class="text-[#3e2f23] text-xl text-right">”</p>
+
+        <div class="flex items-center gap-2 text-sm text-[#3e2f23] mt-2">
+          <label class="mr-1">책</label>
+          <input type="text" name="user[intros_attributes][<%= index %>][book]" value="<%= intro[:book] %>" class="bg-white px-2 py-1 border border-[#e6ddd3]">
+
+          <label class="ml-4 mr-1">저자</label>
+          <input type="text" name="user[intros_attributes][<%= index %>][author]" value="<%= intro[:author] %>" class="bg-white px-2 py-1 border border-[#e6ddd3]">
+        </div>
+      </div>
+    <% end %>
+  </div>
+
+  <!-- 추가 버튼 -->
+  <div class="flex justify-center my-6">
+    <button type="button" id="add-quote" class="border px-4 py-2 text-sm hover:bg-[#f3ede3]">추가</button>
+  </div>
+
+  <!-- 저장 & 취소 -->
+  <div class="flex flex-col items-end gap-2">
+    <%= f.submit "저장", class: "bg-[#795548] text-white text-sm px-4 py-2 rounded hover:bg-[#5d4037]" %>
+    <%= link_to "취소", user_path(current_user), class: "block border border-[#3e2f23] px-4 py-2 text-sm hover:bg-[#f3ede3] text-center" %>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const container = document.getElementById('quotes-container');
+    const addBtn = document.getElementById('add-quote');
+    let index = <%= (current_user.intros || []).size %>;
+
+    addBtn.addEventListener('click', function () {
+      const block = document.createElement('div');
+      block.className = 'bg-[#faf5ef] p-4 mb-4 relative';
+      block.innerHTML = `
+        <button type="button" class="absolute top-2 right-2 text-[#3e2f23]">✖</button>
+        <p class="text-[#3e2f23] text-xl mb-2">“</p>
+        <textarea name="user[intros_attributes][${index}][quote]" rows="2" placeholder="인상 깊은 한 구절을 입력해주세요" class="w-full bg-transparent focus:outline-none resize-none"></textarea>
+        <p class="text-[#3e2f23] text-xl text-right">”</p>
+        <div class="flex items-center gap-2 text-sm text-[#3e2f23] mt-2">
+          <label class="mr-1">책</label>
+          <input type="text" name="user[intros_attributes][${index}][book]" class="bg-white px-2 py-1 border border-[#e6ddd3]">
+
+          <label class="ml-4 mr-1">저자</label>
+          <input type="text" name="user[intros_attributes][${index}][author]" class="bg-white px-2 py-1 border border-[#e6ddd3]">
+        </div>`;
+      container.appendChild(block);
+      index++;
+    });
+
+    container.addEventListener('click', function (e) {
+      if (e.target.tagName === 'BUTTON' && e.target.textContent === '✖') {
+        e.target.closest('div').remove();
+      }
+    });
+  });
+</script>

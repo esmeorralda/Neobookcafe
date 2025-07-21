@@ -1,43 +1,61 @@
-<h2>Edit <%= resource_name.to_s.humanize %></h2>
+<div class="max-w-3xl mx-auto mt-16 px-6 py-10 bg-white shadow-lg rounded-2xl font-sans text-[#3e2f23]">
+  <h2 class="text-2xl font-semibold mb-8 border-b pb-2">계정 정보 수정</h2>
 
-<%= form_for(resource, as: resource_name, url: registration_path(resource_name), html: { method: :put }) do |f| %>
-  <%= render "devise/shared/error_messages", resource: resource %>
+  <%= form_for(resource, as: resource_name, url: registration_path(resource_name), html: { method: :put }) do |f| %>
+    <%= render "devise/shared/error_messages", resource: resource %>
 
-  <div class="field">
-    <%= f.label :email %><br />
-    <%= f.email_field :email, autofocus: true, autocomplete: "email" %>
-  </div>
 
-  <% if devise_mapping.confirmable? && resource.pending_reconfirmation? %>
-    <div>Currently waiting confirmation for: <%= resource.unconfirmed_email %></div>
+<div class="mb-6">
+  <%= f.label :name, "이름", class: "block text-sm font-medium mb-1" %>
+  <%= f.text_field :name,
+        value: resource.name, 
+        autocomplete: "name",
+        class: "w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-[#3e2f23]" %>
+</div>
+
+
+
+    <div class="mb-6">
+      <%= f.label :email, "이메일", class: "block text-sm font-medium mb-1" %>
+      <%= f.email_field :email, autofocus: true, autocomplete: "email", class: "w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-[#3e2f23]" %>
+    </div>
+
+    <% if devise_mapping.confirmable? && resource.pending_reconfirmation? %>
+      <div class="mb-4 text-sm text-orange-600 bg-orange-100 p-3 rounded-md">
+        현재 이메일 인증 대기 중: <%= resource.unconfirmed_email %>
+      </div>
+    <% end %>
+
+    <div class="mb-6">
+      <%= f.label :password, "새 비밀번호 (변경하지 않으려면 비워두세요)", class: "block text-sm font-medium mb-1" %>
+      <%= f.password_field :password, autocomplete: "new-password", class: "w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-[#3e2f23]" %>
+      <% if @minimum_password_length %>
+        <p class="text-xs mt-1 text-gray-500">최소 <%= @minimum_password_length %>자 이상</p>
+      <% end %>
+    </div>
+
+    <div class="mb-6">
+      <%= f.label :password_confirmation, "새 비밀번호 확인", class: "block text-sm font-medium mb-1" %>
+      <%= f.password_field :password_confirmation, autocomplete: "new-password", class: "w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-[#3e2f23]" %>
+    </div>
+
+    <div class="mb-8">
+      <%= f.label :current_password, "현재 비밀번호 (변경 사항 확인용)", class: "block text-sm font-medium mb-1" %>
+      <%= f.password_field :current_password, autocomplete: "current-password", class: "w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-[#3e2f23]" %>
+    </div>
+
+    <div class="flex items-center justify-between">
+      <%= f.submit "정보 수정하기", class: "bg-[#3e2f23] text-white px-6 py-2 rounded-lg hover:bg-[#2c211b] transition" %>
+    </div>
   <% end %>
 
-  <div class="field">
-    <%= f.label :password %> <i>(leave blank if you don't want to change it)</i><br />
-    <%= f.password_field :password, autocomplete: "new-password" %>
-    <% if @minimum_password_length %>
-      <br />
-      <em><%= @minimum_password_length %> characters minimum</em>
-    <% end %>
+  <hr class="my-10">
+
+  <div class="mt-6">
+    <h3 class="text-lg font-semibold mb-3 text-red-700">계정 탈퇴</h3>
+    <p class="text-sm mb-3 text-gray-700">더 이상 이용하지 않으시나요?</p>
+    <%= button_to "계정 탈퇴하기", registration_path(resource_name), method: :delete,
+          data: { confirm: "정말로 계정을 삭제하시겠습니까?", turbo_confirm: "정말로 계정을 삭제하시겠습니까?" },
+          class: "bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition" %>
   </div>
-
-  <div class="field">
-    <%= f.label :password_confirmation %><br />
-    <%= f.password_field :password_confirmation, autocomplete: "new-password" %>
-  </div>
-
-  <div class="field">
-    <%= f.label :current_password %> <i>(we need your current password to confirm your changes)</i><br />
-    <%= f.password_field :current_password, autocomplete: "current-password" %>
-  </div>
-
-  <div class="actions">
-    <%= f.submit "Update" %>
-  </div>
-<% end %>
-
-<h3>Cancel my account</h3>
-
-<div>Unhappy? <%= button_to "Cancel my account", registration_path(resource_name), data: { confirm: "Are you sure?", turbo_confirm: "Are you sure?" }, method: :delete %></div>
-
-<%= link_to "Back", :back %>
+</div>

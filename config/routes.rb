@@ -49,6 +49,8 @@ get '/settings', to: 'users#edit', as: 'settings'
 get '/my_posts', to: 'users#my_posts', as: 'my_posts'
   get '/feedback', to: 'feedbacks#new', as: 'feedback'
 
+get 'users/edit_intro', to: 'users#edit_intro', as: 'edit_intro'
+
 
   # 나중에 로그인 POST 처리도 필요:
 
