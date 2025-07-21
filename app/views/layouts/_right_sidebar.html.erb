@@ -1,28 +1,31 @@
 <div id="right-sidebar" class="fixed right-0 mt-16 h-[calc(100vh-4rem)] w-64  shadow-lg z-50">
 
   <div class="p-4 text-center border-b">
-    <h2 class="text-xl font-bold">닉네임</h2>
-    <p class="text-sm text-gray-600 mt-1">한줄 소개</p>
+    <h2 class="text-xl font-bold">
+    <%= current_user.name || "닉네임" %>
+    </h2>
+    <p class="text-sm text-gray-600 mt-1"> <%= current_user.self_intro || "한줄소개" %></p>
   </div>
 
   <div class="p-4 space-y-4 border-b">
-    <div class="text-sm">
-      <p>“우리는 모습이 없는 까닭에 그것을 두려워한다.”</p>
-      <p class="text-xs text-gray-500">&lt;책 제목&gt; 저자이름</p>
-    </div>
-    <div class="text-sm">
-      <p>“우리는 모습이 없는 까닭에 그것을 두려워한다.”</p>
-      <p class="text-xs text-gray-500">&lt;책 제목&gt; 저자이름</p>
-    </div>
-    <div class="text-sm">
-      <p>“우리는 모습이 없는 까닭에 그것을 두려워한다.”</p>
-      <p class="text-xs text-gray-500">&lt;책 제목&gt; 저자이름</p>
-    </div>
-  </div>
+  <% intros = current_user.book_intros.where.not(quote: [nil, ""]) %>
+  <% if intros.any? %>
+    <% intros.each do |intro| %>
+      <div class="text-sm">
+        <p>“<%= intro.quote %>”</p>
+        <p class="text-xs text-gray-500">&lt;<%= intro.book_title.presence || "책 제목" %>&gt; <%= intro.author_name.presence || "저자이름" %></p>
+      </div>
+    <% end %>
+  <% else %>
+    <p class="text-sm text-gray-500 italic">책 소개가 없습니다.</p>
+  <% end %>
+</div>
+
+
 
   <div class="p-4 space-y-4 text-center text-base font-medium">
   <% if current_user %>
-    <%= link_to "프로필 편집", edit_user_path(current_user), class: "block" %>
+    <%= link_to "프로필 편집", user_path(current_user), class: "block" %>
 
     <%= link_to "저장한 글", edit_user_path(current_user), class: "block" %>
      <%= link_to "피드백 및 문의", feedback_path, class: "block" %>

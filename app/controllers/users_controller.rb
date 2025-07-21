@@ -9,6 +9,60 @@ class UsersController < ApplicationController
     @user = User.new
   end
 
+#   def update
+#   if current_user.update(user_params)
+#     redirect_to user_path(current_user), notice: "수정되었습니다."
+#   else
+#     render :edit, status: :unprocessable_entity
+#   end
+# end
+
+def update
+  if params[:commit_self_intro]
+    # 자기소개만 업데이트
+    if current_user.update(user_params)
+      redirect_to user_path(current_user), notice: "자기소개가 저장되었습니다."
+    else
+      flash.now[:alert] = "자기소개 저장에 실패했습니다."
+      render :edit
+    end
+
+  elsif params[:commit_book_intros]
+    # 책 소개만 업데이트
+    if params[:book_intros]
+      params[:book_intros].each do |_, intro_params|
+        if intro_params[:id].present?
+          book_intro = current_user.book_intros.find_by(id: intro_params[:id])
+          if book_intro
+            book_intro.update(
+              quote: intro_params[:quote],
+              book_title: intro_params[:book_title],
+              author_name: intro_params[:author_name]
+            )
+          end
+        else
+          # 새로 입력된 경우
+          unless intro_params[:quote].blank? && intro_params[:book_title].blank? && intro_params[:author_name].blank?
+            current_user.book_intros.create(
+              quote: intro_params[:quote],
+              book_title: intro_params[:book_title],
+              author_name: intro_params[:author_name]
+            )
+          end
+        end
+      end
+      redirect_to user_path(current_user), notice: "책 소개가 저장되었습니다."
+    else
+      flash.now[:alert] = "책 소개 저장에 실패했습니다."
+      render :edit
+    end
+
+  else
+    # 기본 처리 (아무 버튼도 안 눌렀을 경우 등)
+    redirect_to edit_user_path(current_user)
+  end
+end
+
   # def create
   #   @user = User.new(user_params)
 
@@ -39,6 +93,6 @@ end
   private
 
   def user_params
-    params.require(:user).permit(:email, :password, :password_confirmation)
+    params.require(:user).permit(:email, :password, :password_confirmation, :self_intro, :name)
   end
 end
