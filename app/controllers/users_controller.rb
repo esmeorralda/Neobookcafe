@@ -82,12 +82,19 @@ end
   # end
 
   def my_posts
-  @posts = current_user.posts.order(created_at: :desc)
-end
+    @posts = current_user.posts.order(created_at: :desc)
+    render partial: "users/posts", locals: { posts: @posts }
+  end
 
-def saved_posts
-  @posts = current_user.bookmarked_posts.order(created_at: :desc)
-end
+  def liked_posts
+    @posts = Post.joins(:likes).where(likes: { user_id: current_user.id }).distinct.order("likes.created_at DESC")
+    render partial: "users/posts", locals: { posts: @posts }
+  end
+
+  def saved_posts
+    @posts = current_user.bookmarked_posts.order(created_at: :desc)
+    render partial: "users/posts", locals: { posts: @posts }
+  end
 
 
   private

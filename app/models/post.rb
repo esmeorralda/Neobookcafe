@@ -78,4 +78,8 @@ class Post < ApplicationRecord
   def increment_view_count
     update_column(:view_count, (view_count || 0) + 1)
   end
+
+  def top_content
+  post_blocks.order(position: :asc).limit(1).pluck(:content).first
+end
 end

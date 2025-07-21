@@ -1,0 +1,18 @@
+<div class="mt-10 border-b pb-8">
+  <h2 class="text-xl font-semibold mb-2"><%= post.title %></h2>
+  <p class="text-sm leading-relaxed text-[#5b5045]">
+    <%= truncate(post.top_content.to_s, length: 150) %>
+  </p>
+
+  <div class="flex justify-between items-end mt-4 text-xs text-[#a09388]">
+    <div class="space-x-2">
+      <span><%= Post.categories.key(post.category) || "카테고리" %></span>
+      <span><%= time_ago_in_words(post.created_at) %> 전, <%= post.user.name %> 씀</span>
+    </div>
+    <div class="flex space-x-4 items-center">
+      <span>👁 <%= post.view_count || 0 %></span>
+      <span>♡ <%= post.like_count || 0 %></span>
+      <span>💬 </span>
+    </div>
+  </div>
+</div>

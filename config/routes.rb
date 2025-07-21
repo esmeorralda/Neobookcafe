@@ -44,6 +44,14 @@ resources :posts do
   resources :comments, only: [:create]
 end
 
+resources :users, only: [:show] do
+  member do
+    get :my_posts
+    get :liked_posts
+    get :saved_posts
+  end
+end
+
 get '/profile', to: 'users#show', as: 'profile'
 get '/settings', to: 'users#edit', as: 'settings'
 get '/my_posts', to: 'users#my_posts', as: 'my_posts'

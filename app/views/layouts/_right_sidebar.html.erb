@@ -26,8 +26,9 @@
   <div class="p-4 space-y-4 text-center text-base font-medium">
   <% if current_user %>
     <%= link_to "프로필 편집", user_path(current_user), class: "block" %>
-
-    <%= link_to "저장한 글", edit_user_path(current_user), class: "block" %>
+    <%= link_to "내가 쓴 글", user_path(current_user), class: "block" %>
+    <%= link_to "좋아요 누른 글", user_path(current_user), class: "block" %>
+    <%= link_to "저장한 글", user_path(current_user), class: "block" %>
      <%= link_to "피드백 및 문의", feedback_path, class: "block" %>
     <%= link_to "로그아웃", destroy_user_session_path, method: :delete, class: "block", data: { turbo_method: :delete } %>
     <% end %>

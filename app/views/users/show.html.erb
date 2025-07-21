@@ -1,78 +1,60 @@
-
+<!-- app/views/users/show.html.erb -->
 <div class="max-w-4xl mx-auto px-6 py-12 text-[#3e2f23] font-serif">
-<div class="flex justify-between items-start">
-  <!-- 왼쪽: 이름 + 자기소개 -->
-  <div>
-    <div class="flex items-end">
-      <h1 class="text-4xl font-bold text-[#3e2f23]">
-        <%= current_user.name || "User" %>
-      </h1>
-      <span class="ml-2 text-sm text-[#a09388] mb-1">님의 공간</span>
+  <div class="flex justify-between items-start">
+    <!-- 왼쪽: 이름 + 자기소개 -->
+    <div>
+      <div class="flex items-end">
+        <h1 class="text-4xl font-bold text-[#3e2f23]">
+          <%= current_user.name || "User" %>
+        </h1>
+        <span class="ml-2 text-sm text-[#a09388] mb-1">님의 공간</span>
+      </div>
+
+      <!-- 자기소개 -->
+      <p class="mt-4 text-sm italic text-[#3e2f23]">
+        “<%= current_user.self_intro.presence || '한 줄 자기소개' %>”
+      </p>
     </div>
 
-    <!-- 자기소개 -->
-    <p class="mt-4 text-sm italic text-[#3e2f23]">
-      “<%= current_user.self_intro.presence || '한 줄 자기소개' %>”
-    </p>
+    <!-- 오른쪽 버튼 -->
+    <div class="space-y-2 text-sm text-right ml-4">
+      <%= link_to "자기 소개 편집", edit_user_path(current_user), class: "block border border-[#3e2f23] px-4 py-2 hover:bg-[#f3ede3]" %>
+      <%= link_to "개인 정보 수정", edit_user_registration_path, class: "block border border-[#3e2f23] px-4 py-2 hover:bg-[#f3ede3]" %>
+    </div>
   </div>
 
-  <!-- 오른쪽 버튼 -->
-  <div class="space-y-2 text-sm text-right ml-4">
-    <%= link_to "자기 소개 편집", edit_user_path(current_user), class: "block border border-[#3e2f23] px-4 py-2 hover:bg-[#f3ede3]" %>
-    <%= link_to "개인 정보 수정", edit_user_registration_path, class: "block border border-[#3e2f23] px-4 py-2 hover:bg-[#f3ede3]" %>
+  <!-- Book Intro 슬라이더 -->
+  <div id="intro-slider" class="relative overflow-hidden mt-10 border-y py-6 text-center text-lg text-[#3e2f23] font-serif italic">
+    <div id="intro-track" class="flex transition-transform duration-1500 ease-in-out">
+      <% current_user.book_intros.where.not(quote: [nil, ""]).each do |intro| %>
+        <div class="flex-shrink-0 w-full px-4">
+          <span class="block text-xl font-light mb-2">“<%= intro.quote %>”</span>
+          <span class="block text-sm text-[#a09388]">&lt;<%= intro.book_title.presence || "책 제목" %>&gt; <%= intro.author_name.presence || "저자이름" %></span>
+        </div>
+      <% end %>
+    </div>
+    <button id="prev-btn" class="absolute left-2 top-1/2 transform -translate-y-1/2 bg-[#3e2f23] text-white px-3 py-1 rounded opacity-70 hover:opacity-100">‹</button>
+    <button id="next-btn" class="absolute right-2 top-1/2 transform -translate-y-1/2 bg-[#3e2f23] text-white px-3 py-1 rounded opacity-70 hover:opacity-100">›</button>
   </div>
-</div>
-
-
-<div id="intro-slider" class="relative overflow-hidden mt-10 border-y py-6 text-center text-lg text-[#3e2f23] font-serif italic">
-  <div id="intro-track" class="flex transition-transform duration-1500 ease-in-out">
-    <% current_user.book_intros.where.not(quote: [nil, ""]).each do |intro| %>
-      <div class="flex-shrink-0 w-full px-4">
-        <span class="block text-xl font-light mb-2">“<%= intro.quote %>”</span>
-        <span class="block text-sm text-[#a09388]">&lt;<%= intro.book_title.presence || "책 제목" %>&gt; <%= intro.author_name.presence || "저자이름" %></span>
-      </div>
-    <% end %>
-  </div>
-
-  <!-- 이전 / 다음 버튼 -->
-  <button id="prev-btn" class="absolute left-2 top-1/2 transform -translate-y-1/2 bg-[#3e2f23] text-white px-3 py-1 rounded opacity-70 hover:opacity-100">‹</button>
-  <button id="next-btn" class="absolute right-2 top-1/2 transform -translate-y-1/2 bg-[#3e2f23] text-white px-3 py-1 rounded opacity-70 hover:opacity-100">›</button>
-</div>
-
-
 
   <div class="mt-10 flex space-x-10 justify-center text-[#a09388] text-sm">
-    <div class="border-b-2 border-[#3e2f23] pb-1 font-medium">내가 쓴 글</div>
-    <div class="hover:text-[#3e2f23]">좋아요 한 글</div>
-    <div class="hover:text-[#3e2f23]">저장 한 글</div>
+    <button data-action="my_posts" class="tab-button border-b-2 border-[#3e2f23] pb-1 font-medium">내가 쓴 글</button>
+    <button data-action="liked_posts" class="tab-button hover:text-[#3e2f23]">좋아요 한 글</button>
+    <button data-action="saved_posts" class="tab-button hover:text-[#3e2f23]">저장 한 글</button>
     <div class="hover:text-[#3e2f23]">댓글/토론</div>
   </div>
 
-  <% 2.times do %>
-    <div class="mt-10 border-b pb-8">
-      <h2 class="text-xl font-semibold mb-2">제목 제목 제목 가나다라마바사 아자차카...</h2>
-      <p class="text-sm leading-relaxed text-[#5b5045]">
-        미리보기미리보기 가나다라마바사.....가나다라마바사 미리보기미리보기 가나다라마바사.....
-        미리보기미리보기 가나다라마바사.....가나다라마바사 미리보기미리보기 가나다라마바사
-      </p>
-
-      <div class="flex justify-between items-end mt-4 text-xs text-[#a09388]">
-        <div class="space-x-2">
-          <span>카테고리</span>
-          <span>3달 전, 이름이 씀</span>
-        </div>
-        <div class="flex space-x-4 items-center">
-          <span>👁 77</span>
-          <span>♡ 77</span>
-          <span>💬 77</span>
-        </div>
-      </div>
-    </div>
-  <% end %>
+  <div id="posts-container">
+    <%= render "users/posts", posts: @posts %>
+  </div>
 </div>
 
 <script>
+  // current_user id를 JS 변수로 명시적으로 전달
+  const CURRENT_USER_ID = <%= current_user.id %>;
+
   document.addEventListener("DOMContentLoaded", () => {
+    // 슬라이더 관련 코드
     const track = document.getElementById("intro-track");
     const slides = track.children;
     const totalSlides = slides.length;
@@ -92,10 +74,40 @@
       updateSlidePosition();
     });
 
-    // 자동 슬라이딩 (예: 5초마다)
     setInterval(() => {
       currentIndex = (currentIndex + 1) % totalSlides;
       updateSlidePosition();
     }, 5000);
+
+    // 탭 버튼 클릭 이벤트
+    const tabButtons = document.querySelectorAll(".tab-button");
+    tabButtons.forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const action = btn.dataset.action;
+
+        // 모든 버튼 스타일 초기화
+        tabButtons.forEach(b => {
+          b.classList.remove("border-b-2", "border-[#3e2f23]", "font-medium");
+          b.classList.add("text-[#a09388]");
+        });
+
+        // 클릭된 버튼 스타일 활성화
+        btn.classList.add("border-b-2", "border-[#3e2f23]", "font-medium");
+        btn.classList.remove("text-[#a09388]");
+
+        // AJAX로 posts partial 불러오기 (일반 HTML 요청)
+        fetch(`/users/${CURRENT_USER_ID}/${action}`, {
+          headers: { "Accept": "text/html" }
+        })
+        .then(response => {
+          if (!response.ok) throw new Error("Network response was not ok");
+          return response.text();
+        })
+        .then(html => {
+          document.getElementById("posts-container").innerHTML = html;
+        })
+        .catch(console.error);
+      });
+    });
   });
 </script>
