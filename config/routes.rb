@@ -8,7 +8,7 @@ Rails.application.routes.draw do
   root "home#index"
   get "home/index"
   
-  resources :users
+
   resources :thoughts
 resources :discussions
 resources :creations
@@ -52,13 +52,15 @@ resources :users, only: [:show] do
   end
 end
 
-get '/profile', to: 'users#show', as: 'profile'
+get '/my_posts', to: 'users#my_posts'
+get '/liked_posts', to: 'users#liked_posts'
+get '/saved_posts', to: 'users#saved_posts'
 get '/settings', to: 'users#edit', as: 'settings'
-get '/my_posts', to: 'users#my_posts', as: 'my_posts'
   get '/feedback', to: 'feedbacks#new', as: 'feedback'
 
 get 'users/edit_intro', to: 'users#edit_intro', as: 'edit_intro'
 
+  resources :users
 
   # 나중에 로그인 POST 처리도 필요:
 

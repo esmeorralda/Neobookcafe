@@ -1,0 +1,9 @@
+<div class="pagination flex space-x-2 mt-4">
+  <% (1..total_pages).each do |page| %>
+    <% if page == page_no %>
+      <span class="px-3 py-1 bg-gray-300 rounded font-bold"><%= page %></span>
+    <% else %>
+      <a href="#" class="pagination-link px-3 py-1 rounded hover:bg-gray-200" data-tab="<%= tab %>" data-page="<%= page %>"><%= page %></a>
+    <% end %>
+  <% end %>
+</div>

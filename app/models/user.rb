@@ -9,6 +9,7 @@ class User < ApplicationRecord
   has_many :posts, dependent: :destroy  # posts user created
   has_many :comments, dependent: :destroy
   has_many :likes, dependent: :destroy
+has_many :liked_posts, through: :likes, source: :likeable, source_type: "Post"
   has_many :bookmarks, dependent: :destroy
   has_many :bookmarked_posts, through: :bookmarks, source: :post  # posts user bookmarked
   has_many :book_intros, dependent: :destroy

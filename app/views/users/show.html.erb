@@ -38,21 +38,30 @@
   </div>
 
   <div class="mt-10 flex space-x-10 justify-center text-[#a09388] text-sm">
-    <button data-action="my_posts" class="tab-button border-b-2 border-[#3e2f23] pb-1 font-medium">내가 쓴 글</button>
-    <button data-action="liked_posts" class="tab-button hover:text-[#3e2f23]">좋아요 한 글</button>
-    <button data-action="saved_posts" class="tab-button hover:text-[#3e2f23]">저장 한 글</button>
-    <div class="hover:text-[#3e2f23]">댓글/토론</div>
+    <button data-tab="my_posts" class="tab-button border-b-2 border-[#3e2f23] pb-1 font-medium">내가 쓴 글</button>
+    <button data-tab="liked_posts" class="tab-button hover:text-[#3e2f23]">좋아요 한 글</button>
+    <button data-tab="saved_posts" class="tab-button hover:text-[#3e2f23]">저장 한 글</button>
   </div>
 
-  <div id="posts-container">
-    <%= render "users/posts", posts: @posts %>
+  <!-- 탭별 컨텐츠: 기본은 내가 쓴 글만 보임 -->
+<div id="posts-container">
+  <div id="my_posts" class="posts-tab">
+    <%= render partial: "users/posts", locals: { posts: @my_posts } %>
+    <%= render partial: "users/pagination", locals: { page_no: 1, total_pages: @my_posts_total_pages, tab: 'my_posts' } %>
+  </div>
+  <div id="liked_posts" class="posts-tab hidden">
+    <%= render partial: "users/posts", locals: { posts: @liked_posts } %>
+    <%= render partial: "users/pagination", locals: { page_no: 1, total_pages: @liked_posts_total_pages, tab: 'liked_posts' } %>
+  </div>
+  <div id="saved_posts" class="posts-tab hidden">
+    <%= render partial: "users/posts", locals: { posts: @saved_posts } %>
+    <%= render partial: "users/pagination", locals: { page_no: 1, total_pages: @saved_posts_total_pages, tab: 'saved_posts' } %>
   </div>
 </div>
 
-<script>
-  // current_user id를 JS 변수로 명시적으로 전달
-  const CURRENT_USER_ID = <%= current_user.id %>;
+</div>
 
+<script>
   document.addEventListener("DOMContentLoaded", () => {
     // 슬라이더 관련 코드
     const track = document.getElementById("intro-track");
@@ -79,11 +88,20 @@
       updateSlidePosition();
     }, 5000);
 
-    // 탭 버튼 클릭 이벤트
+    // 탭 버튼 클릭 이벤트: 탭 컨텐츠 보이기/숨기기 & 스타일 토글
     const tabButtons = document.querySelectorAll(".tab-button");
+    const postsTabs = document.querySelectorAll(".posts-tab");
+
     tabButtons.forEach((btn) => {
       btn.addEventListener("click", () => {
-        const action = btn.dataset.action;
+        const targetTab = btn.dataset.tab;
+
+        // 모든 탭 컨텐츠 숨기기
+        postsTabs.forEach(tab => tab.classList.add("hidden"));
+
+        // 선택한 탭 컨텐츠 보이기
+        const activeTab = document.getElementById(targetTab);
+        if (activeTab) activeTab.classList.remove("hidden");
 
         // 모든 버튼 스타일 초기화
         tabButtons.forEach(b => {
@@ -94,19 +112,6 @@
         // 클릭된 버튼 스타일 활성화
         btn.classList.add("border-b-2", "border-[#3e2f23]", "font-medium");
         btn.classList.remove("text-[#a09388]");
-
-        // AJAX로 posts partial 불러오기 (일반 HTML 요청)
-        fetch(`/users/${CURRENT_USER_ID}/${action}`, {
-          headers: { "Accept": "text/html" }
-        })
-        .then(response => {
-          if (!response.ok) throw new Error("Network response was not ok");
-          return response.text();
-        })
-        .then(html => {
-          document.getElementById("posts-container").innerHTML = html;
-        })
-        .catch(console.error);
       });
     });
   });

@@ -1,18 +1,23 @@
 <%= form_with(model: current_user, url: user_path(current_user), method: :patch, local: true) do |f| %>
-  <div class="max-w-4xl mx-auto mt-10 px-4">
-    <h1 class="text-3xl font-bold mb-6 text-[#3e2f23]">
+  <div class="max-w-4xl mx-auto mt-10 px-4 relative">
+    <h1 class="text-3xl font-bold mb-8 text-[#3e2f23]">
       <%= current_user.name || "닉네임" %>님의 소개 편집
     </h1>
 
-    <!-- 자기소개 -->
-    <section class="mb-10 p-6 bg-[#f8f3ee] border border-[#a68c72] rounded-md relative">
-      <div class="text-5xl absolute -top-6 left-4 text-[#a68c72]">“</div>
-      <%= f.text_area :self_intro, class: "w-full bg-transparent border-0 text-[#3e2f23] text-lg placeholder-[#bbb] resize-none", rows: 2, placeholder: "한 줄 자기소개를 입력해주세요." %>
-      <div class="text-5xl absolute -bottom-6 right-4 text-[#a68c72]">”</div>
-    </section>
 
-    <div class="mb-10 text-right">
-      <%= f.submit "자기소개 저장", name: "commit_self_intro", class: "bg-[#3e2f23] text-white py-2 px-6 rounded hover:bg-[#2c241b]" %>
+<section class="mb-12">
+  <%= f.text_area :self_intro,
+      class: "w-full bg-white border border-[#a68c72] rounded-md text-[#3e2f23] text-lg placeholder-[#bbb] resize-y min-h-[4rem] py-3 px-4 focus:outline-none focus:ring-2 focus:ring-[#a68c72]",
+      rows: 2,
+      placeholder: "한 줄 자기소개를 입력해주세요." %>
+</section>
+
+    <!-- 저장 / 취소 버튼 영역 -->
+    <div class="flex justify-end space-x-4 mb-8">
+      <%= f.submit "자기소개 저장",
+          name: "commit_self_intro",
+          class: "bg-[#6e4d3c] text-white py-2 px-6 rounded hover:bg-[#2c241b] transition" %>
+      <button type="button" class="border border-[#3e2f23] text-[#3e2f23] px-6 py-2 rounded hover:bg-[#f3ede3] transition">취소</button>
     </div>
 
     <!-- 책 소개 입력칸 -->
@@ -22,27 +27,47 @@
         <% existing_intros = current_user.book_intros.limit(3).to_a %>
         <% 3.times do |i| %>
           <% intro = existing_intros[i] || BookIntro.new %>
-          <div class="p-6 bg-[#f8f3ee] border border-[#a68c72] rounded-md relative">
-            <div class="text-5xl absolute -top-6 left-4 text-[#a68c72]">“</div>
-            <%= hidden_field_tag "book_intros[#{i}][id]", intro.id if intro.persisted? %>
+          <div class="bg-[#f8f3ef] p-6 rounded-md shadow-sm mb-6 relative">
+            <!-- 삭제 버튼 -->
+            <button type="button" class="absolute top-3 right-3 text-[#6e4d3c] hover:text-[#3e2f23] transition">&times;</button>
 
-            <%= text_area_tag "book_intros[#{i}][quote]", intro.quote, class: "w-full bg-transparent border-0 text-[#3e2f23] text-lg placeholder-[#bbb] resize-none mb-4", rows: 2, placeholder: "인상 깊은 한 구절을 입력해주세요." %>
-            <div class="text-5xl absolute -bottom-6 right-4 text-[#a68c72]">”</div>
+            <!-- 인용문 -->
+            <blockquote class="mb-4">
+              <%= text_area_tag "book_intros[#{i}][quote]", intro.quote,
+                  class: "w-full bg-white border border-[#e0d9d0] rounded-md text-[#3e2f23] text-lg placeholder-[#bbb] resize-y min-h-[4.5rem] py-2 px-3 focus:outline-none focus:ring-2 focus:ring-[#a68c72]",
+                  rows: 2,
+                  placeholder: "인상 깊은 한 구절을 입력해주세요." %>
+            </blockquote>
 
-            <div class="flex flex-wrap items-center gap-4 mt-4">
-              <label class="text-[#3e2f23] font-semibold">책</label>
-              <%= text_field_tag "book_intros[#{i}][book_title]", intro.book_title, class: "flex-1 border border-[#a68c72] rounded p-2 text-[#3e2f23] placeholder-[#bbb]", placeholder: "책 제목" %>
+            <!-- 책 제목 + 저자 입력 -->
+            <div class="flex items-center space-x-6 text-sm text-[#3e2f23]">
+              <label class="flex items-center space-x-2 w-1/2">
+                <span class="text-[#a09388] min-w-[32px]">책</span>
+                <%= text_field_tag "book_intros[#{i}][book_title]", intro.book_title,
+                    class: "flex-1 bg-white border border-[#e0d9d0] rounded px-2 py-1 placeholder-[#bbb] focus:outline-none focus:ring-2 focus:ring-[#a68c72]",
+                    placeholder: "책 제목" %>
+              </label>
 
-              <label class="text-[#3e2f23] font-semibold">저자</label>
-              <%= text_field_tag "book_intros[#{i}][author_name]", intro.author_name, class: "flex-1 border border-[#a68c72] rounded p-2 text-[#3e2f23] placeholder-[#bbb]", placeholder: "저자이름" %>
+              <label class="flex items-center space-x-2 w-1/2">
+                <span class="text-[#a09388] min-w-[32px]">저자</span>
+                <%= text_field_tag "book_intros[#{i}][author_name]", intro.author_name,
+                    class: "flex-1 bg-white border border-[#e0d9d0] rounded px-2 py-1 placeholder-[#bbb] focus:outline-none focus:ring-2 focus:ring-[#a68c72]",
+                    placeholder: "저자이름" %>
+              </label>
             </div>
+
+            <%= hidden_field_tag "book_intros[#{i}][id]", intro.id if intro.persisted? %>
           </div>
         <% end %>
       </div>
     </section>
 
-    <div class="mt-10 text-right">
-      <%= submit_tag "책 소개 저장", name: "commit_book_intros", class: "bg-[#3e2f23] text-white py-2 px-6 rounded hover:bg-[#2c241b]" %>
+    <!-- 저장 / 취소 버튼 영역 (책 소개용) -->
+    <div class="flex justify-end space-x-4 mt-6">
+      <%= submit_tag "책 소개 저장",
+          name: "commit_book_intros",
+          class: "bg-[#6e4d3c] text-white px-6 py-2 rounded hover:bg-[#3e2f23] transition" %>
+      <button type="button" class="border border-[#6e4d3c] text-[#6e4d3c] px-6 py-2 rounded hover:bg-[#f3ede3] transition">취소</button>
     </div>
   </div>
 <% end %>

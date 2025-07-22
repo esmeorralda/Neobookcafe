@@ -1,6 +1,21 @@
 class UsersController < ApplicationController
   def show
-  end
+  @user = User.find(params[:id])
+  per_page = 10
+
+  # 각 카테고리별 1페이지(10개) 초기 로드
+  @my_posts = @user.posts.order(created_at: :desc).page(1).per(per_page)
+  @liked_posts = @user.liked_posts.order(created_at: :desc).page(1).per(per_page)
+  @saved_posts = @user.bookmarked_posts.order(created_at: :desc).page(1).per(per_page)
+
+  # 탭 기본값: 내가 쓴 글
+  @posts = @my_posts
+
+  # 총 페이지 수
+  @my_posts_total_pages = @my_posts.total_pages
+  @liked_posts_total_pages = @liked_posts.total_pages
+  @saved_posts_total_pages = @saved_posts.total_pages
+end
 
   def edit
   end
@@ -87,9 +102,9 @@ end
   end
 
   def liked_posts
-    @posts = Post.joins(:likes).where(likes: { user_id: current_user.id }).distinct.order("likes.created_at DESC")
-    render partial: "users/posts", locals: { posts: @posts }
-  end
+  @posts = current_user.liked_posts # 또는 정확히 좋아요 누른 글만 반환하는 scope
+  render partial: "users/posts", locals: { posts: @posts }
+end
 
   def saved_posts
     @posts = current_user.bookmarked_posts.order(created_at: :desc)

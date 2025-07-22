@@ -2,24 +2,27 @@
 
   <div class="p-4 text-center border-b">
     <h2 class="text-xl font-bold">
-    <%= current_user.name || "닉네임" %>
+    <%= current_user&.name || "닉네임" %>
     </h2>
-    <p class="text-sm text-gray-600 mt-1"> <%= current_user.self_intro || "한줄소개" %></p>
+    <p class="text-sm text-gray-600 mt-1"> <%= current_user&.self_intro || "한줄소개" %></p>
   </div>
 
+<% if current_user %>
   <div class="p-4 space-y-4 border-b">
-  <% intros = current_user.book_intros.where.not(quote: [nil, ""]) %>
-  <% if intros.any? %>
-    <% intros.each do |intro| %>
-      <div class="text-sm">
-        <p>“<%= intro.quote %>”</p>
-        <p class="text-xs text-gray-500">&lt;<%= intro.book_title.presence || "책 제목" %>&gt; <%= intro.author_name.presence || "저자이름" %></p>
-      </div>
+    <% intros = current_user.book_intros.where.not(quote: [nil, ""]) %>
+    <% if intros.any? %>
+      <% intros.each do |intro| %>
+        <div class="text-sm">
+          <p>“<%= intro.quote %>”</p>
+          <p class="text-xs text-gray-500">&lt;<%= intro.book_title.presence || "책 제목" %>&gt; <%= intro.author_name.presence || "저자이름" %></p>
+        </div>
+      <% end %>
+    <% else %>
+      <p class="text-sm text-gray-500 italic">책 소개가 없습니다.</p>
     <% end %>
-  <% else %>
-    <p class="text-sm text-gray-500 italic">책 소개가 없습니다.</p>
-  <% end %>
-</div>
+  </div>
+<% end %>
+
 
 
 
