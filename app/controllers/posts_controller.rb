@@ -127,7 +127,6 @@ end
 
 
 
-
 def bookmark
   @post = Post.find(params[:post_id])
   current_user.bookmarks.create(post: @post)

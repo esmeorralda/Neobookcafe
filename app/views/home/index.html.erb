@@ -55,17 +55,40 @@
       </div>
     <% end %>
 
+<% current_page = page_no.to_i %>
+<% total_pages = @total_pages.to_i %>
+<% max_visible = 4 %>
 
-<div class="pagination flex space-x-2 mt-4">
+<%# 페이지 범위 계산 %>
+<% start_page = [current_page - 1, 1].max %>
+<% end_page = [start_page + max_visible - 1, total_pages].min %>
 
-  <% (1..@total_pages).each do |page| %>
-    <% if page == page_no %>
-      <span class="px-3 py-1 bg-gray-300 rounded font-bold"><%= page %></span>
+<%# 보정: 최대 개수 유지 보장 %>
+<% if (end_page - start_page + 1) < max_visible && start_page > 1 %>
+  <% start_page = [end_page - max_visible + 1, 1].max %>
+<% end %>
+
+<div class="pagination flex items-center space-x-2 mt-4 text-sm">
+
+  <%# 왼쪽 화살표 (<) %>
+  <% if start_page > 1 %>
+    <%= link_to "&laquo;".html_safe, root_path(page: start_page - 1, per_page: per_page, category: params[:category], sort: params[:sort]), class: "px-2 py-1 border rounded hover:bg-gray-100" %>
+  <% end %>
+
+  <%# 페이지 숫자들 %>
+  <% (start_page..end_page).each do |page| %>
+    <% if page == current_page %>
+      <span class="px-3 py-1 font-bold"><%= page %></span>
     <% else %>
-     <%= link_to page, root_path(page: page, per_page: per_page, category: params[:category], sort: params[:sort]), class: "..." %>
-
+      <%= link_to page, root_path(page: page, per_page: per_page, category: params[:category], sort: params[:sort]), class: "px-3 py-1 border rounded hover:bg-gray-100" %>
     <% end %>
   <% end %>
+
+  <%# 오른쪽 화살표 (>) %>
+  <% if end_page < total_pages %>
+    <%= link_to "&raquo;".html_safe, root_path(page: end_page + 1, per_page: per_page, category: params[:category], sort: params[:sort]), class: "px-2 py-1 border rounded hover:bg-gray-100" %>
+  <% end %>
+
 </div>
 
 
