@@ -43,11 +43,11 @@
         <div class="p-6 border-b border-[#ddd6ce]">
           <div class="flex justify-between items-start">
             <div>
-              <h3 class="text-lg font-semibold text-[#3a2d20] mb-1">
+              <h3 class="text-lg font-semibold font-serif text-[#3a2d20] mb-1">
                 <%= link_to truncate(post.title, length: 40), post_path(post), class: "hover:underline" %>
                 <span class="text-sm text-[#b67c4a] ml-2">책 제목<%= post.id.to_s.rjust(8, "0") %></span>
               </h3>
-              <p class="text-sm text-[#5e5147] leading-snug mb-2">
+              <p class="text-sm text-[#5e5147] font-serif leading-snug mb-2">
                 <%= truncate(post.post_blocks.first&.content || "", length: 120) %>
               </p>
               <div class="text-xs text-[#999] space-x-2">
@@ -82,11 +82,11 @@
   <% start_page = [end_page - max_visible + 1, 1].max %>
 <% end %>
 
-<div class="pagination flex items-center space-x-2 mt-4 text-sm">
+<div class="pagination flex items-center justify-center space-x-2 mt-4 text-sm">
 
   <%# 왼쪽 화살표 (<<) %>
   <% if start_page > 1 %>
-    <%= link_to "&laquo;".html_safe, search_posts_path(q: @query, page: start_page - 1, sort: params[:sort]), class: "px-2 py-1 border rounded hover:bg-gray-100" %>
+    <%= link_to "&laquo;".html_safe, search_posts_path(q: @query, page: start_page - 1, sort: params[:sort]), class: "px-2 py-1 rounded hover:bg-gray-100" %>
   <% end %>
 
   <%# 페이지 숫자들 %>
@@ -94,13 +94,13 @@
     <% if page == current_page %>
       <span class="px-3 py-1 font-bold"><%= page %></span>
     <% else %>
-      <%= link_to page, search_posts_path(q: @query, page: page, sort: params[:sort]), class: "px-3 py-1 border rounded hover:bg-gray-100" %>
+      <%= link_to page, search_posts_path(q: @query, page: page, sort: params[:sort]), class: "px-3 py-1 rounded hover:bg-gray-100 font-light" %>
     <% end %>
   <% end %>
 
   <%# 오른쪽 화살표 (>>) %>
   <% if end_page < total_pages %>
-    <%= link_to "&raquo;".html_safe, search_posts_path(q: @query, page: end_page + 1, sort: params[:sort]), class: "px-2 py-1 border rounded hover:bg-gray-100" %>
+    <%= link_to "&raquo;".html_safe, search_posts_path(q: @query, page: end_page + 1, sort: params[:sort]), class: "px-2 py-1  rounded hover:bg-gray-100" %>
   <% end %>
 
 </div>

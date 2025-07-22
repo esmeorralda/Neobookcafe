@@ -11,10 +11,10 @@
   <% start_page = [end_page - max_visible + 1, 1].max %>
 <% end %>
 
-<div class="pagination flex items-center space-x-2 mt-4 text-sm">
+<div class="pagination flex items-center justify-center space-x-2 mt-4 text-sm">
   <%# 왼쪽 화살표 (<<) %>
   <% if start_page > 1 %>
-    <a href="#" class="pagination-link px-2 py-1 border rounded hover:bg-gray-100" data-tab="<%= tab %>" data-page="<%= start_page - 1 %>">&laquo;</a>
+    <a href="#" class="pagination-link px-2 py-1  rounded hover:bg-gray-100" data-tab="<%= tab %>" data-page="<%= start_page - 1 %>">&laquo;</a>
   <% end %>
 
   <%# 페이지 숫자들 %>
@@ -22,12 +22,12 @@
     <% if page == current_page %>
       <span class="px-3 py-1 font-bold"><%= page %></span>
     <% else %>
-      <a href="#" class="pagination-link px-3 py-1 border rounded hover:bg-gray-100" data-tab="<%= tab %>" data-page="<%= page %>"><%= page %></a>
+      <a href="#" class="pagination-link px-3 py-1  rounded hover:bg-gray-100 font-light" data-tab="<%= tab %>" data-page="<%= page %>"><%= page %></a>
     <% end %>
   <% end %>
 
   <%# 오른쪽 화살표 (>>) %>
   <% if end_page < total_pages %>
-    <a href="#" class="pagination-link px-2 py-1 border rounded hover:bg-gray-100" data-tab="<%= tab %>" data-page="<%= end_page + 1 %>">&raquo;</a>
+    <a href="#" class="pagination-link px-2 py-1  rounded hover:bg-gray-100" data-tab="<%= tab %>" data-page="<%= end_page + 1 %>">&raquo;</a>
   <% end %>
 </div>
