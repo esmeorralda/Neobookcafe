@@ -95,21 +95,29 @@ end
   #   reset_session
   #   redirect_to root_path, notice: "회원 탈퇴가 완료되었습니다."
   # end
-
-  def my_posts
-    @posts = current_user.posts.order(created_at: :desc)
-    render partial: "users/posts", locals: { posts: @posts }
-  end
-
-  def liked_posts
-  @posts = current_user.liked_posts # 또는 정확히 좋아요 누른 글만 반환하는 scope
-  render partial: "users/posts", locals: { posts: @posts }
+def my_posts
+  page = params[:page] || 1
+  @posts = current_user.posts.order(created_at: :desc).page(page).per(10)
+  @total_pages = @posts.total_pages
+  @current_page = @posts.current_page
+  render partial: "users/posts_with_pagination", locals: { posts: @posts, page_no: @current_page, total_pages: @total_pages, tab: "my_posts" }
 end
 
-  def saved_posts
-    @posts = current_user.bookmarked_posts.order(created_at: :desc)
-    render partial: "users/posts", locals: { posts: @posts }
-  end
+def liked_posts
+  page = params[:page] || 1
+  @posts = current_user.liked_posts.order(created_at: :desc).page(page).per(10)
+  @total_pages = @posts.total_pages
+  @current_page = @posts.current_page
+  render partial: "users/posts_with_pagination", locals: { posts: @posts, page_no: @current_page, total_pages: @total_pages, tab: "liked_posts" }
+end
+
+def saved_posts
+  page = params[:page] || 1
+  @posts = current_user.bookmarked_posts.order(created_at: :desc).page(page).per(10)
+  @total_pages = @posts.total_pages
+  @current_page = @posts.current_page
+  render partial: "users/posts_with_pagination", locals: { posts: @posts, page_no: @current_page, total_pages: @total_pages, tab: "saved_posts" }
+end
 
 
   private
