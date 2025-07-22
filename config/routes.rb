@@ -4,79 +4,58 @@ Rails.application.routes.draw do
   get "feedbacks/index"
   get "chapters/index"
   devise_for :users
-  
+
   root "home#index"
   get "home/index"
-  
 
   resources :thoughts
-resources :discussions
-resources :creations
-resources :boards
-resources :posts do
-  post 'bookmark', to: 'posts#bookmark'
-  delete 'unbookmark', to: 'posts#unbookmark'
-end
-resources :likes
-resources :books do
-  resources :notes, only: [:new, :create, :edit, :update, :destroy]
-end
-resources :books do
-  resources :chapters, only: [:index]
-end
+  resources :discussions
+  resources :creations
+  resources :boards
 
-resources :notes
-resources :books do
-  get 'chapters_and_current_page', to: 'books#chapters_and_current_page'
-end
+  resources :posts do
+    post 'bookmark', to: 'posts#bookmark'
+    delete 'unbookmark', to: 'posts#unbookmark'
 
-resources :posts do
-  collection do
-    get :search
+    # 🔹 중복 없이 한 곳에서 search 정의
+    collection do
+      get :search
+    end
+
+    resources :comments, only: [:create]
   end
-end
 
-resources :feedbacks, only: [:new, :create, :index]
+  resources :likes
 
-get '/search', to: 'posts#search', as: :search
-
-resources :posts do
-  resources :comments, only: [:create]
-end
-
-resources :users, only: [:show] do
-  member do
-    get :my_posts
-    get :liked_posts
-    get :saved_posts
+  resources :books do
+    resources :notes, only: [:new, :create, :edit, :update, :destroy]
+    resources :chapters, only: [:index]
+    get 'chapters_and_current_page', on: :member
   end
-end
 
-get '/my_posts', to: 'users#my_posts'
-get '/liked_posts', to: 'users#liked_posts'
-get '/saved_posts', to: 'users#saved_posts'
-get '/settings', to: 'users#edit', as: 'settings'
+  resources :notes
+
+  resources :feedbacks, only: [:new, :create, :index]
+
+
+  get '/search', to: 'posts#search', as: :search 
+
+  resources :users, only: [:show] do
+    member do
+      get :my_posts
+      get :liked_posts
+      get :saved_posts
+    end
+  end
+
+  get '/my_posts', to: 'users#my_posts'
+  get '/liked_posts', to: 'users#liked_posts'
+  get '/saved_posts', to: 'users#saved_posts'
+  get '/settings', to: 'users#edit', as: 'settings'
   get '/feedback', to: 'feedbacks#new', as: 'feedback'
-
-get 'users/edit_intro', to: 'users#edit_intro', as: 'edit_intro'
+  get 'users/edit_intro', to: 'users#edit_intro', as: 'edit_intro'
 
   resources :users
 
-  # 나중에 로그인 POST 처리도 필요:
-
-
-
-
-  # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
-
-  # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.
-  # Can be used by load balancers and uptime monitors to verify that the app is live.
   get "up" => "rails/health#show", as: :rails_health_check
-
-  # Render dynamic PWA files from app/views/pwa/* (remember to link manifest in application.html.erb)
-  # get "manifest" => "rails/pwa#manifest", as: :pwa_manifest
-  # get "service-worker" => "rails/pwa#service_worker", as: :pwa_service_worker
-
-  # Defines the root path route ("/")
-  # root "posts#index"
 end
