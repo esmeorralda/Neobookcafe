@@ -11,11 +11,23 @@
           <span><%= post.category || "카테고리" %></span>
           <span><%= time_ago_in_words(post.created_at) %> 전, <%= post.user.name %> 씀</span>
         </div>
-        <div class="flex space-x-4 items-center">
-          <span>👁 <%= post.view_count || 0 %></span>
-          <span>♡ <%= post.like_count || 0 %></span>
-          <span>💬 <%= post.comments.size rescue 0 %></span>
-        </div>
+         <div class="text-xs text-[#999] space-x-3 flex items-center">
+              <span><%= time_ago_in_korean(post.created_at) %>, <%= post.user&.name || post.user&.email || "익명" %> 씀</span>
+                <span class="flex items-center space-x-1">
+    <%= image_tag("icon/post/brownviews.svg", alt: "views icon", class: "w-4 h-4") %>
+    <span><%= post.view_count || 0 %></span>
+  </span>
+
+  <span class="flex items-center space-x-1">
+    <%= image_tag("icon/post/brownoutlinedhear.svg", alt: "likes icon", class: "w-4 h-4") %>
+    <span><%= post.like_count || 0 %></span>
+  </span>
+
+  <span class="flex items-center space-x-1">
+    <%= image_tag("icon/post/browncomments.svg", alt: "comments icon", class: "w-4 h-4") %>
+    <span><%= post.comments.count %></span>
+  </span>
+            </div>
       </div>
     </div>
   <% end %>

@@ -1,5 +1,26 @@
 <!-- app/views/posts/show.html.erb -->
 
+ <div id="report-modal"
+     class="fixed inset-0 flex justify-center items-center bg-black bg-opacity-50 z-50 hidden">
+  <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-md border border-gray-300">
+    <div class="flex justify-between items-center mb-4">
+      <h2 class="text-lg font-semibold text-center w-full">신고하기</h2>
+      <button id="report-close" class="text-gray-500 hover:text-gray-800 text-2xl absolute top-4 right-6">&times;</button>
+    </div>
+    
+   <textarea id="report-content" class="w-full border border-gray-300 rounded p-2 mb-4"
+          rows="4" placeholder="신고 내용을 입력하세요"></textarea>
+
+<div class="flex justify-end space-x-2">
+  <button id="report-cancel" class="px-3 py-1 border rounded text-gray-600">취소</button>
+<button id="report-submit" type="button" class="px-3 py-1 bg-red-500 text-white rounded" data-post-id="<%= @post.id %>">제출</button>
+
+
+</div>
+
+  </div>
+</div>
+
 <head>
   <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/font-kopub@1.0/kopubbatang.min.css">
 </head>
@@ -87,6 +108,14 @@
               <% end %>
             <% end %>
           <% end %>
+
+          <% if user_signed_in? %>
+  <%= button_tag type: 'button', class: "flex items-center", id: "report-button" do %>
+    <%= image_tag "icon/post/report.svg", class: "w-6 h-6" %>
+  <% end %>
+<% end %>
+
+
         </div>
       <% end %>
     </div>
@@ -231,7 +260,6 @@
     <% end %>
   </div>
 
-  
 </div>
 
 
@@ -341,5 +369,69 @@ document.getElementById('highlight-cancel-btn')?.addEventListener('click', () =>
     });
 
   });
-  
+
+  // 신고 버튼 열기
+document.getElementById('report-button')?.addEventListener('click', () => {
+  const modal = document.getElementById('report-modal');
+  modal?.classList.remove('hidden');
+});
+
+
+// 신고 모달 닫기
+document.getElementById('report-close')?.addEventListener('click', () => {
+  const modal = document.getElementById('report-modal');
+  modal?.classList.add('hidden');
+});
+
+  document.addEventListener("DOMContentLoaded", function () {
+    const modal = document.getElementById("report-modal");
+    const closeBtn = document.getElementById("report-close");
+    const cancelBtn = document.getElementById("report-cancel");
+    const submitBtn = document.getElementById("report-submit");
+
+    // 닫기 / 취소
+    closeBtn.addEventListener("click", () => modal.classList.add("hidden"));
+    cancelBtn.addEventListener("click", () => modal.classList.add("hidden"));
+
+    // 제출
+    submitBtn.addEventListener("click", () => {
+      const content = document.getElementById("report-content").value;
+
+      if (!content.trim()) {
+        alert("신고 내용을 입력해주세요.");
+        return;
+      }
+
+      // 예: post_id는 숨겨진 필드로 전달하거나, data 속성 등으로 받아야 함
+      const postId = submitBtn.dataset.postId;
+
+      fetch("/reports", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRF-Token": document.querySelector('meta[name="csrf-token"]').content
+        },
+        body: JSON.stringify({
+          report: {
+            content: content,
+            post_id: postId
+          }
+        })
+      })
+        .then(response => {
+          if (response.ok) {
+            alert("신고가 접수되었습니다.");
+            modal.classList.add("hidden");
+            document.getElementById("report-content").value = "";
+          } else {
+            alert("신고에 실패했습니다.");
+          }
+        })
+        .catch(error => {
+          alert("오류가 발생했습니다.");
+          console.error(error);
+        });
+    });
+  });
+
 </script>

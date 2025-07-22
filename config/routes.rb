@@ -1,4 +1,5 @@
 Rails.application.routes.draw do
+  get "reports/create"
   get "feedbacks/new"
   get "feedbacks/create"
   get "feedbacks/index"
@@ -25,6 +26,11 @@ Rails.application.routes.draw do
     resources :comments, only: [:create]
   end
 
+  resources :posts do
+  resources :reports, only: [:create]
+end
+
+resources :reports, only: [:create]
   resources :likes
 
   resources :books do

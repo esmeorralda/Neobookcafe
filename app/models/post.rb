@@ -1,6 +1,7 @@
 class Post < ApplicationRecord
   include PgSearch::Model
   belongs_to :user
+  has_many :reports, dependent: :destroy
   has_many :post_blocks, -> { order(:position) }, dependent: :destroy
   has_many :comments, -> { where(parent_id: nil).order(created_at: :asc) }, dependent: :destroy
   has_many :bookmarks, dependent: :destroy
