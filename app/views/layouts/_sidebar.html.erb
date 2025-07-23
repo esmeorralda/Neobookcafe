@@ -1,3 +1,4 @@
+<% if @show_sidebar %>
 <div class="fixed top-28 left-0 w-48 px-4 py-6 space-y-2">
   <div class="bg-[#efe9df] text-[#9b825e] px-2 py-6 space-y-4 shadow">
     <ul class="space-y-4 text-center">
@@ -21,3 +22,4 @@
     <%= link_to "독서 기록하기", new_note_path, class: "block border border-[#7b5845] bg-white text-[#7b5845] font-bold py-2" %>
   </div>
 </div>
+<% end %>

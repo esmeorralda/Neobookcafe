@@ -65,7 +65,7 @@
             로그인
           </button> %>
       </div>
-<% unless params[:category] == "board"  || @is_search_result %>
+<% if @show_sidebar %>
   <div class="bg-[#f3ede3] pt-1 text-sm text-[#7c6243] flex justify-center space-x-8 relative">
     <% if params[:category] == "creation" %>
       <%= link_to "전체", posts_path(category: :creation), class: "pb-1 border-b-2 border-transparent hover:border-[#7c6243]" %>
@@ -83,6 +83,7 @@
     <% end %>
   </div>
 <% end %>
+
 
     </header>
 

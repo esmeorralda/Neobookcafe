@@ -18,6 +18,7 @@ class PostsController < ApplicationController
       end
       
   def show
+ 
   @post = Post.find(params[:id])
 
   session[:viewed_posts] ||= []
@@ -30,6 +31,7 @@ end
 
 
 def index
+     @show_sidebar = true
   sorted_posts = fetch_cached_posts
 
   @posts = case params[:sort]

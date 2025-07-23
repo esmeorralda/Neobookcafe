@@ -3,6 +3,7 @@ class HomeController < ApplicationController
   
   def index
     # Start with a base query
+    @show_sidebar = true
     base_query = Post.includes(:user, :comments, :post_blocks)
 
     # Apply sorting
