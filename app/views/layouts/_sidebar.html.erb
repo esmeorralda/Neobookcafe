@@ -1,20 +1,23 @@
 <div class="fixed top-28 left-0 w-48 px-4 py-6 space-y-2">
-  <div class="bg-[#efe9df] text-[#9b825e] px-2 py-6 space-y-4 shadow ">
+  <div class="bg-[#efe9df] text-[#9b825e] px-2 py-6 space-y-4 shadow">
     <ul class="space-y-4 text-center">
-          <li><%= link_to "독서 토론관", posts_path(category: :discussion) %></li>
+      <li><%= link_to "독서 토론관", posts_path(category: :discussion) %></li>
       <li><%= link_to "독서 감상관", posts_path(category: :thought) %></li>
       <li><%= link_to "문학 창작관", posts_path(category: :creation) %></li>
       <li><%= link_to "자유 게시판", posts_path(category: :board) %></li>
-     <li>
-</li>
 
-    <li class="border-t border-[#d8cbb4] pt-4"><%= link_to "독서 메모장", books_path %></li>
-    
+      <!-- 🔒 아이콘이 포함된 독서 메모장 항목 -->
+      <li class="border-t border-[#d8cbb4] pt-4">
+        <%= link_to books_path, class: "flex items-center justify-center space-x-2" do %>
+          <%= image_tag "icon/post/Lock.svg", alt: "Lock", class: "w-4 h-4" %>
+          <span>독서 메모장</span>
+        <% end %>
+      </li>
     </ul>
   </div>
 
   <div class="mt-12 space-y-2 text-center">
-    <%= link_to "게시글 쓰기", new_post_path, class: "block bg-[#7b5845] text-white font-bold py-2 mt-6 " %>
-    <%= link_to "독서 기록하기", new_note_path, class: "block border border-[#7b5845] bg-white text-[#7b5845] font-bold py-2 " %>
+    <%= link_to "게시글 쓰기", new_post_path, class: "block bg-[#7b5845] text-white font-bold py-2 mt-6" %>
+    <%= link_to "독서 기록하기", new_note_path, class: "block border border-[#7b5845] bg-white text-[#7b5845] font-bold py-2" %>
   </div>
 </div>
