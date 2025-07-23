@@ -1,68 +1,58 @@
-<div class="relative max-w-3xl mx-auto space-y-4">
+<div class="max-w-4xl mx-auto mt-10 p-8">
   <h1 class="text-3xl font-bold text-gray-800 mb-10">📚 독서 기록장</h1>
 
-  <% @books.each do |book| %>
-    <% recent_notes = book.notes.order(position: :desc).limit(3) %>
-    
-    <div>
-      <!-- 책 제목 + 전체 쪽수 + 진행률 -->
-     <!-- 책 제목 + 전체 쪽수 + 진행률 -->
-<div class="flex justify-between items-center mb-4">
-  <div class="text-xl font-semibold text-gray-800">
-    <%= book.title %>
-   <% total_pages = book.total_pages || 0 %>
-<% current_page = book.current_page || 0 %>
-<span class="ml-4 text-sm text-gray-500">
-  <%= current_page %>쪽 · <%= total_pages > 0 ? number_to_percentage((current_page.to_f / total_pages) * 100, precision: 0) : "0%" %>
-</span>
-
-  </div>
-
-  <!-- 책 전체 노트 더보기 버튼 -->
-  <%= link_to "더보기 »", book_path(book), class: "text-sm text-gray-500 hover:underline" %>
-</div>
-
-
-<div class="flex flex-wrap gap-6 relative">
-  <% recent_notes.each_with_index do |note, index| %>
-    <div class="relative w-56 aspect-square shadow-md p-5 pt-10 pb-8 font-serif overflow-hidden"
-         style="background-color: <%= note.color  %>; clip-path: polygon(0 0, 100% 0, 100% 95%, 95% 100%, 0 100%);">
-
-      <!-- 페이지와 날짜 -->
-      <div class="absolute top-3 left-3 text-[13px] text-gray-600 font-medium">
-        <% if note.page_from && note.page_to %>
-          <%= note.page_from %>~<%= note.page_to %>쪽
-        <% elsif note.page_from %>
-          <%= note.page_from %>쪽
-        <% end %>
-      </div>
-
-      <div class="absolute top-3 right-3 text-[13px] text-gray-600">
-        <%= note.created_at.strftime('%d/%m/%Y') %>
-      </div>
-
-      <!-- 메모 내용 -->
-      <div class="whitespace-pre-line text-gray-800 text-sm leading-relaxed overflow-hidden text-ellipsis line-clamp-8">
-        <%= truncate(note.memo, length: 300) %>
-      </div>
-
-      <!-- 접힌 효과 -->
-      <div class="absolute bottom-0 right-0 w-10 h-10 bg-[#e5e5d7] clip-path-corner"></div>
-
-      <!-- 더보기 버튼 -->
-      <%= link_to "더보기 »", note_path(note), class: "absolute bottom-2 right-3 text-xs text-gray-600 hover:underline" %>
+  <% if @books.blank? || @books.all? { |book| book.notes.blank? } %>
+    <div class="text-center text-gray-500 text-lg mt-20">
+      아직 작성된 독서 기록이 없습니다.
     </div>
+  <% else %>
+    <% @books.each do |book| %>
+      <% recent_notes = book.notes.order(position: :desc).limit(3) %>
 
-    <!-- 3번째 카드 뒤에 "..." 표시 -->
-    <% if index == 2 && book.notes.count > 3 %>
-      <div class="flex items-center text-xl text-gray-500">...</div>
+      <div>
+        <!-- 책 제목 + 전체 쪽수 + 진행률 -->
+        <div class="flex justify-between items-center mb-4">
+          <div class="text-xl font-semibold text-gray-800">
+            <%= book.title %>
+            <% total_pages = book.total_pages || 0 %>
+            <% current_page = book.current_page || 0 %>
+            <span class="ml-4 text-sm text-gray-500">
+              <%= current_page %>쪽 · <%= total_pages > 0 ? number_to_percentage((current_page.to_f / total_pages) * 100, precision: 0) : "0%" %>
+            </span>
+          </div>
+          <%= link_to "더보기 »", book_path(book), class: "text-sm text-gray-500 hover:underline" %>
+        </div>
+
+        <div class="flex flex-wrap gap-6 relative">
+          <% recent_notes.each_with_index do |note, index| %>
+            <div class="relative w-56 aspect-square shadow-md p-5 pt-10 pb-8 font-serif overflow-hidden"
+                 style="background-color: <%= note.color  %>; clip-path: polygon(0 0, 100% 0, 100% 95%, 95% 100%, 0 100%);">
+              <div class="absolute top-3 left-3 text-[13px] text-gray-600 font-medium">
+                <% if note.page_from && note.page_to %>
+                  <%= note.page_from %>~<%= note.page_to %>쪽
+                <% elsif note.page_from %>
+                  <%= note.page_from %>쪽
+                <% end %>
+              </div>
+              <div class="absolute top-3 right-3 text-[13px] text-gray-600">
+                <%= note.created_at.strftime('%d/%m/%Y') %>
+              </div>
+              <div class="whitespace-pre-line text-gray-800 text-sm leading-relaxed overflow-hidden text-ellipsis line-clamp-8">
+                <%= truncate(note.memo, length: 300) %>
+              </div>
+              <div class="absolute bottom-0 right-0 w-10 h-10 bg-[#e5e5d7] clip-path-corner"></div>
+              <%= link_to "더보기 »", note_path(note), class: "absolute bottom-2 right-3 text-xs text-gray-600 hover:underline" %>
+            </div>
+
+            <% if index == 2 && book.notes.count > 3 %>
+              <div class="flex items-center text-xl text-gray-500">...</div>
+            <% end %>
+          <% end %>
+        </div>
+
+        <hr class="my-10 border-t border-gray-300">
+      </div>
     <% end %>
-  <% end %>
-</div>
-
-
-      <hr class="my-10 border-t border-gray-300">
-    </div>
   <% end %>
 </div>
 
