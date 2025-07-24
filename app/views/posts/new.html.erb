@@ -13,7 +13,7 @@
     <div class="grid grid-cols-2 gap-4 text-sm">
       <div>
         <%= f.label :category, "게시판 선택", class: "block mb-1" %>
-        <%= f.select :category, [["감상문", "thought"], ["논설문", "discussion"], ["창작물", "creation"], ["자유게시글", "board"]], {}, class: "w-full border border-gray-300 p-2 rounded bg-white" %>
+        <%= f.select :category, [["감상문", "thought"], ["논설문", "discussion"], ["창작물", "creation"], ["자유게시글", "board"]], {}, class: "w-full border border-gray-300 p-2 rounded bg-white", id: "category-select" %>
       </div>
       <div>
         <%= f.label :book_title, "책 제목", class: "block mb-1" %>
@@ -30,17 +30,34 @@
       <%= f.text_field :title, class: "w-full border border-gray-300 p-2 rounded" %>
     </div>
 
-    <div>
-      <span class="text-sm mr-2">장르</span>
-      <% ["철학", "문학", "역사", "사회", "경제", "과학/기술"].each do |genre| %>
-        <label class="mr-2 text-sm">
-          <%= check_box_tag "genres[]", genre %> <%= genre %>
-        </label>
-      <% end %>
-      <label class="ml-4 text-sm">
-        <%= check_box_tag :allow_comments, true %> 댓글 허용
-      </label>
-    </div>
+    <div id="genre-container">
+  <span class="text-sm mr-2">장르</span>
+
+  <!-- 기본 장르 -->
+  <% ["철학", "문학", "역사", "사회", "경제", "과학/기술"].each do |genre| %>
+    <label class="mr-2 text-sm genre-default">
+      <%= check_box_tag "genres[]", genre %> <%= genre %>
+    </label>
+  <% end %>
+
+  <!-- 창작물 전용 장르 -->
+  <% ["시", "에세이", "소설"].each do |genre| %>
+    <label class="mr-2 text-sm genre-creation hidden">
+      <%= check_box_tag "genres[]", genre %> <%= genre %>
+    </label>
+  <% end %>
+
+  <!-- 자유게시글 전용 장르 -->
+  <% ["책 추천", "책 홍보", "작가 이야기", "독서팁/습관", "책 관련 행사 홍보", "책 Q&A"].each do |genre| %>
+    <label class="mr-2 text-sm genre-board hidden">
+      <%= check_box_tag "genres[]", genre %> <%= genre %>
+    </label>
+  <% end %>
+
+  <label class="ml-4 text-sm">
+    <%= check_box_tag :allow_comments, true %> 댓글 허용
+  </label>
+</div>
 
     <!-- 문단 블록 -->
     <div>
@@ -121,10 +138,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (!blockTemplate) return;
 
       const newBlock = blockTemplate.cloneNode(true);
-
-      // Replace __INDEX__ placeholders with actual index
       newBlock.innerHTML = newBlock.innerHTML.replace(/__INDEX__/g, index);
-
       container.appendChild(newBlock);
       index++;
     });
@@ -138,7 +152,24 @@ document.addEventListener("DOMContentLoaded", () => {
       blockDiv.style.display = "none";
     }
   });
-});
 
+  // 장르 필터링
+  const categorySelect = document.getElementById("category-select");
+
+  function toggleGenres() {
+  const selected = categorySelect.value;
+  const defaultGenres = document.querySelectorAll(".genre-default");
+  const creationGenres = document.querySelectorAll(".genre-creation");
+  const boardGenres = document.querySelectorAll(".genre-board");
+
+  defaultGenres.forEach(el => el.classList.toggle("hidden", selected !== "thought" && selected !== "discussion"));
+  creationGenres.forEach(el => el.classList.toggle("hidden", selected !== "creation"));
+  boardGenres.forEach(el => el.classList.toggle("hidden", selected !== "board"));
+}
+
+
+  categorySelect.addEventListener("change", toggleGenres);
+  toggleGenres(); // 최초 렌더링 시 반영
+});
 
 </script>
