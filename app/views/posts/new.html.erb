@@ -30,98 +30,75 @@
       <%= f.text_field :title, class: "w-full border border-gray-300 p-2 rounded" %>
     </div>
 
+    <!-- 장르 선택 -->
     <div id="genre-container">
-  <span class="text-sm mr-2">장르</span>
+      <span class="text-sm mr-2">장르</span>
 
-  <!-- 기본 장르 -->
-  <% ["철학", "문학", "역사", "사회", "경제", "과학/기술"].each do |genre| %>
-    <label class="mr-2 text-sm genre-default">
-      <%= check_box_tag "genres[]", genre %> <%= genre %>
-    </label>
-  <% end %>
+      <% ["철학", "문학", "역사", "사회", "경제", "과학/기술"].each do |genre| %>
+        <label class="mr-2 text-sm genre-default">
+          <%= check_box_tag "genres[]", genre %> <%= genre %>
+        </label>
+      <% end %>
 
-  <!-- 창작물 전용 장르 -->
-  <% ["시", "에세이", "소설"].each do |genre| %>
-    <label class="mr-2 text-sm genre-creation hidden">
-      <%= check_box_tag "genres[]", genre %> <%= genre %>
-    </label>
-  <% end %>
+      <% ["시", "에세이", "소설"].each do |genre| %>
+        <label class="mr-2 text-sm genre-creation hidden">
+          <%= check_box_tag "genres[]", genre %> <%= genre %>
+        </label>
+      <% end %>
 
-  <!-- 자유게시글 전용 장르 -->
-  <% ["책 추천", "책 홍보", "작가 이야기", "독서팁/습관", "책 관련 행사 홍보", "책 Q&A"].each do |genre| %>
-    <label class="mr-2 text-sm genre-board hidden">
-      <%= check_box_tag "genres[]", genre %> <%= genre %>
-    </label>
-  <% end %>
+      <% ["책 추천", "책 홍보", "작가 이야기", "독서팁/습관", "책 관련 행사 홍보", "책 Q&A"].each do |genre| %>
+        <label class="mr-2 text-sm genre-board hidden">
+          <%= check_box_tag "genres[]", genre %> <%= genre %>
+        </label>
+      <% end %>
 
-  <label class="ml-4 text-sm">
-    <%= check_box_tag :allow_comments, true %> 댓글 허용
-  </label>
-</div>
+      <label class="ml-4 text-sm">
+        <%= check_box_tag :allow_comments, true %> 댓글 허용
+      </label>
+    </div>
 
-    <!-- 문단 블록 -->
+    <!-- 기본 문단 블록 -->
     <div>
       <label class="block text-sm font-semibold mb-2">문단 내용</label>
       <%= f.fields_for :post_blocks, f.object.post_blocks.build(block_type: :paragraph, position: 0) do |block_form| %>
-        <%= block_form.hidden_field :block_type, value: "paragraph" %>
-        <%= block_form.text_area :content, rows: 4, class: "w-full border border-gray-300 p-2 rounded bg-white" %>
+        <div class="relative border border-gray-300 p-4 bg-white rounded">
+          <div class="absolute top-2 left-2 text-xs text-gray-600">
+            블록 유형: <%= block_form.select :block_type, [["문단", "paragraph"], ["인용", "quote"], ["소제목", "subtitle"]], {}, class: "text-sm border border-gray-300 rounded p-1" %>
+          </div>
+          <%= block_form.text_area :content, rows: 4, class: "mt-6 w-full border border-gray-300 p-2 rounded bg-white resize-none text-sm" %>
+        </div>
       <% end %>
     </div>
 
     <!-- 동적 블록 추가 영역 -->
     <div id="blocks-container" class="space-y-4 mt-4"></div>
 
-    <!-- 추가 버튼들 -->
+    <!-- 블록 추가 버튼 -->
     <div class="flex space-x-2 mt-4">
       <button type="button" class="bg-[#5d3b2e] text-white px-3 py-1 rounded text-sm" data-block-type="paragraph">+ 문단</button>
       <button type="button" class="bg-[#5d3b2e] text-white px-3 py-1 rounded text-sm" data-block-type="quote">+ 인용</button>
       <button type="button" class="bg-[#5d3b2e] text-white px-3 py-1 rounded text-sm" data-block-type="subtitle">+ 소제목</button>
     </div>
 
-    <%= f.submit "포스트 저장", class: "block mx-auto mt-6 bg-[#a47148] hover:bg-[#8a5c36] text-white font-semibold px-6 py-2 rounded" %>
   <% end %>
 </div>
 
 <!-- 템플릿 -->
-<!-- 템플릿에 모든 타입을 담고 각 타입마다 data-block-type 속성 부여 -->
 <template id="block-template">
-  <div class="block-item mb-4" data-block-type="paragraph">
-    <input type="hidden" name="post[post_blocks_attributes][__INDEX__][block_type]" value="paragraph">
-    <textarea 
-      name="post[post_blocks_attributes][__INDEX__][content]" 
-      rows="4" 
-      placeholder="문단을 입력해주세요"
-      class="w-full border border-gray-300 p-2 rounded"
-    ></textarea>
-    <input type="hidden" name="post[post_blocks_attributes][__INDEX__][_destroy]" value="false">
-    <button type="button" class="mt-1 text-red-500 text-sm remove-block">삭제 ✕</button>
-  </div>
-
-  <div class="block-item mb-4" data-block-type="quote">
-    <input type="hidden" name="post[post_blocks_attributes][__INDEX__][block_type]" value="quote">
-    <input 
-      type="text" 
-      name="post[post_blocks_attributes][__INDEX__][content]" 
-      placeholder="“ 인용 문구를 입력해주세요"
-      class="w-full border border-gray-300 p-2 rounded text-sm italic"
-    >
-    <input type="hidden" name="post[post_blocks_attributes][__INDEX__][_destroy]" value="false">
-    <button type="button" class="mt-1 text-red-500 text-sm remove-block">삭제 ✕</button>
-  </div>
-
-  <div class="block-item mb-4" data-block-type="subtitle">
-    <input type="hidden" name="post[post_blocks_attributes][__INDEX__][block_type]" value="subtitle">
-    <input 
-      type="text" 
-      name="post[post_blocks_attributes][__INDEX__][content]" 
-      placeholder="소제목을 입력해주세요"
-      class="w-full border border-gray-300 p-2 rounded text-sm"
-    >
+  <div class="block-item border border-gray-300 p-4 rounded bg-white relative">
+    <div class="absolute top-2 left-2 text-xs text-gray-600">
+      블록 유형:
+      <select name="post[post_blocks_attributes][__INDEX__][block_type]" class="text-sm border border-gray-300 rounded p-1">
+        <option value="paragraph">문단</option>
+        <option value="quote">인용</option>
+        <option value="subtitle">소제목</option>
+      </select>
+    </div>
+    <textarea name="post[post_blocks_attributes][__INDEX__][content]" rows="4" class="mt-6 w-full border border-gray-300 p-2 rounded resize-none text-sm bg-white" placeholder="내용을 입력해주세요"></textarea>
     <input type="hidden" name="post[post_blocks_attributes][__INDEX__][_destroy]" value="false">
     <button type="button" class="mt-1 text-red-500 text-sm remove-block">삭제 ✕</button>
   </div>
 </template>
-
 
 <script>
 document.addEventListener("DOMContentLoaded", () => {
@@ -133,13 +110,16 @@ document.addEventListener("DOMContentLoaded", () => {
   document.querySelectorAll("button[data-block-type]").forEach(button => {
     button.addEventListener("click", () => {
       const blockType = button.getAttribute("data-block-type");
-      const blockTemplate = template.content.querySelector(`div[data-block-type="${blockType}"]`);
+      const blockTemplate = template.content.cloneNode(true);
+      const blockDiv = blockTemplate.querySelector("div.block-item");
 
-      if (!blockTemplate) return;
+      blockDiv.dataset.blockType = blockType;
+      blockDiv.innerHTML = blockDiv.innerHTML.replace(/__INDEX__/g, index);
 
-      const newBlock = blockTemplate.cloneNode(true);
-      newBlock.innerHTML = newBlock.innerHTML.replace(/__INDEX__/g, index);
-      container.appendChild(newBlock);
+      const select = blockDiv.querySelector("select");
+      if (select) select.value = blockType;
+
+      container.appendChild(blockDiv);
       index++;
     });
   });
@@ -157,19 +137,13 @@ document.addEventListener("DOMContentLoaded", () => {
   const categorySelect = document.getElementById("category-select");
 
   function toggleGenres() {
-  const selected = categorySelect.value;
-  const defaultGenres = document.querySelectorAll(".genre-default");
-  const creationGenres = document.querySelectorAll(".genre-creation");
-  const boardGenres = document.querySelectorAll(".genre-board");
-
-  defaultGenres.forEach(el => el.classList.toggle("hidden", selected !== "thought" && selected !== "discussion"));
-  creationGenres.forEach(el => el.classList.toggle("hidden", selected !== "creation"));
-  boardGenres.forEach(el => el.classList.toggle("hidden", selected !== "board"));
-}
-
+    const selected = categorySelect.value;
+    document.querySelectorAll(".genre-default").forEach(el => el.classList.toggle("hidden", selected !== "thought" && selected !== "discussion"));
+    document.querySelectorAll(".genre-creation").forEach(el => el.classList.toggle("hidden", selected !== "creation"));
+    document.querySelectorAll(".genre-board").forEach(el => el.classList.toggle("hidden", selected !== "board"));
+  }
 
   categorySelect.addEventListener("change", toggleGenres);
-  toggleGenres(); // 최초 렌더링 시 반영
+  toggleGenres(); // 초기 렌더링 시 반영
 });
-
 </script>
