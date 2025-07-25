@@ -131,89 +131,116 @@
   line-height: 1;
 }
 
+
+/* 문단 스타일 */
+.block-type-paragraph textarea {
+  background-color: #fffbe6;
+  font-size: 1rem;
+  color: #333;
+}
+
+/* 인용 스타일 */
+.block-type-quote textarea {
+  background-color: #f0f4f8;
+  font-style: italic;
+  border-left: 4px solid #9bbde0;
+  padding-left: 0.5rem;
+  color: #555;
+}
+
+/* 소제목 스타일 */
+.block-type-subtitle textarea {
+  background-color: #fff;
+  font-weight: bold;
+  font-size: 1.2rem;
+  color: #5d3b2e;
+  border-bottom: 1px solid #ccc;
+}
 </style>
 
 <script>
-  document.addEventListener("DOMContentLoaded", () => {
-    const container = document.getElementById("blocks-container");
-    let index = 0;
+ document.addEventListener("DOMContentLoaded", () => {
+  const container = document.getElementById("blocks-container");
+  let index = 0;
 
-    // textarea 자동 높이 조절 함수
-    function autoResizeTextarea(textarea) {
-      textarea.style.height = "auto";
-      textarea.style.height = textarea.scrollHeight + "px";
-    }
+  function autoResizeTextarea(textarea) {
+    textarea.style.height = "auto";
+    textarea.style.height = textarea.scrollHeight + "px";
+  }
 
-    // 블록 생성 함수
-    function createBlock(type = "paragraph", content = "") {
-      const block = document.createElement("div");
-      block.classList.add("block");
+  function createBlock(type = "paragraph", content = "") {
+    const block = document.createElement("div");
+    block.classList.add("block");
 
-      // textarea
-      const textarea = document.createElement("textarea");
-      textarea.name = `post[post_blocks_attributes][${index}][content]`;
-      textarea.value = content;
-      textarea.placeholder = "내용을 입력하세요";
-      textarea.setAttribute("rows", 1);
+    const textarea = document.createElement("textarea");
+    textarea.name = `post[post_blocks_attributes][${index}][content]`;
+    textarea.value = content;
+    textarea.placeholder = "내용을 입력하세요";
+    textarea.setAttribute("rows", 1);
 
-      autoResizeTextarea(textarea);
-      textarea.addEventListener("input", () => autoResizeTextarea(textarea));
+    autoResizeTextarea(textarea);
+    textarea.addEventListener("input", () => autoResizeTextarea(textarea));
 
-      // 블록 타입 선택 셀렉트
-      const select = document.createElement("select");
-      select.name = `post[post_blocks_attributes][${index}][block_type]`;
-      select.className = "block-type-selector";
+    const select = document.createElement("select");
+    select.name = `post[post_blocks_attributes][${index}][block_type]`;
+    select.className = "block-type-selector";
+  select.addEventListener("change", () => {
+    block.classList.remove("block-type-paragraph", "block-type-quote", "block-type-subtitle");
+    block.classList.add(`block-type-${select.value}`);
+  });
 
-      const options = [
-        { val: "paragraph", label: "문단" },
-        { val: "quote", label: "인용" },
-        { val: "subtitle", label: "소제목" }
-      ];
-      options.forEach(opt => {
-        const option = document.createElement("option");
-        option.value = opt.val;
-        option.textContent = opt.label;
-        if (opt.val === type) option.selected = true;
-        select.appendChild(option);
-      });
+    const options = [
+      { val: "paragraph", label: "문단" },
+      { val: "quote", label: "인용" },
+      { val: "subtitle", label: "소제목" }
+    ];
+    options.forEach(opt => {
+      const option = document.createElement("option");
+      option.value = opt.val;
+      option.textContent = opt.label;
+      if (opt.val === type) option.selected = true;
+      select.appendChild(option);
+    });
 
-      // 삭제 버튼
-      const removeBtn = document.createElement("button");
-      removeBtn.type = "button";
-      removeBtn.textContent = "삭제 ✕";
-      removeBtn.className = "remove-block-btn";
-      removeBtn.title = "블록 삭제";
+    const removeBtn = document.createElement("button");
+    removeBtn.type = "button";
+    removeBtn.textContent = "삭제 ✕";
+    removeBtn.className = "remove-block-btn";
+    removeBtn.title = "블록 삭제";
 
-      const controls = document.createElement("div");
-      controls.className = "block-controls";
-      controls.appendChild(select);
-      controls.appendChild(removeBtn);
+    const controls = document.createElement("div");
+    controls.className = "block-controls";
+    controls.appendChild(select);
+    controls.appendChild(removeBtn);
 
-      block.appendChild(textarea);
-      block.appendChild(controls);
-      container.appendChild(block);
+    block.appendChild(textarea);
+    block.appendChild(controls);
+    container.appendChild(block);
 
-      textarea.focus();
+    textarea.focus();
 
-      removeBtn.addEventListener("click", () => {
-        container.removeChild(block);
-      });
+    removeBtn.addEventListener("click", () => {
+      container.removeChild(block);
+    });
 
-      // 엔터(Shift 없이) 누르면 새 블록 생성
-      textarea.addEventListener("keydown", (e) => {
-        if (e.key === "Enter" && !e.shiftKey) {
-          e.preventDefault();
-          createBlock();
-        }
-      });
+    textarea.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        createBlock();
+      }
+    });
 
-      index++;
-    }
+    index++;
+  }
 
-    createBlock(); // 최초 1개 블록 생성
+  // 1) 블록 생성
+  createBlock();
 
-    // 카테고리 장르 필터
-    const categorySelect = document.getElementById("category-select");
+  // 2) 블록이 다 생성된 직후에 URL 대체 (replaceState)
+  history.replaceState({}, '', "<%= posts_path %>");
+
+  // 3) 카테고리 토글
+  const categorySelect = document.getElementById("category-select");
 
     function toggleGenres() {
       const selected = categorySelect.value;
@@ -222,9 +249,9 @@
       document.querySelectorAll(".genre-board").forEach(el => el.classList.toggle("hidden", selected !== "board"));
     }
 
-    categorySelect.addEventListener("change", toggleGenres);
-    toggleGenres();
-  });
+  categorySelect.addEventListener("change", toggleGenres);
+  toggleGenres();
+});
 
   function autoResizeTextarea(textarea) {
   textarea.style.height = 'auto'; // 초기화
@@ -235,5 +262,6 @@ document.querySelectorAll('.block textarea').forEach(textarea => {
   autoResizeTextarea(textarea); // 초기 로드 시 조절
   textarea.addEventListener('input', () => autoResizeTextarea(textarea)); // 입력 시마다 조절
 });
+
 
 </script>
