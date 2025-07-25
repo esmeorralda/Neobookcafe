@@ -98,8 +98,8 @@
   /* 포커스 또는 호버 시 보더, 그림자 */
   .block:hover,
   .block.focused {
-    box-shadow: 0 4px 8px rgb(0 0 0 / 0.1);
-    border-color: #5d3b2e;
+    # box-shadow: 1px 4px 4px rgb(0 0 0 / 0.1);
+    border-color: lightgray;
   }
 
   /* 드롭다운 왼쪽 상단 */
@@ -183,6 +183,10 @@
   margin: 1rem 0 0.5rem 0;
   padding-bottom: 0.25rem;
 }
+#blocks-container .block:first-child {
+  margin-top: 1.5rem; /* 원하는 간격으로 조절하세요 */
+}
+
 
 </style>
 
@@ -236,15 +240,24 @@
       });
 
       // 오른쪽 상단 삭제 버튼
+      if (index !== 0) {
       const removeBtn = document.createElement("button");
       removeBtn.type = "button";
       removeBtn.textContent = "삭제";
       removeBtn.className = "block-controls-right";
       removeBtn.title = "블록 삭제";
+      // 삭제 버튼 이벤트
+        block.appendChild(removeBtn);
+      removeBtn.addEventListener("click", () => {
+        container.removeChild(block);
+      });
+  }
+
+    
 
       // 컨트롤 그룹에 추가
       block.appendChild(select);
-      block.appendChild(removeBtn);
+    
 
       // textarea 추가
       block.appendChild(textarea);
@@ -253,18 +266,50 @@
 
       textarea.focus();
 
-      // 삭제 버튼 이벤트
-      removeBtn.addEventListener("click", () => {
-        container.removeChild(block);
-      });
 
-      // textarea 포커스/블러 시 block에 focused 클래스 토글
-      textarea.addEventListener("focus", () => {
-        block.classList.add("focused");
-      });
-      textarea.addEventListener("blur", () => {
+       let hideTimeout;
+
+  // 마우스가 block에서 떠날 때 딜레이 주기
+  block.addEventListener("mouseleave", () => {
+    hideTimeout = setTimeout(() => {
+      block.classList.remove("focused");
+    }, 300); // 0.3초 딜레이
+  });
+
+  // 마우스가 다시 block으로 들어올 때 딜레이 취소
+  block.addEventListener("mouseenter", () => {
+    clearTimeout(hideTimeout);
+    block.classList.add("focused");
+  });
+
+  // 드롭다운, 삭제 버튼에 포커스 들어왔을 때도 block에 focused 클래스 유지
+  [select].concat(index !== 0 ? [removeBtn] : []).forEach(el => {
+    el.addEventListener("focus", () => {
+      clearTimeout(hideTimeout);
+      block.classList.add("focused");
+    });
+    el.addEventListener("blur", () => {
+      // 포커스 아웃 시 딜레이 후 focused 해제
+      hideTimeout = setTimeout(() => {
+        // 블록 내부에 포커스가 없으면 해제
+        if (!block.contains(document.activeElement)) {
+          block.classList.remove("focused");
+        }
+      }, 300);
+    });
+  });
+
+  textarea.addEventListener("focus", () => {
+    clearTimeout(hideTimeout);
+    block.classList.add("focused");
+  });
+  textarea.addEventListener("blur", () => {
+    hideTimeout = setTimeout(() => {
+      if (!block.contains(document.activeElement)) {
         block.classList.remove("focused");
-      });
+      }
+    }, 300);
+  });
 
       // 엔터키: 다음 블록으로 포커스 또는 새 블록 생성
       textarea.addEventListener("keydown", (e) => {
