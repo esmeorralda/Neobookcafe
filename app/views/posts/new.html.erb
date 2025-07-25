@@ -2,7 +2,7 @@
 <div class=" max-w-4xl w-full p-8 bg-[#f7f1ea] ">
   <%= form_with model: @post, local: true, class: "space-y-6", id: "post-form" do |f| %>
     <div class="flex justify-between items-center mb-6">
-      <h1 class="text-xl font-bold text-gray-800">새 포스트 작성</h1>
+      <h1 class="text-xl font-bold text-gray-800">새 게시글 작성</h1>
     </div>
 
     <!-- 기본 정보 -->
@@ -30,7 +30,7 @@
 
 
     <div class="text-sm">
-      <%= f.label :title, "제목", class: "block mb-1" %>
+      <%= f.label :title, "게시글 제목", class: "block mb-1" %>
       <%= f.text_field :title, class: "w-full border border-gray-300 p-2   bg-white" %>
     </div>
 
@@ -69,7 +69,6 @@
   <% end %>
 </div>
  <div class="mt-10 flex flex-col space-y-2">
-      <button type="button" class="border border-gray-300 bg-white px-3 py-1 text-sm">미리 보기</button>
       <button type="button" class="border border-gray-300 bg-white px-3 py-1 text-sm">임시 저장</button>
       <%= button_tag "업로드", type: "submit", form: "post-form", class: "bg-[#5d3b2e] text-white px-4 py-1  text-sm" %>
     </div>
@@ -134,7 +133,6 @@
 .remove-block-btn {
   background: transparent;
   border: none;
-  color: #e00;
   font-weight: bold;
   cursor: pointer;
   padding: 0;
@@ -217,7 +215,7 @@
 
     const removeBtn = document.createElement("button");
     removeBtn.type = "button";
-    removeBtn.textContent = "삭제 ✕";
+    removeBtn.textContent = "✕";
     removeBtn.className = "remove-block-btn";
     removeBtn.title = "블록 삭제";
 
@@ -236,12 +234,23 @@
       container.removeChild(block);
     });
 
-    textarea.addEventListener("keydown", (e) => {
-      if (e.key === "Enter" && !e.shiftKey) {
-        e.preventDefault();
-        createBlock();
-      }
-    });
+   textarea.addEventListener("keydown", (e) => {
+  if (e.key === "Enter" && !e.shiftKey) {
+    e.preventDefault();
+    const blocks = Array.from(container.querySelectorAll(".block textarea"));
+    const currentIndex = blocks.indexOf(textarea);
+
+    if (currentIndex < blocks.length - 1) {
+      // 다음 블록이 있으면 새 블록 추가하지 않고 다음 블록으로 포커스 이동
+      blocks[currentIndex + 1].focus();
+      blocks[currentIndex + 1].setSelectionRange(0, 0);
+    } else {
+      // 마지막 블록이면 새 블록 생성
+      createBlock();
+    }
+  }
+});
+
 
     index++;
   }
