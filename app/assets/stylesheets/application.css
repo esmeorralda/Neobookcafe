@@ -87,9 +87,9 @@
     }
   }
   
-  body {
+  /* body {
     padding-top: 60px;
-  }
+  } */
   
   /* .content {
     max-width: 800px;
@@ -111,8 +111,8 @@
   /* } */
   .container {
     max-width: 800px;
-    margin: 40px auto;
-    padding: 20px;
+    /* margin: 40px auto;
+    padding: 20px; */
     font-size: 16px;
     line-height: 1.7;
     display: grid;
@@ -124,20 +124,10 @@
     margin: 0 auto;
   }
   
-  /* 박스1은 2열을 모두 차지 */
-  .box1 {
-    grid-column: 1 / 3; /* 첫 번째부터 세 번째 전까지(2칸 span) */
-    padding: 20px;
-    border-radius: 8px;
-    height: 300px;
-  }
-  
-  /* 나머지 박스들 스타일 */
-  .box {
-    padding: 20px;
-    border-radius: 8px;
-    height: 300px;
-  }
+body {
+  margin: 0;
+  padding: 0;
+}
   
   #right-sidebar {
   position: fixed;
