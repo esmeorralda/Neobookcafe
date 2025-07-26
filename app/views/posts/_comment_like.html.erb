@@ -13,7 +13,8 @@
     <% else %>
       <%= image_tag "icon/post/comment_like.svg", class: "w-4 h-4 align-middle" %>
     <% end %>
+<span class="text-xs" style="font-weight: 300; color: #4a3f36;"><%= likeable.likes.count %></span>
 
-    <span class="text-xs text-gray-800 " style="color: #;"><%= likeable.likes.count %></span>
+
   </button>
 <% end %>
