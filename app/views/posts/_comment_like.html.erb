@@ -1,8 +1,12 @@
-<% liked = comment.likes.exists?(user: current_user) %>
+<% liked = likeable.likes.exists?(user: current_user) %>
 
-<%= form_with(url: liked ? like_path(comment.likes.find_by(user: current_user)) : likes_path, method: liked ? :delete : :post, remote: true, html: { class: "inline-block like-form" }) do |f| %>
-  <%= hidden_field_tag :likeable_type, 'Comment' %>
-  <%= hidden_field_tag :likeable_id, comment.id %>
+
+<%= form_with(url: liked ? like_path(likeable.likes.find_by(user: current_user)) : likes_path,
+              method: liked ? :delete : :post,
+              remote: true,
+              html: { id: dom_id(likeable, :like_button), class: "inline-block like-form" }) do |f| %>
+  <%= hidden_field_tag :likeable_type, likeable.class.name %>
+  <%= hidden_field_tag :likeable_id, likeable.id %>
 
   <button type="submit" class="focus:outline-none flex items-center space-x-1">
     <% if liked %>
@@ -10,6 +14,6 @@
     <% else %>
       <%= image_tag "icon/post/comment_like.svg", class: "w-4 h-4 align-middle" %>
     <% end %>
-    <span class="text-xs"><%= comment.likes.count %></span>
+    <span class="text-xs"><%= likeable.likes.count %></span>
   </button>
 <% end %>

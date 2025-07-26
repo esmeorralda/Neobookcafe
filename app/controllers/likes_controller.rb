@@ -1,47 +1,62 @@
 class LikesController < ApplicationController
-    before_action :authenticate_user!
-  
-    def create
-      likeable = find_likeable
-      if likeable && !likeable.likes.exists?(user: current_user)
-        like = likeable.likes.create(user: current_user)
-         if likeable.is_a?(Post)
-    likeable.increment!(:like_count)
-  end
-        flash[:notice] = "좋아요가 등록되었습니다."
-      else
-        flash[:alert] = "이미 좋아요를 눌렀거나 대상이 없습니다."
+  include ActionView::RecordIdentifier  # dom_id 헬퍼 사용 위해 추가
+
+  before_action :authenticate_user!
+
+  def create
+    likeable = find_likeable
+    if likeable && !likeable.likes.exists?(user: current_user)
+      like = likeable.likes.create(user: current_user)
+      likeable.increment!(:like_count) if likeable.is_a?(Post)
+
+      respond_to do |format|
+        format.turbo_stream do
+          render turbo_stream: turbo_stream.replace(
+            dom_id(likeable, :like_button),
+            partial: 'posts/comment_like',  # partial 경로 확인!
+            locals: { likeable: likeable }
+          )
+        end
+        format.html { redirect_back fallback_location: root_path, notice: "좋아요가 등록되었습니다." }
       end
-      redirect_back fallback_location: root_path
+    else
+      respond_to do |format|
+        format.html { redirect_back fallback_location: root_path, alert: "이미 좋아요를 눌렀거나 대상이 없습니다." }
+      end
     end
+  end
 
 def destroy
-  like = Like.find_by(id: params[:id], user: current_user)
-
-  if like && like.likeable_type == params[:likeable_type] && like.likeable_id.to_s == params[:likeable_id].to_s
-    likeable = like.likeable  # 여기서 likeable 변수 선언
-
-    like.destroy
-
-    if likeable.is_a?(Post) && likeable.like_count.to_i > 0
-      likeable.decrement!(:like_count)
-    end
-
-    flash[:notice] = "좋아요가 취소되었습니다."
-  else
-    flash[:alert] = "좋아요가 없거나 권한이 없습니다."
+  like = current_user.likes.find_by(id: params[:id])
+  unless like
+    redirect_back fallback_location: root_path, alert: "좋아요가 존재하지 않습니다." and return
   end
 
-  redirect_back fallback_location: root_path
+  likeable = like.likeable
+
+  if likeable.is_a?(Post)
+    likeable.decrement!(:like_count)
+  end
+
+  like.destroy
+
+  respond_to do |format|
+    format.turbo_stream do
+      render turbo_stream: turbo_stream.replace(
+        dom_id(likeable, :like_button),
+        partial: 'posts/comment_like',  # partial 경로 확인!
+        locals: { likeable: likeable }
+      )
+    end
+    format.html { redirect_back fallback_location: root_path, notice: "좋아요가 취소되었습니다." }
+  end
 end
 
-      
-    private
-  
-    def find_likeable
-      params[:likeable_type].constantize.find_by(id: params[:likeable_id])
-    rescue NameError
-      nil
-    end
+
+  private
+
+  def find_likeable
+    klass = params[:likeable_type].constantize rescue nil
+    klass&.find_by(id: params[:likeable_id])
   end
-  
+end
