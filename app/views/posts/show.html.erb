@@ -19,23 +19,21 @@
       min-width: 500px;
       max-width: calc(100vw - 440px);
     }
-
-    /* 댓글 사이드바 고정 너비와 스타일 */
-    #comment-sidebar {
-      flex-shrink: 0;
-      width: 400px;
-      max-height: 90vh;
-      overflow-y: auto;
-      background-color: #f9f6f2;
-      border-left: 1px solid #d1d5db;
-      padding: 1rem;
-      border-radius: 0 8px 8px 0;
-      position: sticky;
-      top: 4rem;
-      box-sizing: border-box;
-      display: flex;
-      flex-direction: column;
-    }
+#comment-sidebar {
+  flex-shrink: 0;
+  width: 500px;          /* 기존 400px에서 넓힘 */
+  max-height: 95vh;      /* 기존 90vh에서 좀 더 세로로 길게 */
+  overflow-y: auto;
+  background-color: #f9f6f2;
+  border-left: 1px solid #d1d5db;
+  padding: 1rem;
+  border-radius: 0 8px 8px 0;
+  position: sticky;
+  top: 3rem;             /* 상단 여유도 약간 조절 가능 */
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+}
 
     .hidden {
       display: none !important;
@@ -114,14 +112,16 @@
       overflow-y: auto;
       flex-grow: 1;
       min-height: 200px;
+      border: none;
+
     }
 
     /* 댓글 폼 textarea 사이드바 안 */
     #comment-sidebar-content textarea {
       width: 100%;
       padding: 0.5rem;
-      border: 1px solid #d1c4b2;
-      border-radius: 6px;
+      # border: 1px solid #d1c4b2;
+      # border-radius: 6px;
       resize: vertical;
       font-size: 0.9rem;
       font-family: inherit;
@@ -257,51 +257,50 @@
         </div>
       <% end %>
 
-      <div id="root-comment-list" class="mt-6">
+<div id="root-comment-list" class="mt-6 max-h-96 overflow-y-auto bg-[#f9f6f2] p-4 rounded-lg shadow-inner">
   <% @comments.where(parent_id: nil, post_id: @post.id, post_block_id: nil).order(created_at: :desc).each do |comment| %>
-    <div class="border p-3 rounded mb-3 bg-white shadow-sm">
-      <div class="flex justify-between items-center">
+    <div class="bg-white rounded-lg shadow p-4 mb-4 border border-transparent last:mb-0">
+      <div class="flex justify-between items-center border-b border-[#d1c4b2] pb-2 mb-2">
         <p class="font-semibold text-gray-800 text-sm"><%= comment.user.name %></p>
         <p class="text-xs text-gray-500"><%= comment.created_at.strftime('%Y년 %-m월 %-d일 %H:%M') %></p>
       </div>
-      <p class="text-gray-700 text-sm mt-1"><%= comment.content %></p>
+      <p class="text-gray-700 text-sm mb-3"><%= comment.content %></p>
 
- <!-- 대댓글 보기/답글 달기 토글 -->
-<button class="mt-1 text-xs text-[#b88b65] reply-toggle" data-comment-id="<%= comment.id %>">
-  <% if comment.children.any? %>
-    💬 <%= comment.children.count %>개의 답글 보기
-  <% else %>
-    답글 달기
-  <% end %>
-</button>
+      <!-- 대댓글 보기/답글 달기 토글 -->
+      <button class="mt-1 text-xs text-[#b88b65] hover:text-[#a5774e] reply-toggle" data-comment-id="<%= comment.id %>">
+        <% if comment.children.any? %>
+          💬 <%= comment.children.count %>개의 답글 보기
+        <% else %>
+          답글 달기
+        <% end %>
+      </button>
 
-<!-- 대댓글 목록 + 입력 폼 -->
-<div class="ml-4 mt-2 space-y-2 hidden reply-container" id="reply-container-<%= comment.id %>">
-  <% comment.children.order(created_at: :asc).each do |reply| %>
-    <div class="border-l-2 pl-3 border-[#d1c4b2] bg-[#f9f6f2] rounded-sm py-2">
-      <p class="text-xs font-semibold text-gray-700"><%= reply.user.name %></p>
-      <p class="text-xs text-gray-700 mt-1"><%= reply.content %></p>
-      <p class="text-[11px] text-gray-400 mt-1"><%= reply.created_at.strftime('%Y년 %-m월 %-d일 %H:%M') %></p>
-    </div>
-  <% end %>
+      <!-- 대댓글 목록 + 입력 폼 -->
+      <div class="ml-4 mt-3 space-y-2 hidden reply-container" id="reply-container-<%= comment.id %>">
+        <% comment.children.order(created_at: :asc).each do |reply| %>
+          <div class="border-l-2 pl-4 border-[#d1c4b2] bg-[#f2efe9] rounded-md py-3 shadow-sm">
+            <p class="text-xs font-semibold text-gray-700"><%= reply.user.name %></p>
+            <p class="text-xs text-gray-800 mt-1"><%= reply.content %></p>
+            <p class="text-xs text-gray-400 mt-1"><%= reply.created_at.strftime('%Y년 %-m월 %-d일 %H:%M') %></p>
+          </div>
+        <% end %>
 
-  <!-- 대댓글 입력 폼 -->
-<%= form_with model: Comment.new, url: post_comments_path(@post), local: true do |f| %>
-    <%= f.hidden_field :post_block_id, value: nil %>
-    <%= f.hidden_field :parent_id, value: comment.id %>
-    <%= f.hidden_field :post_id, value: @post.id %>
-    <%= f.text_area :content, placeholder: "답글을 작성해주세요", rows: 1, class: "w-full p-1 border rounded text-sm mb-1" %>
-   <button type="submit" style="display: inline-block !important; background-color: #b88b65; color: white; padding: 6px 12px; font-size: 12px; border-radius: 4px; border: none; cursor: pointer;">
-  답글 등록
-</button>
-
-
-  <% end %>
-</div>
-
+        <!-- 대댓글 입력 폼 -->
+        <%= form_with model: Comment.new, url: post_comments_path(@post), local: true do |f| %>
+          <%= f.hidden_field :post_block_id, value: nil %>
+          <%= f.hidden_field :parent_id, value: comment.id %>
+          <%= f.hidden_field :post_id, value: @post.id %>
+          <%= f.text_area :content, placeholder: "답글을 작성해주세요", rows: 1, class: "w-full p-1 border border-[#d1c4b2] rounded text-sm mb-1 resize-none focus:outline-none focus:ring-1 focus:ring-[#b88b65]" %>
+          <button type="submit" style="display: inline-block !important; background-color: #b88b65; color: white; padding: 6px 12px; font-size: 12px; border-radius: 4px; border: none; cursor: pointer;">
+            답글 등록
+          </button>
+        <% end %>
+      </div>
     </div>
   <% end %>
 </div>
+
+
     </div>
 
     <!-- 오른쪽 컬럼 : 댓글 사이드바 -->
@@ -319,12 +318,12 @@
   <!-- 숨겨진 댓글 폼들 (초기에는 숨김) -->
   <div id="hidden-comment-forms" class="hidden">
     <% @post.post_blocks.order(:position).each do |block| %>
-      <div id="comment-form-<%= block.id %>" class="hidden mt-2 mb-10 border rounded p-4 bg-[#f9f6f2]">
+      <div id="comment-form-<%= block.id %>" class="hidden mt-2 mb-10 rounded p-4 bg-[#f9f6f2]">
         <% comments = Comment.where(post_block_id: block.id).order(created_at: :desc) %>
         <% if comments.any? %>
-          <div class="space-y-3 max-h-40 overflow-y-auto border-b border-gray-300 pb-3">
+          <div class="space-y-3 overflow-y-auto pb-3" style="max-height: 500px;">
             <% comments.each do |comment| %>
-              <div>
+              <div style="border-bottom: 1px solid #d1c4b2; padding-bottom: 0.5rem; margin-bottom: 0.5rem;">
                 <p class="font-semibold text-gray-800 text-sm"><%= comment.user.name %></p>
                 <p class="text-gray-700 text-sm mt-1"><%= comment.content %></p>
                 <p class="text-xs text-gray-500 mt-1"><%= comment.created_at.strftime('%Y년 %-m월 %-d일 %H:%M') %></p>
