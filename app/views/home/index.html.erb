@@ -51,7 +51,7 @@
 
   <span class="flex items-center space-x-1">
     <%= image_tag("icon/post/browncomments.svg", alt: "comments icon", class: "w-4 h-4") %>
-    <span><%= post.comments.count %></span>
+    <span><%= total_comments_count(post) %></span>
   </span>
             </div>
           </div>

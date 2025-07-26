@@ -39,7 +39,7 @@ def index
            when "popular"
              sorted_posts.sort_by { |p| -p.like_count.to_i }
            when "most_comments"
-             sorted_posts.sort_by { |p| -p.comments.count }
+             sorted_posts.sort_by { |p| -total_comments_count(p)}
            when "most_views"
            sorted_posts.sort_by { |p| -p.view_count.to_i }
          when "newest"
