@@ -206,9 +206,7 @@
               <% end %>
             <% end %>
 
-            <%= button_tag type: 'button', class: "flex items-center", id: "report-button" do %>
-              <%= image_tag "icon/post/report.svg", class: "w-6 h-6" %>
-            <% end %>
+            
           </div>
         <% end %>
 
@@ -257,14 +255,20 @@
         </div>
       <% end %>
 
-<div id="root-comment-list" class="mt-6 max-h-96 overflow-y-auto bg-[#f9f6f2] p-4 rounded-lg shadow-inner">
+<div id="root-comment-list" class="mt-6  max-h-[600px] overflow-y-auto bg-[#f9f6f2] p-4 rounded-lg shadow-inner">
   <% @comments.where(parent_id: nil, post_id: @post.id, post_block_id: nil).order(created_at: :desc).each do |comment| %>
-    <div class="bg-white rounded-lg shadow p-4 mb-4 border border-transparent last:mb-0">
-      <div class="flex justify-between items-center border-b border-[#d1c4b2] pb-2 mb-2">
-        <p class="font-semibold text-gray-800 text-sm"><%= comment.user.name %></p>
-        <p class="text-xs text-gray-500"><%= comment.created_at.strftime('%Y년 %-m월 %-d일 %H:%M') %></p>
-      </div>
-      <p class="text-gray-700 text-sm mb-3"><%= comment.content %></p>
+   <div class="bg-white rounded-lg shadow p-4 mb-4 border border-transparent last:mb-0">
+
+  <div class="flex justify-between items-center border-b border-[#d1c4b2] pb-2 mb-2">
+    <p class="font-semibold text-gray-800 text-sm"><%= comment.user.name %></p>
+
+    <div class="flex items-center space-x-4">
+      <p class="text-xs text-gray-500"><%= comment.created_at.strftime('%Y년 %-m월 %-d일 %H:%M') %></p>
+      <%= render partial: 'comment_like', locals: { comment: comment } %>
+    </div>
+  </div>
+
+  <p class="text-gray-700 text-sm mb-3"><%= comment.content %></p>
 
       <!-- 대댓글 보기/답글 달기 토글 -->
       <button class="mt-1 text-xs text-[#b88b65] hover:text-[#a5774e] reply-toggle" data-comment-id="<%= comment.id %>">
@@ -320,16 +324,27 @@
     <% @post.post_blocks.order(:position).each do |block| %>
       <div id="comment-form-<%= block.id %>" class="hidden mt-2 mb-10 rounded p-4 bg-[#f9f6f2]">
         <% comments = Comment.where(post_block_id: block.id).order(created_at: :desc) %>
-        <% if comments.any? %>
-          <div class="space-y-3 overflow-y-auto pb-3" style="max-height: 500px;">
-            <% comments.each do |comment| %>
-              <div style="border-bottom: 1px solid #d1c4b2; padding-bottom: 0.5rem; margin-bottom: 0.5rem;">
-                <p class="font-semibold text-gray-800 text-sm"><%= comment.user.name %></p>
-                <p class="text-gray-700 text-sm mt-1"><%= comment.content %></p>
-                <p class="text-xs text-gray-500 mt-1"><%= comment.created_at.strftime('%Y년 %-m월 %-d일 %H:%M') %></p>
-              </div>
-            <% end %>
-          </div>
+       <% if comments.any? %>
+ <div class="space-y-3 overflow-y-auto pb-3" style="max-height: 500px;">
+  <% comments.each do |comment| %>
+    <div class="border-b border-[#d1c4b2] pb-2 mb-2">
+      
+      <!-- 상단: 유저이름 / 날짜 + 하트 -->
+      <div class="flex justify-between items-start">
+        <p class="font-semibold text-gray-800 text-sm"><%= comment.user.name %></p>
+
+        <div class="flex items-center space-x-2">
+          <p class="text-xs text-gray-500"><%= comment.created_at.strftime('%Y년 %-m월 %-d일 %H:%M') %></p>
+          <%= render partial: 'comment_like', locals: { comment: comment } %>
+        </div>
+      </div>
+
+      <!-- 본문 -->
+      <p class="text-gray-700 text-sm mt-2"><%= comment.content %></p>
+    </div>
+  <% end %>
+</div>
+
         <% else %>
           <p class="text-gray-500 text-sm italic mt-2">댓글이 없습니다.</p>
         <% end %>

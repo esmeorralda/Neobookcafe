@@ -54,6 +54,14 @@ resources :reports, only: [:create]
     end
   end
 
+  # config/routes.rb
+
+resources :comments do
+  post 'like', to: 'likes#create', defaults: { likeable: 'Comment' }
+  delete 'unlike', to: 'likes#destroy', defaults: { likeable: 'Comment' }
+end
+
+
   get '/my_posts', to: 'users#my_posts'
   get '/liked_posts', to: 'users#liked_posts'
   get '/saved_posts', to: 'users#saved_posts'
