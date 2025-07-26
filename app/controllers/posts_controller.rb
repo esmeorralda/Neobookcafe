@@ -18,10 +18,11 @@ class PostsController < ApplicationController
       end
       
   def show
- 
+
   @post = Post.find(params[:id])
 
   session[:viewed_posts] ||= []
+  @comments = @post.comments.includes(:user)
 
   unless session[:viewed_posts].include?(@post.id)
     @post.increment!(:view_count)

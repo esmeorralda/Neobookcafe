@@ -1,43 +1,160 @@
 <head>
   <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/font-kopub@1.0/kopubbatang.min.css">
+  <meta name="csrf-token" content="<%= form_authenticity_token %>" />
   <style>
-   #post-container.grid-active {
-  display: flex;
-  gap: 2rem;
-  max-width: 100vw; /* 최대 화면 너비 */
-  padding: 0 2rem;
-  box-sizing: border-box;
-  justify-content: space-between;
-}
+    /* 컨테이너가 flex가 될 때 본문과 댓글 사이드바가 나란히 */
+    #post-container.grid-active {
+      display: flex;
+      gap: 2rem;
+      max-width: 100vw;
+      padding: 0 2rem;
+      box-sizing: border-box;
+      justify-content: space-between;
+      align-items: flex-start;
+    }
 
-#left-column {
-  flex-grow: 1;        /* 최대한 크게 */
-  min-width: 600px;    /* 최소 너비 확보 */
-  max-width: calc(100vw - 400px); /* 오른쪽 최소 400px 확보 후 나머지 */
-}
-   #comment-sidebar {
-  flex-shrink: 0;      /* 크기 줄이지 않음 */
-  width: 400px;        /* 댓글 사이드바 고정 너비 */
-  overflow-y: auto;
-  max-height: 90vh;
-  background-color: #f9f6f2;
-  border-left: 1px solid #d1d5db;
-  padding: 1rem;
-  border-radius: 0 8px 8px 0;
-  position: sticky;
-  top: 4rem;
-}
+    /* 본문 너비 조정 */
+    #left-column {
+      flex-grow: 1;
+      min-width: 500px;
+      max-width: calc(100vw - 440px);
+    }
+
+    /* 댓글 사이드바 고정 너비와 스타일 */
+    #comment-sidebar {
+      flex-shrink: 0;
+      width: 400px;
+      max-height: 90vh;
+      overflow-y: auto;
+      background-color: #f9f6f2;
+      border-left: 1px solid #d1d5db;
+      padding: 1rem;
+      border-radius: 0 8px 8px 0;
+      position: sticky;
+      top: 4rem;
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
+    }
+
     .hidden {
       display: none !important;
     }
+
+    /* 전체 댓글 입력 폼 컨테이너 */
+    #root-comment-form {
+      margin-top: 3rem;
+      margin-bottom: 4rem;
+    }
+
+    /* 전체 댓글 폼 textarea */
+    #root-comment-form textarea {
+      width: 100%;
+      padding: 0.5rem;
+      border: 1px solid #d1c4b2;
+      border-radius: 6px;
+      resize: vertical;
+      font-size: 0.9rem;
+      font-family: inherit;
+      box-sizing: border-box;
+    }
+
+    /* 전체 댓글 폼 버튼 */
+    #root-comment-form button[type="submit"] {
+      margin-top: 0.5rem;
+      background-color: #b88b65;
+      color: white;
+      border: none;
+      padding: 0.4rem 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      font-weight: 600;
+      transition: background-color 0.3s ease;
+    }
+    #root-comment-form button[type="submit"]:hover {
+      background-color: #a5774e;
+    }
+
+    /* 댓글 보기 버튼 */
+    .comment-view-btn {
+      font-size: 0.75rem;
+      padding: 0.2rem 0.5rem;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      background-color: white;
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+    }
+    .comment-view-btn:hover {
+      background-color: #f0eadf;
+    }
+
+    /* 댓글 사이드바 내부 제목 & 닫기 버튼 */
+    #comment-sidebar > div:first-child {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+    #close-comment-sidebar {
+      font-size: 1.5rem;
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: #666;
+      transition: color 0.2s ease;
+    }
+    #close-comment-sidebar:hover {
+      color: #333;
+    }
+
+    /* 댓글 목록 내부 스크롤 영역 */
+    #comment-sidebar-content {
+      overflow-y: auto;
+      flex-grow: 1;
+      min-height: 200px;
+    }
+
+    /* 댓글 폼 textarea 사이드바 안 */
+    #comment-sidebar-content textarea {
+      width: 100%;
+      padding: 0.5rem;
+      border: 1px solid #d1c4b2;
+      border-radius: 6px;
+      resize: vertical;
+      font-size: 0.9rem;
+      font-family: inherit;
+      box-sizing: border-box;
+      margin-bottom: 0.5rem;
+    }
+
+    /* 댓글 폼 버튼 사이드바 안 */
+    #comment-sidebar-content button[type="submit"] {
+      background-color: #b88b65;
+      color: white;
+      border: none;
+      padding: 0.4rem 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      font-weight: 600;
+      transition: background-color 0.3s ease;
+    }
+    #comment-sidebar-content button[type="submit"]:hover {
+      background-color: #a5774e;
+    }
+
+    
   </style>
 </head>
 
+<body>
 <div class="mx-auto min-h-screen py-10 px-4 font-serif">
   <!-- 본문 + 댓글 사이드바 컨테이너 -->
   <div id="post-container" class="max-w-4xl mx-auto">
 
-    <!-- 왼쪽 컬럼 : 제목, 메타정보, 본문, 전체댓글폼 -->
+    <!-- 왼쪽 컬럼 : 제목, 메타정보, 본문 -->
     <div id="left-column" class="space-y-6 text-gray-800">
       <!-- 제목 / 메타 정보 -->
       <div>
@@ -56,7 +173,7 @@
           </div>
           <div class="flex items-center space-x-1">
             <%= image_tag "icon/post/comments.svg", class: "w-4 h-4", alt: "댓글" %>
-            <span class="text-xs"><%= @post.comments.count %>개</span>
+            <span class="text-xs"><%= total_comments_count(@post) %>개</span>
           </div>
           <div class="flex items-center space-x-1">
             <%= image_tag "icon/post/likes.svg", class: "w-4 h-4", alt: "좋아요" %>
@@ -95,7 +212,7 @@
           </div>
         <% end %>
 
-        <hr class="border-t border-[#e3d5c6] mb-8" />
+        <hr class="border-t border-[#e3d5c6]" />
       </div>
 
       <!-- 본문 영역 -->
@@ -115,6 +232,7 @@
               <% end %>
             </div>
 
+            <% if block.block_type == 'paragraph' %>
             <div class="ml-3 flex-shrink-0">
               <button type="button"
                 class="text-xs px-2 py-1 border border-gray-300 rounded text-gray-600 hover:bg-gray-100 comment-view-btn"
@@ -122,31 +240,80 @@
                 댓글 보기
               </button>
             </div>
+            <% end %>
           </div>
         <% end %>
       </div>
 
-      <!-- 전체 댓글 작성 폼 -->
-      <div class="mt-10">
-        <%= form_with model: Comment.new, url: post_comments_path(@post), local: true do |f| %>
-          <%= f.hidden_field :post_id, value: @post.id %>
-          <%= f.text_area :content, placeholder: "댓글을 작성해주세요", rows: 3, class: "w-full p-2 border rounded" %>
-          <%= f.submit "댓글 등록", class: "mt-2 px-4 py-2 bg-[#8b5e3c] text-white rounded" %>
-        <% end %>
+      <!-- ✅ 전체 댓글 작성 폼 (루트 댓글) 본문 바로 아래 -->
+      <% if user_signed_in? %>
+        <div id="root-comment-form">
+          <%= form_with model: Comment.new, url: post_comments_path(@post), local: true do |f| %>
+            <%= f.hidden_field :post_block_id, value: nil %>
+              <%= f.hidden_field :post_id, value: @post.id %>
+            <%= f.text_area :content, placeholder: "댓글을 남겨보세요", rows: 2 %>
+            <button type="submit">댓글 등록</button>
+          <% end %>
+        </div>
+      <% end %>
+
+      <div id="root-comment-list" class="mt-6">
+  <% @comments.where(parent_id: nil, post_id: @post.id, post_block_id: nil).order(created_at: :desc).each do |comment| %>
+    <div class="border p-3 rounded mb-3 bg-white shadow-sm">
+      <div class="flex justify-between items-center">
+        <p class="font-semibold text-gray-800 text-sm"><%= comment.user.name %></p>
+        <p class="text-xs text-gray-500"><%= comment.created_at.strftime('%Y년 %-m월 %-d일 %H:%M') %></p>
       </div>
+      <p class="text-gray-700 text-sm mt-1"><%= comment.content %></p>
+
+ <!-- 대댓글 보기/답글 달기 토글 -->
+<button class="mt-1 text-xs text-[#b88b65] reply-toggle" data-comment-id="<%= comment.id %>">
+  <% if comment.children.any? %>
+    💬 <%= comment.children.count %>개의 답글 보기
+  <% else %>
+    답글 달기
+  <% end %>
+</button>
+
+<!-- 대댓글 목록 + 입력 폼 -->
+<div class="ml-4 mt-2 space-y-2 hidden reply-container" id="reply-container-<%= comment.id %>">
+  <% comment.children.order(created_at: :asc).each do |reply| %>
+    <div class="border-l-2 pl-3 border-[#d1c4b2] bg-[#f9f6f2] rounded-sm py-2">
+      <p class="text-xs font-semibold text-gray-700"><%= reply.user.name %></p>
+      <p class="text-xs text-gray-700 mt-1"><%= reply.content %></p>
+      <p class="text-[11px] text-gray-400 mt-1"><%= reply.created_at.strftime('%Y년 %-m월 %-d일 %H:%M') %></p>
+    </div>
+  <% end %>
+
+  <!-- 대댓글 입력 폼 -->
+<%= form_with model: Comment.new, url: post_comments_path(@post), local: true do |f| %>
+    <%= f.hidden_field :post_block_id, value: nil %>
+    <%= f.hidden_field :parent_id, value: comment.id %>
+    <%= f.hidden_field :post_id, value: @post.id %>
+    <%= f.text_area :content, placeholder: "답글을 작성해주세요", rows: 1, class: "w-full p-1 border rounded text-sm mb-1" %>
+   <button type="submit" style="display: inline-block !important; background-color: #b88b65; color: white; padding: 6px 12px; font-size: 12px; border-radius: 4px; border: none; cursor: pointer;">
+  답글 등록
+</button>
+
+
+  <% end %>
+</div>
+
+    </div>
+  <% end %>
+</div>
     </div>
 
     <!-- 오른쪽 컬럼 : 댓글 사이드바 -->
     <div id="comment-sidebar" class="hidden">
-      <div class="flex justify-between items-center mb-3">
+      <div>
         <h3 class="font-semibold text-lg">댓글</h3>
-        <button id="close-comment-sidebar" class="text-gray-500 hover:text-gray-800 text-xl">&times;</button>
+        <button id="close-comment-sidebar" aria-label="댓글 사이드바 닫기">&times;</button>
       </div>
-      <div id="comment-sidebar-content" class="space-y-3 text-sm text-gray-700 max-h-[65vh] overflow-y-auto">
+      <div id="comment-sidebar-content" class="text-sm text-gray-700">
         <!-- JS로 댓글 및 폼을 로드 -->
       </div>
     </div>
-
   </div>
 
   <!-- 숨겨진 댓글 폼들 (초기에는 숨김) -->
@@ -170,38 +337,13 @@
 
         <%= form_with model: Comment.new, url: post_comments_path(@post), local: true do |f| %>
           <%= f.hidden_field :post_block_id, value: block.id %>
+          <%= f.hidden_field :post_id, value: @post.id %>
           <%= f.text_area :content, placeholder: "댓글을 작성해주세요", rows: 2, class: "w-full p-2 border rounded mb-2" %>
-          <%= f.submit "댓글 등록", class: "px-4 py-1 bg-[#c9a77e] text-white rounded" %>
+          <button type="submit" class="px-4 py-1 bg-[#b88b65] text-white rounded">댓글 등록</button>
         <% end %>
       </div>
     <% end %>
   </div>
-</div>
-
-<!-- 신고 모달 -->
-<div id="report-modal"
-     class="fixed inset-0 flex justify-center items-center bg-black bg-opacity-50 z-50 hidden">
-  <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-md border border-gray-300 relative">
-    <div class="flex justify-between items-center mb-4">
-      <h2 class="text-lg font-semibold text-center w-full">신고하기</h2>
-      <button id="report-close" class="text-gray-500 hover:text-gray-800 text-2xl absolute top-4 right-6">&times;</button>
-    </div>
-
-    <textarea id="report-content" class="w-full border border-gray-300 rounded p-2 mb-4"
-          rows="4" placeholder="신고 내용을 입력하세요"></textarea>
-
-    <div class="flex justify-end space-x-2">
-      <button id="report-cancel" class="px-3 py-1 border rounded text-gray-600">취소</button>
-      <button id="report-submit" type="button" class="px-3 py-1 bg-red-500 text-white rounded" data-post-id="<%= @post.id %>">제출</button>
-    </div>
-  </div>
-</div>
-
-<!-- 하이라이트 댓글 버튼 -->
-<div id="highlight-comment-btn"
-     class="hidden absolute px-2 py-1 text-xs bg-[#c9a77e] text-white rounded shadow cursor-pointer"
-     style="z-index: 99999;">
-  하이라이트 댓글 달기
 </div>
 
 <script>
@@ -211,10 +353,12 @@
     const commentSidebarContent = document.getElementById('comment-sidebar-content');
     const closeBtn = document.getElementById('close-comment-sidebar');
 
+    // 블록별 댓글 보기 버튼 클릭
     document.querySelectorAll('.comment-view-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         const blockId = btn.getAttribute('data-block-id');
 
+        // 댓글 사이드바 열기
         commentSidebar.classList.remove('hidden');
         postContainer.classList.add('grid-active');
 
@@ -222,12 +366,14 @@
       });
     });
 
+    // 댓글 사이드바 닫기 버튼 클릭
     closeBtn.addEventListener('click', () => {
       commentSidebar.classList.add('hidden');
       postContainer.classList.remove('grid-active');
       commentSidebarContent.innerHTML = '';
     });
 
+    // 댓글 로드 함수 (블록별)
     function loadComments(blockId) {
       const commentForm = document.getElementById(`comment-form-${blockId}`);
       if (!commentForm) {
@@ -239,61 +385,87 @@
       clone.classList.remove('hidden');
       commentSidebarContent.appendChild(clone);
 
+      // 댓글 폼 제출 이벤트 바인딩 (AJAX)
       const form = clone.querySelector('form');
-      form.addEventListener('submit', (e) => {
-        e.preventDefault();
-        const formData = new FormData(form);
-        fetch(form.action, {
-          method: form.method.toUpperCase(),
-          headers: { 'Accept': 'application/json' },
-          body: formData
-        })
-        .then(response => {
-          if (!response.ok) throw new Error('댓글 등록 실패');
-          return response.json();
-        })
-        .then(data => {
-          loadComments(blockId);
-          form.querySelector('textarea').value = '';
-        })
-        .catch(() => alert('댓글 등록에 실패했습니다.'));
-      });
+form.addEventListener('submit', (e) => {
+  e.preventDefault();
+  const formData = new FormData(form);
+  const token = document.querySelector('meta[name="csrf-token"]').content;
+
+  fetch(form.action, {
+    method: form.method.toUpperCase(),
+    headers: {
+      'Accept': 'application/json',
+      'X-CSRF-Token': token
+    },
+    body: formData
+  })
+  .then(async (response) => {
+    if (!response.ok) {
+      // 실패 시 JSON 읽어서 에러 메시지 보여주기
+      const errorData = await response.json();
+      const errors = errorData.errors || ['댓글 등록 실패'];
+      throw new Error(errors.join(', '));
+    }
+    return response.json();
+  })
+  .then(data => {
+    alert('댓글이 성공적으로 등록되었습니다.');
+    window.location.reload();  // 새로고침
+  })
+  .catch(error => alert(`댓글 등록에 실패했습니다: ${error.message}`));
+});
+
     }
 
-    // 신고 모달
+    // 신고 버튼 누르면 모달 열기
     const reportButton = document.getElementById('report-button');
-    const reportModal = document.getElementById('report-modal');
-    const reportClose = document.getElementById('report-close');
-    const reportCancel = document.getElementById('report-cancel');
-    const reportSubmit = document.getElementById('report-submit');
-
     if (reportButton) {
       reportButton.addEventListener('click', () => {
-        reportModal.classList.remove('hidden');
+        openReportModal();
       });
     }
-    reportClose.addEventListener('click', () => {
-      reportModal.classList.add('hidden');
-    });
-    reportCancel.addEventListener('click', () => {
-      reportModal.classList.add('hidden');
-    });
 
-    reportSubmit.addEventListener('click', () => {
-      const content = document.getElementById('report-content').value.trim();
-      if (!content) {
-        alert('신고 내용을 입력해주세요.');
-        return;
-      }
-      const postId = reportSubmit.getAttribute('data-post-id');
+    function openReportModal() {
+      // 여기에 신고 모달을 구현하거나 라이브러리 호출
+      alert('신고 모달을 열 예정입니다.');
+    }
 
-      alert('신고가 접수되었습니다. 감사합니다.');
-      document.getElementById('report-content').value = '';
-      reportModal.classList.add('hidden');
-    });
-
-    
   });
+// 대댓글 보기/답글 달기 버튼 클릭 시 대댓글 목록과 입력폼 토글
+document.querySelectorAll('.reply-toggle').forEach(button => {
+  button.addEventListener('click', () => {
+    const commentId = button.getAttribute('data-comment-id');
+    const replyContainer = document.getElementById(`reply-container-${commentId}`);
 
-  
+    if (!replyContainer) {
+      console.log(`reply-container-${commentId} not found`);
+      return;
+    }
+
+    const isHidden = replyContainer.classList.contains('hidden');
+    console.log(`Toggling reply-container-${commentId}, currently hidden: ${isHidden}`);
+
+    if (isHidden) {
+      replyContainer.classList.remove('hidden');
+      const replyCount = replyContainer.querySelectorAll('.border-l-2').length;
+      if (replyCount === 0) {
+        button.textContent = '답글 달기';
+      } else {
+        button.textContent = '대댓글 닫기';
+      }
+    } else {
+      replyContainer.classList.add('hidden');
+      const replyCount = replyContainer.querySelectorAll('.border-l-2').length;
+      if (replyCount === 0) {
+        button.textContent = '답글 달기';
+      } else {
+        button.textContent = `💬 ${replyCount}개의 답글 보기`;
+      }
+    }
+  });
+});
+
+
 </script>
+</body>
