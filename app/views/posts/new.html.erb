@@ -189,180 +189,185 @@
 
 
 </style>
-
 <script>
-  document.addEventListener("DOMContentLoaded", () => {
-    const container = document.getElementById("blocks-container");
-    let index = 0;
+document.addEventListener("DOMContentLoaded", () => {
+  const container = document.getElementById("blocks-container");
 
-    function autoResizeTextarea(textarea) {
-      textarea.style.height = "auto";
-      textarea.style.height = textarea.scrollHeight + "px";
-    }
+  function autoResizeTextarea(textarea) {
+    textarea.style.height = "auto";
+    textarea.style.height = textarea.scrollHeight + "px";
+  }
 
-    function createBlock(type = "paragraph", content = "") {
-      const block = document.createElement("div");
-      block.classList.add("block");
-      block.classList.add(`block-type-${type}`);
+  // 블럭 생성 함수 - index 대신 현재 블럭 개수 기준으로 name 할당
+  function createBlock(type = "paragraph", content = "") {
+    const block = document.createElement("div");
+    block.classList.add("block");
+    block.classList.add(`block-type-${type}`);
 
-      // textarea
-      const textarea = document.createElement("textarea");
-      textarea.name = `post[post_blocks_attributes][${index}][content]`;
-      textarea.value = content;
-      textarea.placeholder = "내용을 입력하세요";
-      textarea.setAttribute("rows", 1);
-      autoResizeTextarea(textarea);
-      textarea.addEventListener("input", () => autoResizeTextarea(textarea));
+    const blocksCount = container.querySelectorAll(".block").length;
 
-      // 왼쪽 상단 드롭다운
-      const select = document.createElement("select");
-      select.name = `post[post_blocks_attributes][${index}][block_type]`;
-      select.className = "block-type-selector block-controls-left";
-      select.style.padding = "0.2rem 0.5rem";
-      select.style.border = "1px solid #ccc";
-      select.style.borderRadius = "0.25rem";
-      select.style.background = "white";
-      const options = [
-        { val: "paragraph", label: "문단" },
-        { val: "quote", label: "인용" },
-        { val: "subtitle", label: "소제목" }
-      ];
-      options.forEach(opt => {
-        const option = document.createElement("option");
-        option.value = opt.val;
-        option.textContent = opt.label;
-        if (opt.val === type) option.selected = true;
-        select.appendChild(option);
-      });
-      select.addEventListener("change", () => {
-        block.classList.remove("block-type-paragraph", "block-type-quote", "block-type-subtitle");
-        block.classList.add(`block-type-${select.value}`);
-      });
+    // textarea 생성
+    const textarea = document.createElement("textarea");
+    textarea.name = `post[post_blocks_attributes][${blocksCount}][content]`;
+    textarea.value = content;
+    textarea.placeholder = "내용을 입력하세요";
+    textarea.setAttribute("rows", 1);
+    autoResizeTextarea(textarea);
 
-      // 오른쪽 상단 삭제 버튼
-      if (index !== 0) {
+    // 타입 선택 셀렉트 생성
+    const select = document.createElement("select");
+    select.name = `post[post_blocks_attributes][${blocksCount}][block_type]`;
+    select.className = "block-type-selector block-controls-left";
+    select.style.padding = "0.2rem 0.5rem";
+    select.style.border = "1px solid #ccc";
+    select.style.borderRadius = "0.25rem";
+    select.style.background = "white";
+
+    const options = [
+      { val: "paragraph", label: "문단" },
+      { val: "quote", label: "인용" },
+      { val: "subtitle", label: "소제목" }
+    ];
+    options.forEach(opt => {
+      const option = document.createElement("option");
+      option.value = opt.val;
+      option.textContent = opt.label;
+      if (opt.val === type) option.selected = true;
+      select.appendChild(option);
+    });
+
+    select.addEventListener("change", () => {
+      block.classList.remove("block-type-paragraph", "block-type-quote", "block-type-subtitle");
+      block.classList.add(`block-type-${select.value}`);
+    });
+
+    // 삭제 버튼 (첫 블럭 제외)
+    if (blocksCount > 0) {
       const removeBtn = document.createElement("button");
       removeBtn.type = "button";
       removeBtn.textContent = "삭제";
       removeBtn.className = "block-controls-right";
       removeBtn.title = "블록 삭제";
-      // 삭제 버튼 이벤트
-        block.appendChild(removeBtn);
       removeBtn.addEventListener("click", () => {
         container.removeChild(block);
+        updateBlockNames();
       });
-  }
+      block.appendChild(removeBtn);
+    }
 
-    
+    block.appendChild(select);
+    block.appendChild(textarea);
+    container.appendChild(block);
 
-      // 컨트롤 그룹에 추가
-      block.appendChild(select);
-    
+    // 블럭 이름 다시 업데이트 (인덱스 꼬임 방지)
+    updateBlockNames();
 
-      // textarea 추가
-      block.appendChild(textarea);
+    // 포커스 및 자동 크기 조절
+    textarea.focus();
+    autoResizeTextarea(textarea);
 
-      container.appendChild(block);
-
-      textarea.focus();
-
-
-       let hideTimeout;
-
-  // 마우스가 block에서 떠날 때 딜레이 주기
-  block.addEventListener("mouseleave", () => {
-    hideTimeout = setTimeout(() => {
-      block.classList.remove("focused");
-    }, 300); // 0.3초 딜레이
-  });
-
-  // 마우스가 다시 block으로 들어올 때 딜레이 취소
-  block.addEventListener("mouseenter", () => {
-    clearTimeout(hideTimeout);
-    block.classList.add("focused");
-  });
-
-  // 드롭다운, 삭제 버튼에 포커스 들어왔을 때도 block에 focused 클래스 유지
-  [select].concat(index !== 0 ? [removeBtn] : []).forEach(el => {
-    el.addEventListener("focus", () => {
+    // 블럭 포커스/호버 효과
+    let hideTimeout;
+    block.addEventListener("mouseleave", () => {
+      hideTimeout = setTimeout(() => block.classList.remove("focused"), 300);
+    });
+    block.addEventListener("mouseenter", () => {
       clearTimeout(hideTimeout);
       block.classList.add("focused");
     });
-    el.addEventListener("blur", () => {
-      // 포커스 아웃 시 딜레이 후 focused 해제
-      hideTimeout = setTimeout(() => {
-        // 블록 내부에 포커스가 없으면 해제
-        if (!block.contains(document.activeElement)) {
-          block.classList.remove("focused");
-        }
-      }, 300);
-    });
-  });
-
-  textarea.addEventListener("focus", () => {
-    clearTimeout(hideTimeout);
-    block.classList.add("focused");
-  });
-  textarea.addEventListener("blur", () => {
-    hideTimeout = setTimeout(() => {
-      if (!block.contains(document.activeElement)) {
-        block.classList.remove("focused");
-      }
-    }, 300);
-  });
-
-      // 엔터키: 다음 블록으로 포커스 또는 새 블록 생성
-      textarea.addEventListener("keydown", (e) => {
-        if (e.key === "Enter" && !e.shiftKey) {
-          e.preventDefault();
-          const blocks = Array.from(container.querySelectorAll(".block textarea"));
-          const currentIndex = blocks.indexOf(textarea);
-
-          if (currentIndex < blocks.length - 1) {
-            blocks[currentIndex + 1].focus();
-            blocks[currentIndex + 1].setSelectionRange(0, 0);
-          } else {
-            createBlock();
-          }
-        }
-
-        // 방향키 위, 아래로 블록간 이동
-        if (e.key === "ArrowUp") {
-          const blocks = Array.from(container.querySelectorAll(".block textarea"));
-          const currentIndex = blocks.indexOf(textarea);
-          if (currentIndex > 0 && textarea.selectionStart === 0) {
-            e.preventDefault();
-            blocks[currentIndex - 1].focus();
-            blocks[currentIndex - 1].setSelectionRange(blocks[currentIndex - 1].value.length, blocks[currentIndex - 1].value.length);
-          }
-        }
-        if (e.key === "ArrowDown") {
-          const blocks = Array.from(container.querySelectorAll(".block textarea"));
-          const currentIndex = blocks.indexOf(textarea);
-          if (currentIndex < blocks.length - 1 && textarea.selectionStart === textarea.value.length) {
-            e.preventDefault();
-            blocks[currentIndex + 1].focus();
-            blocks[currentIndex + 1].setSelectionRange(0, 0);
-          }
-        }
+    [select, textarea].forEach(el => {
+      el.addEventListener("focus", () => {
+        clearTimeout(hideTimeout);
+        block.classList.add("focused");
       });
+      el.addEventListener("blur", () => {
+        hideTimeout = setTimeout(() => {
+          if (!block.contains(document.activeElement)) {
+            block.classList.remove("focused");
+          }
+        }, 300);
+      });
+    });
 
-      index++;
-    }
+    // 키 이벤트 처리
+    textarea.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
 
-    // 초기 블록 1개 생성
-    createBlock();
+        const blocks = Array.from(container.querySelectorAll(".block textarea"));
+        const currentIndex = blocks.indexOf(textarea);
+        const hasNextBlock = currentIndex < blocks.length - 1;
 
-    // 카테고리별 장르 토글
-    const categorySelect = document.getElementById("category-select");
-    function toggleGenres() {
-      const selected = categorySelect.value;
-      document.querySelectorAll(".genre-default").forEach(el => el.classList.toggle("hidden", selected !== "thought" && selected !== "discussion"));
-      document.querySelectorAll(".genre-creation").forEach(el => el.classList.toggle("hidden", selected !== "creation"));
-      document.querySelectorAll(".genre-board").forEach(el => el.classList.toggle("hidden", selected !== "board"));
-    }
-    categorySelect.addEventListener("change", toggleGenres);
-    toggleGenres();
+        if (hasNextBlock) {
+          // 다음 블럭 존재 시, 커서만 이동
+          blocks[currentIndex + 1].focus();
+          blocks[currentIndex + 1].setSelectionRange(0, 0);
+        } else {
+          // 마지막 블럭일 때만 새 블럭 생성
+          const cursorPos = textarea.selectionStart;
+          const value = textarea.value;
+          const before = value.slice(0, cursorPos);
+          const after = value.slice(cursorPos);
 
-  });
+          textarea.value = before;
+          autoResizeTextarea(textarea);
+
+          createBlock("paragraph", after);
+        }
+      }
+
+      if (e.key === "ArrowUp") {
+        const blocks = Array.from(container.querySelectorAll(".block textarea"));
+        const currentIndex = blocks.indexOf(textarea);
+        if (currentIndex > 0 && textarea.selectionStart === 0) {
+          e.preventDefault();
+          const prev = blocks[currentIndex - 1];
+          prev.focus();
+          prev.setSelectionRange(prev.value.length, prev.value.length);
+        }
+      }
+      if (e.key === "ArrowDown") {
+        const blocks = Array.from(container.querySelectorAll(".block textarea"));
+        const currentIndex = blocks.indexOf(textarea);
+        if (currentIndex < blocks.length - 1 && textarea.selectionStart === textarea.value.length) {
+          e.preventDefault();
+          const next = blocks[currentIndex + 1];
+          next.focus();
+          next.setSelectionRange(0, 0);
+        }
+      }
+    });
+
+    return textarea;
+  }
+
+  // 블럭 이름(name) 재설정 함수 - 중요!
+  function updateBlockNames() {
+    const blocks = container.querySelectorAll(".block");
+    blocks.forEach((block, idx) => {
+      const textarea = block.querySelector("textarea");
+      const select = block.querySelector("select");
+      if (textarea) {
+        textarea.name = `post[post_blocks_attributes][${idx}][content]`;
+      }
+      if (select) {
+        select.name = `post[post_blocks_attributes][${idx}][block_type]`;
+      }
+    });
+  }
+
+  // 초기 블럭 하나 생성
+  createBlock();
+
+  // 카테고리 선택 시 장르 토글 (기존 로직)
+  const categorySelect = document.getElementById("category-select");
+  function toggleGenres() {
+    const selected = categorySelect.value;
+    document.querySelectorAll(".genre-default").forEach(el => el.classList.toggle("hidden", selected !== "thought" && selected !== "discussion"));
+    document.querySelectorAll(".genre-creation").forEach(el => el.classList.toggle("hidden", selected !== "creation"));
+    document.querySelectorAll(".genre-board").forEach(el => el.classList.toggle("hidden", selected !== "board"));
+  }
+  categorySelect.addEventListener("change", toggleGenres);
+  toggleGenres();
+});
 </script>
