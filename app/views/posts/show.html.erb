@@ -183,18 +183,30 @@
 
         <% if user_signed_in? %>
           <div class="flex space-x-3 mb-6">
-            <% like = @post.likes.find_by(user: current_user) %>
-            <% if like %>
-              <%= button_to like_path(like), method: :delete, params: { likeable_type: 'Post', likeable_id: @post.id }, class: "flex items-center" do %>
-                <%= image_tag "icon/post/filledheart.svg", class: "w-5 h-5 text-red-500" %>
-                <span class="ml-1 text-xs text-gray-600"><%= @post.likes.count %></span>
-              <% end %>
-            <% else %>
-              <%= button_to likes_path(likeable_type: 'Post', likeable_id: @post.id), method: :post, class: "flex items-center" do %>
-                <%= image_tag "icon/post/emptyheart.svg", class: "w-5 h-5 text-gray-400" %>
-                <span class="ml-1 text-xs text-gray-600"><%= @post.likes.count %></span>
-              <% end %>
-            <% end %>
+<% likeable = @post %>
+
+<% liked = likeable.likes.exists?(user: current_user) %>
+
+<%= form_with(
+      url: liked ? like_path(likeable.likes.find_by(user: current_user)) : likes_path,
+      method: liked ? :delete : :post,
+      remote: true,
+      html: { id: dom_id(likeable, :like_button), class: "like-form" },
+      data: { disable_with: "처리 중..." }
+    ) do |f| %>
+  <%= hidden_field_tag :likeable_type, likeable.class.name %>
+  <%= hidden_field_tag :likeable_id, likeable.id %>
+
+<button type="submit" class="flex items-center space-x-1 focus:outline-none">
+  <% if liked %>
+    <%= image_tag "icon/post/filledheart.svg", class: "w-4 h-4" %>
+  <% else %>
+    <%= image_tag "icon/post/emptyheart.svg", class: "w-4 h-4" %>
+  <% end %>
+  <span class="text-xs"><%= likeable.likes.count %></span>
+</button>
+
+<% end %>
 
             <% if current_user.bookmarked_posts.exists?(@post.id) %>
               <%= button_to post_unbookmark_path(@post), method: :delete, class: "flex items-center" do %>
