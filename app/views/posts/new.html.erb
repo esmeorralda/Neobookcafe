@@ -143,26 +143,28 @@
   }
 
   .block textarea {
-    width: 100%;
-    font-size: 1rem;
-    resize: none;
-    background: transparent;
-    outline: none;
-    min-height: 1.4rem;
-    line-height: 1.4;
-    margin: 0;
-    padding: 0;
-    font-family: serif;
-    overflow-y: hidden;
-    height: auto;
-    border: none;
-  }
+  width: 100%;
+  font-size: 1rem;
+  resize: none;
+  background: transparent;
+  outline: none;
+  min-height: 1.4em; /* 1줄 높이와 동일 */
+  line-height: 1.4;
+  margin: 0;
+  padding: 0.1em 0.25em; /* 텍스트와 경계 간 적당한 여백 */
+  font-family: serif;
+  overflow-y: hidden;
+  height: auto;
+  border: none;
+  box-sizing: border-box; /* 높이 계산 기준 통일 */
+}
+
 
   /* 문단 스타일 (기본) */
 .block-type-paragraph textarea {
   font-size: 1rem;
   color: #333;
-  margin: 0 0 0.5rem 0;
+
   line-height: 1.4;
 }
 
@@ -194,9 +196,31 @@ document.addEventListener("DOMContentLoaded", () => {
   const container = document.getElementById("blocks-container");
 
   function autoResizeTextarea(textarea) {
-    textarea.style.height = "auto";
+  textarea.style.height = "auto";
+
+  const value = textarea.value;
+
+  // 기본 1줄 높이 고정 (CSS line-height 기준)
+  const lineHeightEm = 1.4; // 이미 CSS에 line-height:1.4; 지정되어 있음
+  const fontSizePx = parseFloat(getComputedStyle(textarea).fontSize) || 16; // 기본 16px fallback
+  const lineHeightPx = lineHeightEm * fontSizePx;
+
+  // 한 줄에 대략 들어갈 글자 수(임의 설정, 폰트에 따라 다름)
+  const maxCharsPerLine = 50; 
+
+  if (
+    value.trim() === "" ||                  // 빈문자면
+    (!value.includes("\n") && value.length <= maxCharsPerLine) // 줄바꿈 없고 길이도 한 줄 이하면
+  ) {
+    // 1줄 높이 유지
+    textarea.style.height = lineHeightPx + "px";
+  } else {
+    // 여러 줄일 경우 내용에 맞게 자동 조절
     textarea.style.height = textarea.scrollHeight + "px";
   }
+}
+
+
 
   // 블럭 생성 함수 - index 대신 현재 블럭 개수 기준으로 name 할당
   function createBlock(type = "paragraph", content = "") {
@@ -211,8 +235,17 @@ document.addEventListener("DOMContentLoaded", () => {
     textarea.name = `post[post_blocks_attributes][${blocksCount}][content]`;
     textarea.value = content;
     textarea.placeholder = "내용을 입력하세요";
-    textarea.setAttribute("rows", 1);
-    autoResizeTextarea(textarea);
+    // rows 속성 제거 - 자동 높이 조절에 방해됨
+    // textarea.setAttribute("rows", 1);
+
+    // 타이핑 시 자동 리사이즈
+    textarea.addEventListener("input", () => autoResizeTextarea(textarea));
+    // 붙여넣기 후 자동 리사이즈
+    textarea.addEventListener("paste", () => {
+      setTimeout(() => autoResizeTextarea(textarea), 0);
+    });
+
+    autoResizeTextarea(textarea); // 생성 즉시 높이 맞춤
 
     // 타입 선택 셀렉트 생성
     const select = document.createElement("select");
@@ -259,10 +292,8 @@ document.addEventListener("DOMContentLoaded", () => {
     block.appendChild(textarea);
     container.appendChild(block);
 
-    // 블럭 이름 다시 업데이트 (인덱스 꼬임 방지)
     updateBlockNames();
 
-    // 포커스 및 자동 크기 조절
     textarea.focus();
     autoResizeTextarea(textarea);
 
@@ -289,7 +320,7 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     });
 
-    // 키 이벤트 처리
+    // 키 이벤트 처리 (엔터, 위/아래 방향키)
     textarea.addEventListener("keydown", (e) => {
       if (e.key === "Enter" && !e.shiftKey) {
         e.preventDefault();
@@ -299,11 +330,9 @@ document.addEventListener("DOMContentLoaded", () => {
         const hasNextBlock = currentIndex < blocks.length - 1;
 
         if (hasNextBlock) {
-          // 다음 블럭 존재 시, 커서만 이동
           blocks[currentIndex + 1].focus();
           blocks[currentIndex + 1].setSelectionRange(0, 0);
         } else {
-          // 마지막 블럭일 때만 새 블럭 생성
           const cursorPos = textarea.selectionStart;
           const value = textarea.value;
           const before = value.slice(0, cursorPos);
