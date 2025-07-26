@@ -22,7 +22,8 @@ class PostsController < ApplicationController
   @post = Post.find(params[:id])
 
   session[:viewed_posts] ||= []
-  @comments = @post.comments.includes(:user)
+  @comments = @post.comments.where(parent_id: nil, post_block_id: nil).reorder(created_at: :desc)
+Rails.logger.debug "@comments order: #{@comments.pluck(:created_at)}"
 
   unless session[:viewed_posts].include?(@post.id)
     @post.increment!(:view_count)

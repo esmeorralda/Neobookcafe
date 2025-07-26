@@ -42,7 +42,6 @@
     /* 전체 댓글 입력 폼 컨테이너 */
     #root-comment-form {
       margin-top: 3rem;
-      margin-bottom: 4rem;
     }
 
     /* 전체 댓글 폼 textarea */
@@ -254,7 +253,7 @@
           </div>
         <% end %>
       </div>
-
+  <hr class="border-t border-[#e3d5c6]" />
       <!-- ✅ 전체 댓글 작성 폼 (루트 댓글) 본문 바로 아래 -->
       <% if user_signed_in? %>
         <div id="root-comment-form">
@@ -267,20 +266,43 @@
         </div>
       <% end %>
 
-<div id="root-comment-list" class="mt-6  max-h-[600px] overflow-y-auto bg-[#f9f6f2] p-4 rounded-lg shadow-inner">
-  <% @comments.where(parent_id: nil, post_id: @post.id, post_block_id: nil).order(created_at: :desc).each do |comment| %>
-   <div class="bg-white rounded-lg shadow p-4 mb-4 border border-transparent last:mb-0">
+<div id="root-comment-list" class="mt-6 max-h-[600px] overflow-y-auto bg-[#f9f6f2] p-4 rounded-lg shadow-inner">
 
-  <div class="flex justify-between items-center border-b border-[#d1c4b2] pb-2 mb-2">
-    <p class="font-semibold text-gray-800 text-sm"><%= comment.user.name %></p>
-
-    <div class="flex items-center space-x-4">
-      <p class="text-xs text-gray-500"><%= comment.created_at.strftime('%Y년 %-m월 %-d일 %H:%M') %></p>
-      <%= render partial: 'comment_like', locals: { likeable: comment }  %>
-    </div>
+  <!-- 댓글 정렬 드롭다운 -->
+  <div class="mb-4 flex items-center space-x-2">
+    <label for="sort-comments" class="text-sm font-medium text-gray-700">댓글 정렬:</label>
+    <select id="sort-comments" name="sort" class="border rounded px-2 py-1 text-sm" onchange="location = this.value;">
+      <option value="<%= url_for(params.permit(:id).merge(sort: 'latest')) %>" <%= 'selected' if params[:sort] == 'latest' || params[:sort].blank? %>>최신순</option>
+      <option value="<%= url_for(params.permit(:id).merge(sort: 'oldest')) %>" <%= 'selected' if params[:sort] == 'oldest' %>>오래된 순</option>
+      <option value="<%= url_for(params.permit(:id).merge(sort: 'likes')) %>" <%= 'selected' if params[:sort] == 'likes' %>>좋아요 순</option>
+    </select>
   </div>
 
-  <p class="text-gray-700 text-sm mb-3"><%= comment.content %></p>
+  <%# 정렬 처리: params[:sort] 기준으로 @comments를 뷰에서 정렬 %>
+  <%
+    sorted_comments = case params[:sort]
+    when 'oldest'
+      @comments.sort_by(&:created_at)
+    when 'likes'
+      @comments.sort_by { |c| -c.likes.count }
+    else
+      @comments.sort_by(&:created_at).reverse
+    end
+  %>
+
+  <% sorted_comments.each do |comment| %>
+    <div class="bg-white rounded-lg shadow p-4 mb-4 border border-transparent last:mb-0">
+
+      <div class="flex justify-between items-center border-b border-[#d1c4b2] pb-2 mb-2">
+        <p class="font-semibold text-gray-800 text-sm"><%= comment.user.name %></p>
+
+        <div class="flex items-center space-x-4">
+          <p class="text-xs text-gray-500"><%= comment.created_at.strftime('%Y년 %-m월 %-d일 %H:%M') %></p>
+          <%= render partial: 'comment_like', locals: { likeable: comment } %>
+        </div>
+      </div>
+
+      <p class="text-gray-700 text-sm mb-3"><%= comment.content %></p>
 
       <!-- 대댓글 보기/답글 달기 토글 -->
       <button class="mt-1 text-xs text-[#b88b65] hover:text-[#a5774e] reply-toggle" data-comment-id="<%= comment.id %>">
@@ -335,7 +357,7 @@
   <div id="hidden-comment-forms" class="hidden">
     <% @post.post_blocks.order(:position).each do |block| %>
       <div id="comment-form-<%= block.id %>" class="hidden mt-2 mb-10 rounded p-4 bg-[#f9f6f2]">
-        <% comments = Comment.where(post_block_id: block.id).order(created_at: :desc) %>
+        <% comments = Comment.where(post_block_id: block.id).order(created_at: :asc) %>
        <% if comments.any? %>
  <div class="space-y-3 overflow-y-auto pb-3" style="max-height: 500px;">
   <% comments.each do |comment| %>

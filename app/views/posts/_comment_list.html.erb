@@ -1,0 +1,20 @@
+<%# app/views/posts/_comment_list.html.erb %>
+<%# 전달받은 comments 컬렉션은 이미 정렬되어 있다고 가정 %>
+
+<div id="root-comment-list" class="mt-6 max-h-[600px] overflow-y-auto bg-[#f9f6f2] p-4 rounded-lg shadow-inner">
+  <% comments.each do |comment| %>
+    <div class="bg-white rounded-lg shadow p-4 mb-4 border border-transparent last:mb-0">
+
+      <div class="flex justify-between items-center border-b border-[#d1c4b2] pb-2 mb-2">
+        <p class="font-semibold text-gray-800 text-sm"><%= comment.user.name %></p>
+
+        <div class="flex items-center space-x-4">
+          <p class="text-xs text-gray-500"><%= comment.created_at.strftime('%Y년 %-m월 %-d일 %H:%M') %></p>
+          <%= render partial: 'comment_like', locals: { likeable: comment }  %>
+        </div>
+      </div>
+
+      <p class="text-gray-700 text-sm mb-3"><%= comment.content %></p>
+    </div>
+  <% end %>
+</div>
