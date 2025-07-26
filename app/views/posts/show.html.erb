@@ -255,16 +255,22 @@
       </div>
   <hr class="border-t border-[#e3d5c6]" />
       <!-- ✅ 전체 댓글 작성 폼 (루트 댓글) 본문 바로 아래 -->
-      <% if user_signed_in? %>
-        <div id="root-comment-form">
-          <%= form_with model: Comment.new, url: post_comments_path(@post), local: true do |f| %>
-            <%= f.hidden_field :post_block_id, value: nil %>
-              <%= f.hidden_field :post_id, value: @post.id %>
-            <%= f.text_area :content, placeholder: "댓글을 남겨보세요", rows: 2 %>
-            <button type="submit">댓글 등록</button>
-          <% end %>
-        </div>
-      <% end %>
+ <%= form_with model: Comment.new, url: post_comments_path(@post), local: true do |f| %>
+  <%= f.hidden_field :post_block_id, value: nil %>
+  <%= f.hidden_field :post_id, value: @post.id %>
+
+  <div class="flex flex-col space-y-1">
+    <%= f.text_area :content, placeholder: "답글을 작성해주세요", rows: 4, class: "auto-resize-textarea w-full p-2 border border-[#d1c4b2] rounded text-sm resize-none focus:outline-none focus:ring-1 focus:ring-[#b88b65]" %>
+
+    <div class="flex justify-end mt-2">
+      <button type="submit" class="bg-[#b88b65] text-white px-4 py-1 rounded text-sm cursor-pointer">
+        댓글 등록
+      </button>
+    </div>
+  </div>
+<% end %>
+
+
 
 <div id="root-comment-list" class="mt-6 max-h-[600px] overflow-y-auto bg-[#f9f6f2] p-4 rounded-lg shadow-inner">
 
@@ -328,10 +334,14 @@
           <%= f.hidden_field :post_block_id, value: nil %>
           <%= f.hidden_field :parent_id, value: comment.id %>
           <%= f.hidden_field :post_id, value: @post.id %>
+           <div class="flex flex-col space-y-1">
           <%= f.text_area :content, placeholder: "답글을 작성해주세요", rows: 1, class: "w-full p-1 border border-[#d1c4b2] rounded text-sm mb-1 resize-none focus:outline-none focus:ring-1 focus:ring-[#b88b65]" %>
+          <div class="flex justify-end">
           <button type="submit" style="display: inline-block !important; background-color: #b88b65; color: white; padding: 6px 12px; font-size: 12px; border-radius: 4px; border: none; cursor: pointer;">
-            답글 등록
+            대댓글 등록
           </button>
+          </div>
+          </div>
         <% end %>
       </div>
     </div>
@@ -383,12 +393,22 @@
           <p class="text-gray-500 text-sm italic mt-2">댓글이 없습니다.</p>
         <% end %>
 
-        <%= form_with model: Comment.new, url: post_comments_path(@post), local: true do |f| %>
-          <%= f.hidden_field :post_block_id, value: block.id %>
-          <%= f.hidden_field :post_id, value: @post.id %>
-          <%= f.text_area :content, placeholder: "댓글을 작성해주세요", rows: 2, class: "w-full p-2 border rounded mb-2" %>
-          <button type="submit" class="px-4 py-1 bg-[#b88b65] text-white rounded">댓글 등록</button>
-        <% end %>
+      <%= form_with model: Comment.new, url: post_comments_path(@post), local: true do |f| %>
+  <%= f.hidden_field :post_block_id, value: block.id %>
+  <%= f.hidden_field :post_id, value: @post.id %>
+<div class="mb-0">
+  <%= f.text_area :content, placeholder: "댓글을 작성해주세요", rows: 2, class: "w-full p-2 border border-[#d1c4b2] rounded resize-none" %>
+</div>
+
+<div class="flex justify-end mt-0">
+  <button type="submit" class="px-4 py-2 bg-[#b88b65] text-white rounded text-sm">
+    댓글 등록
+  </button>
+</div>
+
+<% end %>
+
+
       </div>
     <% end %>
   </div>
@@ -513,7 +533,19 @@ document.querySelectorAll('.reply-toggle').forEach(button => {
     }
   });
 });
+document.addEventListener('input', function(event) {
+    if (event.target.classList.contains('auto-resize-textarea')) {
+      const textarea = event.target;
+      textarea.style.height = 'auto';
+      textarea.style.height = textarea.scrollHeight + 'px';
+    }
+  });
 
+  // 페이지 로드 시 기본 높이 맞추기
+  document.querySelectorAll('.auto-resize-textarea').forEach(textarea => {
+    textarea.style.height = 'auto';
+    textarea.style.height = textarea.scrollHeight + 'px';
+  });
 
 </script>
 </body>
