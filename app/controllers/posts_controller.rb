@@ -1,6 +1,7 @@
 # app/controllers/posts_controller.rb
 class PostsController < ApplicationController
-    before_action :authenticate_user!, only: [:new, :create, :bookmark, :unbookmark]
+  before_action :authenticate_user!, except: [:show, :index, :search]
+
     def new
       @post = Post.new
       3.times { @post.post_blocks.build } # 기본 3개 블록 생성
@@ -30,7 +31,7 @@ end
     end
   end
 
-      
+
   def show
 
   @post = Post.find(params[:id])
@@ -144,6 +145,36 @@ def search
   render 'search'
 end
 
+
+  
+  def update
+    @post = Post.find(params[:id])
+
+  
+    if @post.update(post_params)
+      redirect_to @post, notice: "게시글이 성공적으로 수정되었습니다."
+    else
+      flash.now[:alert] = "수정에 실패했습니다."
+      render :edit
+    end
+
+  end
+
+    def edit
+  @post = Post.find(params[:id])
+  # @post는 DB에 저장된 값들이 채워진 상태
+end
+
+    
+def destroy
+  @post = Post.find(params[:id])
+  if @post.user != current_user
+    redirect_to posts_path, alert: "권한이 없습니다." and return
+  end
+
+  @post.destroy
+  redirect_to posts_path, notice: "게시글이 삭제되었습니다."
+end
 
 
 def bookmark

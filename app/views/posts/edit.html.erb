@@ -2,84 +2,109 @@
   <div class="max-w-4xl w-full p-8 bg-[#f7f1ea] rounded">
     <%= form_with model: @post, local: true, class: "space-y-6", id: "post-form" do |f| %>
       <div class="flex justify-between items-center mb-6">
-        <h1 class="text-xl font-bold text-gray-800">새 게시글 작성</h1>
+        <h1 class="text-xl font-bold text-gray-800">게시글 수정</h1>
       </div>
 
       <!-- 기본 정보 -->
       <div class="flex justify-between items-center gap-2 max-w-4xl mx-auto bg-[#f7f1ea]">
         <div class="flex flex-col w-1/3">
-          <label for="category-select" class="mb-1  text-sm font-medium">게시판 선택</label>
+          <label for="category-select" class="mb-1 text-sm font-medium">게시판 선택</label>
           <select id="category-select" name="post[category]" class="border border-gray-300 p-2 bg-white w-full rounded">
-            <option value="thought">감상문</option>
-            <option value="discussion">논설문</option>
-            <option value="creation">창작물</option>
-            <option value="board">자유게시글</option>
+            <option value="thought" <%= "selected" if @post.category == "thought" %>>감상문</option>
+            <option value="discussion" <%= "selected" if @post.category == "discussion" %>>논설문</option>
+            <option value="creation" <%= "selected" if @post.category == "creation" %>>창작물</option>
+            <option value="board" <%= "selected" if @post.category == "board" %>>자유게시글</option>
           </select>
         </div>
 
         <div class="flex flex-col w-1/2">
-          <label for="book_title" class="mb-1  text-sm font-medium">책 제목</label>
-          <input type="text" id="book_title" name="post[book_title]" class="border border-gray-300 p-2 bg-white w-full rounded" />
+          <label for="book_title" class="mb-1 text-sm font-medium">책 제목</label>
+          <input
+            type="text"
+            id="book_title"
+            name="post[book_title]"
+            value="<%= @post.book_title %>"
+            class="border border-gray-300 p-2 bg-white w-full rounded"
+          />
         </div>
 
         <div class="flex flex-col w-1/3">
-          <label for="book_author" class="mb-1  text-sm font-medium">책 저자</label>
-          <input type="text" id="book_author" name="post[book_author]" class="border border-gray-300 p-2 bg-white w-full rounded" />
+          <label for="book_author" class="mb-1 text-sm font-medium">책 저자</label>
+          <input
+            type="text"
+            id="book_author"
+            name="post[book_author]"
+            value="<%= @post.book_author %>"
+            class="border border-gray-300 p-2 bg-white w-full rounded"
+          />
         </div>
       </div>
 
       <div class="text-sm">
-        <%= f.label :title, "게시글 제목", class: " mb-1" %>
-        <%= f.text_field :title, class: "w-full border border-gray-300 p-2 bg-white rounded" %>
+        <%= f.label :title, "게시글 제목", class: "mb-1" %>
+        <%= f.text_field :title, value: @post.title, class: "w-full border border-gray-300 p-2 bg-white rounded" %>
       </div>
 
       <!-- 장르 선택 -->
       <div id="genre-container">
         <span class="text-sm mr-2">장르</span>
 
+        <% # 기존 선택된 장르가 배열 형태라고 가정 (ex: @post.genres) %>
+        <% selected_genres = @post.book_genre || [] %>
+
         <% ["철학", "문학", "역사", "사회", "경제", "과학/기술"].each do |genre| %>
-          <label class="mr-2 text-sm genre-default">
-            <%= radio_button_tag "genres[]", genre %> <%= genre %>
+          <label class="mr-2 text-sm genre-default <%= 'hidden' unless ['thought', 'discussion'].include?(@post.category) %>">
+            <%= radio_button_tag "genres[]", genre, selected_genres.include?(genre) %> <%= genre %>
           </label>
         <% end %>
 
         <% ["시", "에세이", "소설"].each do |genre| %>
-          <label class="mr-2 text-sm genre-creation hidden">
-            <%= radio_button_tag "genres[]", genre %> <%= genre %>
+          <label class="mr-2 text-sm genre-creation <%= @post.category == 'creation' ? '' : 'hidden' %>">
+            <%= radio_button_tag "genres[]", genre, selected_genres.include?(genre) %> <%= genre %>
           </label>
         <% end %>
 
         <% ["책 추천", "책 홍보", "작가 이야기", "독서팁/습관", "책 관련 행사 홍보", "책 Q&A", "기타"].each do |genre| %>
-          <label class="mr-2 text-sm genre-board hidden">
-            <%= radio_button_tag "genres[]", genre %> <%= genre %>
+          <label class="mr-2 text-sm genre-board <%= @post.category == 'board' ? '' : 'hidden' %>">
+            <%= radio_button_tag "genres[]", genre, selected_genres.include?(genre) %> <%= genre %>
           </label>
         <% end %>
 
         <label class="ml-4 text-sm">
-          <%= check_box_tag :allow_comments, true %> 댓글 허용
+          <%= check_box_tag :allow_comments, true, @post.allow_comments %> 댓글 허용
         </label>
       </div>
 
       <!-- 본문 (종이 느낌 영역) -->
-      <div id="blocks-container" class="bg-white p-6 shadow mt-4 rounded" style="min-height: 800px; max-height: 1200px; overflow-y: auto; font-family: 'Noto Sans KR', sans-serif; line-height: 1.4;">
-        <!-- 자바스크립트로 동적 블록 생성 -->
+      <div
+        id="blocks-container"
+        class="bg-white p-6 shadow mt-4 rounded"
+        style="min-height: 800px; max-height: 1200px; overflow-y: auto; font-family: 'Noto Sans KR', sans-serif; line-height: 1.4;"
+      >
+        <!-- 자바스크립트에서 서버 데이터 기반으로 블록 생성 -->
       </div>
     <% end %>
   </div>
 
   <!-- 오른쪽 세로 버튼들 -->
-  <div class="flex flex-col space-y-2 sticky top-24 mt-10 " style="height: fit-content;">
-<%= button_tag "임시 저장",
-    type: "submit",
-    name: "commit",
-    value: "draft",
-    form: "post-form",
-    data: { turbo_confirm: "임시 저장하시겠습니까? 지금 페이지를 떠납니다." },
-    class: "border border-gray-300 bg-white px-3 py-1 text-sm" %>
-    <%= button_tag "업로드", type: "submit", form: "post-form", class: "bg-[#5d3b2e] text-white px-4 py-2 text-sm  " %>
+  <div class="flex flex-col space-y-2 sticky top-24 mt-10" style="height: fit-content;">
+   
+    <%= button_tag "업데이트", type: "submit",
+      name: "commit",
+      value: "update",
+      form: "post-form",
+      data: { turbo_confirm: "수정 내용을 저장하시겠습니까?" }, class: "bg-[#5d3b2e] text-white px-4 py-2 text-sm" %>
+
+    <div class="flex flex-col space-y-2 sticky top-24 " style="height: fit-content;">
+          <a href="<%= post_path(@post) %>"
+     class="bg-white text-black px-4 py-2 text-sm border border-gray-300 inline-block text-center"
+     data-turbo-confirm="취소하시겠습니까? 변경 내용은 저장되지 않습니다."
+     data-turbo-method="get">
+    취소
+  </a>
+        </div>
   </div>
 </div>
-
 <style>
   blocks-container {
     font-family: 'Noto Sans KR', sans-serif;
@@ -135,7 +160,6 @@
     font-weight: bold;
   }
 
-  /* 포커스 혹은 호버 시 컨트롤 표시 */
   .block:hover .block-controls-left,
   .block:hover .block-controls-right,
   .block.focused .block-controls-left,
@@ -149,86 +173,74 @@
   }
 
   .block textarea {
-  width: 100%;
-  font-size: 1rem;
-  resize: none;
-  background: transparent;
-  outline: none;
-  min-height: 1.4em; /* 1줄 높이와 동일 */
-  line-height: 1.4;
-  margin: 0;
-  padding: 0.1em 0.25em; /* 텍스트와 경계 간 적당한 여백 */
-  font-family: serif;
-  overflow-y: hidden;
-  height: auto;
-  border: none;
-  box-sizing: border-box; /* 높이 계산 기준 통일 */
-}
+    width: 100%;
+    font-size: 1rem;
+    resize: none;
+    background: transparent;
+    outline: none;
+    min-height: 1.4em;
+    line-height: 1.4;
+    margin: 0;
+    padding: 0.1em 0.25em;
+    font-family: serif;
+    overflow-y: hidden;
+    height: auto;
+    border: none;
+    box-sizing: border-box;
+  }
 
+  /* 문단 스타일 */
+  .block-type-paragraph textarea {
+    font-size: 1rem;
+    color: #333;
+    line-height: 1.4;
+  }
 
-  /* 문단 스타일 (기본) */
-.block-type-paragraph textarea {
-  font-size: 1rem;
-  color: #333;
+  /* 인용 스타일 */
+  .block-type-quote textarea {
+    font-style: italic;
+    border-left: 4px solid #5d3b2e;
+    padding-left: 0.5rem;
+    color: #2c1a0d;
+  }
 
-  line-height: 1.4;
-}
-
-/* 인용 스타일 */
-.block-type-quote textarea {
-  font-style: italic;
-  border-left: 4px solid #5d3b2e;
-  padding-left: 0.5rem;
-  color: #2c1a0d;
-}
-
-/* 소제목 스타일 */
-.block-type-subtitle textarea {
-  background-color: #fff;
-  font-weight: 600; /* font-semibold */
-  font-size: 1.125rem; /* text-lg */
-  color: #2c1a0d;
-  margin: 1rem 0 0.5rem 0;
-  padding-bottom: 0.25rem;
-}
-#blocks-container .block:first-child {
-  margin-top: 1.5rem; /* 원하는 간격으로 조절하세요 */
-}
-
-
+  /* 소제목 스타일 */
+  .block-type-subtitle textarea {
+    background-color: #fff;
+    font-weight: 600;
+    font-size: 1.125rem;
+    color: #2c1a0d;
+    margin: 1rem 0 0.5rem 0;
+    padding-bottom: 0.25rem;
+  }
+  #blocks-container .block:first-child {
+    margin-top: 1.5rem;
+  }
 </style>
+
 <script>
 document.addEventListener("DOMContentLoaded", () => {
   const container = document.getElementById("blocks-container");
 
+
   function autoResizeTextarea(textarea) {
-  textarea.style.height = "auto";
+    textarea.style.height = "auto";
+    const value = textarea.value;
+    const lineHeightEm = 1.4;
+    const fontSizePx = parseFloat(getComputedStyle(textarea).fontSize) || 16;
+    const lineHeightPx = lineHeightEm * fontSizePx;
+    const maxCharsPerLine = 50;
 
-  const value = textarea.value;
-
-  // 기본 1줄 높이 고정 (CSS line-height 기준)
-  const lineHeightEm = 1.4; // 이미 CSS에 line-height:1.4; 지정되어 있음
-  const fontSizePx = parseFloat(getComputedStyle(textarea).fontSize) || 16; // 기본 16px fallback
-  const lineHeightPx = lineHeightEm * fontSizePx;
-
-  // 한 줄에 대략 들어갈 글자 수(임의 설정, 폰트에 따라 다름)
-  const maxCharsPerLine = 50; 
-
-  if (
-    value.trim() === "" ||                  // 빈문자면
-    (!value.includes("\n") && value.length <= maxCharsPerLine) // 줄바꿈 없고 길이도 한 줄 이하면
-  ) {
-    // 1줄 높이 유지
-    textarea.style.height = lineHeightPx + "px";
-  } else {
-    // 여러 줄일 경우 내용에 맞게 자동 조절
-    textarea.style.height = textarea.scrollHeight + "px";
+    if (
+      value.trim() === "" ||
+      (!value.includes("\n") && value.length <= maxCharsPerLine)
+    ) {
+      textarea.style.height = lineHeightPx + "px";
+    } else {
+      textarea.style.height = textarea.scrollHeight + "px";
+    }
   }
-}
 
-
-
-  // 블럭 생성 함수 - index 대신 현재 블럭 개수 기준으로 name 할당
   function createBlock(type = "paragraph", content = "") {
     const block = document.createElement("div");
     block.classList.add("block");
@@ -236,24 +248,18 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const blocksCount = container.querySelectorAll(".block").length;
 
-    // textarea 생성
     const textarea = document.createElement("textarea");
     textarea.name = `post[post_blocks_attributes][${blocksCount}][content]`;
     textarea.value = content;
     textarea.placeholder = "내용을 입력하세요";
-    // rows 속성 제거 - 자동 높이 조절에 방해됨
-    // textarea.setAttribute("rows", 1);
 
-    // 타이핑 시 자동 리사이즈
     textarea.addEventListener("input", () => autoResizeTextarea(textarea));
-    // 붙여넣기 후 자동 리사이즈
     textarea.addEventListener("paste", () => {
       setTimeout(() => autoResizeTextarea(textarea), 0);
     });
 
-    autoResizeTextarea(textarea); // 생성 즉시 높이 맞춤
+    autoResizeTextarea(textarea);
 
-    // 타입 선택 셀렉트 생성
     const select = document.createElement("select");
     select.name = `post[post_blocks_attributes][${blocksCount}][block_type]`;
     select.className = "block-type-selector block-controls-left";
@@ -280,7 +286,6 @@ document.addEventListener("DOMContentLoaded", () => {
       block.classList.add(`block-type-${select.value}`);
     });
 
-    // 삭제 버튼 (첫 블럭 제외)
     if (blocksCount > 0) {
       const removeBtn = document.createElement("button");
       removeBtn.type = "button";
@@ -303,7 +308,6 @@ document.addEventListener("DOMContentLoaded", () => {
     textarea.focus();
     autoResizeTextarea(textarea);
 
-    // 블럭 포커스/호버 효과
     let hideTimeout;
     block.addEventListener("mouseleave", () => {
       hideTimeout = setTimeout(() => block.classList.remove("focused"), 300);
@@ -326,15 +330,12 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     });
 
-    // 키 이벤트 처리 (엔터, 위/아래 방향키)
     textarea.addEventListener("keydown", (e) => {
       if (e.key === "Enter" && !e.shiftKey) {
         e.preventDefault();
-
         const blocks = Array.from(container.querySelectorAll(".block textarea"));
         const currentIndex = blocks.indexOf(textarea);
         const hasNextBlock = currentIndex < blocks.length - 1;
-
         if (hasNextBlock) {
           blocks[currentIndex + 1].focus();
           blocks[currentIndex + 1].setSelectionRange(0, 0);
@@ -350,7 +351,6 @@ document.addEventListener("DOMContentLoaded", () => {
           createBlock("paragraph", after);
         }
       }
-
       if (e.key === "ArrowUp") {
         const blocks = Array.from(container.querySelectorAll(".block textarea"));
         const currentIndex = blocks.indexOf(textarea);
@@ -376,7 +376,6 @@ document.addEventListener("DOMContentLoaded", () => {
     return textarea;
   }
 
-  // 블럭 이름(name) 재설정 함수 - 중요!
   function updateBlockNames() {
     const blocks = container.querySelectorAll(".block");
     blocks.forEach((block, idx) => {
@@ -391,10 +390,19 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // 초기 블럭 하나 생성
-  createBlock();
+  // 서버에서 받아온 블록 데이터
+  const initialBlocks = <%= raw @post.post_blocks.map { |b| { content: b.content, block_type: b.block_type } }.to_json.html_safe %>;
 
-  // 카테고리 선택 시 장르 토글 (기존 로직)
+  if (initialBlocks.length > 0) {
+    container.innerHTML = "";
+    initialBlocks.forEach(blockData => {
+      createBlock(blockData.block_type || "paragraph", blockData.content || "");
+    });
+  } else {
+    createBlock();
+  }
+
+  // 카테고리 선택 시 장르 토글
   const categorySelect = document.getElementById("category-select");
   function toggleGenres() {
     const selected = categorySelect.value;

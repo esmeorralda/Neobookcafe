@@ -70,7 +70,7 @@
     /* 전체 댓글 폼 버튼 */
     #root-comment-form button[type="submit"] {
       margin-top: 0.5rem;
-      background-color: #b88b65;
+
       color: white;
       border: none;
       padding: 0.4rem 1rem;
@@ -163,20 +163,25 @@
   <!-- 본문 + 댓글 사이드바 컨테이너 -->
   <div id="post-container" class="max-w-4xl mx-auto relative">
 
-    <!-- 북마크 버튼: 본문 상단 오른쪽 -->
-    <% if user_signed_in? && current_user.bookmarked_posts.exists?(@post.id) %>
-      <div class="absolute top-0 right-0 mt-2 mr-2">
-        <%= button_to post_unbookmark_path(@post), method: :delete, class: "flex items-center" do %>
-          <%= image_tag "icon/post/Vector 41.svg", class: "w-4 h-6 fill-current text-[#97705E]" %>
-        <% end %>
-      </div>
-    <% elsif user_signed_in? %>
-      <div class="absolute top-0 right-0 mt-2 mr-2">
-        <%= button_to post_bookmark_path(@post), method: :post, class: "flex items-center" do %>
-          <%= image_tag "icon/post/Vector 40.svg", class: "w-4 h-6 fill-current text-gray-400" %>
-        <% end %>
-      </div>
+
+   <div class="flex justify-end space-x-2 mt-3">
+  <% if user_signed_in? && @post.user_id == current_user.id %>
+    <%= link_to "편집", edit_post_path(@post), class: " bg-[#b88b65] text-white px-3 py-1 text-sm" %>
+    <%= button_to post_path(@post), method: :delete,
+          data: { confirm: "정말 삭제하시겠습니까?" },
+          class: "border border-gray-300 bg-white px-3 py-1 text-sm" do %>
+      삭제
     <% end %>
+  <% elsif user_signed_in? && current_user.bookmarked_posts.exists?(@post.id) %>
+    <%= button_to post_unbookmark_path(@post), method: :delete, class: "flex items-center" do %>
+      <%= image_tag "icon/post/Vector 41.svg", class: "w-4 h-6 fill-current text-[#2c1a0d]" %>
+    <% end %>
+  <% elsif user_signed_in? %>
+    <%= button_to post_bookmark_path(@post), method: :post, class: "flex items-center" do %>
+      <%= image_tag "icon/post/Vector 40.svg", class: "w-4 h-6 fill-current text-gray-400" %>
+    <% end %>
+  <% end %>
+</div>
 
     <!-- 왼쪽 컬럼 : 제목, 메타정보, 본문 -->
     <div id="left-column" class="space-y-6 text-gray-800">
@@ -281,7 +286,7 @@
     <%= f.text_area :content, placeholder: "답글을 작성해주세요", rows: 4, class: "auto-resize-textarea w-full p-2 border border-[#d1c4b2] rounded text-sm resize-none focus:outline-none focus:ring-1 focus:ring-[#b88b65]" %>
 
     <div class="flex justify-end mt-2">
-      <button type="submit" class="bg-[#b88b65] text-white px-4 py-1 rounded text-sm cursor-pointer">
+      <button type="submit" class="bg-[#5d3b2e] text-white px-4 py-1 rounded text-sm cursor-pointer">
         댓글 등록
       </button>
     </div>
@@ -355,7 +360,7 @@
            <div class="flex flex-col space-y-1">
           <%= f.text_area :content, placeholder: "답글을 작성해주세요", rows: 1, class: "w-full p-1 border border-[#d1c4b2] rounded text-sm mb-1 resize-none focus:outline-none focus:ring-1 focus:ring-[#b88b65]" %>
           <div class="flex justify-end">
-          <button type="submit" style="display: inline-block !important; background-color: #b88b65; color: white; padding: 6px 12px; font-size: 12px; border-radius: 4px; border: none; cursor: pointer;">
+          <button type="submit" style="display: inline-block !important; background-color: #5d3b2e; color: white; padding: 6px 12px; font-size: 12px; border-radius: 4px; border: none; cursor: pointer;">
             대댓글 등록
           </button>
           </div>
@@ -418,8 +423,7 @@
   <%= f.text_area :content, placeholder: "댓글을 작성해주세요", rows: 2, class: "w-full p-2 border border-[#d1c4b2] rounded resize-none" %>
 </div>
 
-<div class="flex justify-end mt-0">
-  <button type="submit" class="px-4 py-2 bg-[#b88b65] text-white rounded text-sm">
+<div class="flex justify-end mt-0">  <button type="submit" class="px-4 py-2 bg-[#5d3b2e] text-white rounded text-sm">
     댓글 등록
   </button>
 </div>
