@@ -44,6 +44,17 @@
       margin-top: 3rem;
     }
 
+   .comment-highlight {
+  border: 1px solid #e5e7eb; /* Tailwind의 border-gray-200 */
+  border-radius: 0.75rem;    /* rounded-xl */
+  padding: 0.75rem;          /* p-3 */
+  background-color: #ffffff; /* 흰 배경 */
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.06); /* soft shadow */
+   border-color 0.25s ease;
+}
+
+
+
     /* 전체 댓글 폼 textarea */
     #root-comment-form textarea {
       width: 100%;
@@ -422,18 +433,30 @@
     const closeBtn = document.getElementById('close-comment-sidebar');
 
     // 블록별 댓글 보기 버튼 클릭
-    document.querySelectorAll('.comment-view-btn').forEach(btn => {
+document.querySelectorAll('.comment-view-btn').forEach(btn => {
   btn.addEventListener('click', () => {
     const blockId = btn.getAttribute('data-block-id');
     const isOpen = !commentSidebar.classList.contains('hidden');
 
+    const wrapperSelector = `#post-block-wrapper-${blockId}`;
+    const currentBlockWrapper = document.querySelector(wrapperSelector);
+
     if (isOpen && btn.classList.contains('active')) {
-      // 댓글 닫기
+      // 사이드바 닫기
       commentSidebar.classList.add('hidden');
       postContainer.classList.remove('grid-active');
       commentSidebarContent.innerHTML = '';
-      btn.textContent = '댓글 보기';
-      btn.classList.remove('active');
+
+      // 모든 버튼 초기화
+      document.querySelectorAll('.comment-view-btn').forEach(b => {
+        b.textContent = '댓글 보기';
+        b.classList.remove('active');
+      });
+
+      // 모든 블록 강조 제거
+      document.querySelectorAll('[id^="post-block-wrapper-"]').forEach(wrapper => {
+        wrapper.classList.remove('comment-highlight');
+      });
     } else {
       // 모든 버튼 초기화
       document.querySelectorAll('.comment-view-btn').forEach(b => {
@@ -441,11 +464,17 @@
         b.classList.remove('active');
       });
 
-      // 댓글 열기
+      // 모든 블록 강조 제거
+      document.querySelectorAll('[id^="post-block-wrapper-"]').forEach(wrapper => {
+        wrapper.classList.remove('comment-highlight');
+      });
+
+      // 현재 버튼/블록 강조
       commentSidebar.classList.remove('hidden');
       postContainer.classList.add('grid-active');
       btn.textContent = '댓글 닫기';
       btn.classList.add('active');
+      currentBlockWrapper?.classList.add('comment-highlight');
 
       loadComments(blockId);
     }
@@ -454,15 +483,18 @@
 
 
     // 댓글 사이드바 닫기 버튼 클릭
-    closeBtn.addEventListener('click', () => {
+ closeBtn.addEventListener('click', () => {
   commentSidebar.classList.add('hidden');
   postContainer.classList.remove('grid-active');
   commentSidebarContent.innerHTML = '';
 
-  // 모든 댓글 버튼 텍스트 초기화
   document.querySelectorAll('.comment-view-btn').forEach(btn => {
     btn.textContent = '댓글 보기';
     btn.classList.remove('active');
+  });
+
+  document.querySelectorAll('[id^="post-block-wrapper-"]').forEach(wrapper => {
+    wrapper.classList.remove('comment-highlight');
   });
 });
 
