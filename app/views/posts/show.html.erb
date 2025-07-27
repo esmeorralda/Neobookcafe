@@ -241,7 +241,7 @@
               <% end %>
             </div>
 
-            <% if block.block_type == 'paragraph' %>
+            <% if block.block_type != 'quote'%>
             <div class="ml-3 flex-shrink-0">
               <button type="button"
                 class="text-xs px-2 py-1 border border-gray-300 rounded text-gray-600 hover:bg-gray-100 comment-view-btn"
@@ -423,23 +423,49 @@
 
     // 블록별 댓글 보기 버튼 클릭
     document.querySelectorAll('.comment-view-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const blockId = btn.getAttribute('data-block-id');
+  btn.addEventListener('click', () => {
+    const blockId = btn.getAttribute('data-block-id');
+    const isOpen = !commentSidebar.classList.contains('hidden');
 
-        // 댓글 사이드바 열기
-        commentSidebar.classList.remove('hidden');
-        postContainer.classList.add('grid-active');
-
-        loadComments(blockId);
-      });
-    });
-
-    // 댓글 사이드바 닫기 버튼 클릭
-    closeBtn.addEventListener('click', () => {
+    if (isOpen && btn.classList.contains('active')) {
+      // 댓글 닫기
       commentSidebar.classList.add('hidden');
       postContainer.classList.remove('grid-active');
       commentSidebarContent.innerHTML = '';
-    });
+      btn.textContent = '댓글 보기';
+      btn.classList.remove('active');
+    } else {
+      // 모든 버튼 초기화
+      document.querySelectorAll('.comment-view-btn').forEach(b => {
+        b.textContent = '댓글 보기';
+        b.classList.remove('active');
+      });
+
+      // 댓글 열기
+      commentSidebar.classList.remove('hidden');
+      postContainer.classList.add('grid-active');
+      btn.textContent = '댓글 닫기';
+      btn.classList.add('active');
+
+      loadComments(blockId);
+    }
+  });
+});
+
+
+    // 댓글 사이드바 닫기 버튼 클릭
+    closeBtn.addEventListener('click', () => {
+  commentSidebar.classList.add('hidden');
+  postContainer.classList.remove('grid-active');
+  commentSidebarContent.innerHTML = '';
+
+  // 모든 댓글 버튼 텍스트 초기화
+  document.querySelectorAll('.comment-view-btn').forEach(btn => {
+    btn.textContent = '댓글 보기';
+    btn.classList.remove('active');
+  });
+});
+
 
     // 댓글 로드 함수 (블록별)
     function loadComments(blockId) {
