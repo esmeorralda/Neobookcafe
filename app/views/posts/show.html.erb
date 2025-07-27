@@ -159,10 +159,24 @@
   </style>
 </head>
 
-<body>
-<div class="mx-auto min-h-screen py-10 px-4 font-serif">
+<body><div class="mx-auto min-h-screen py-10 px-4 font-serif">
   <!-- 본문 + 댓글 사이드바 컨테이너 -->
-  <div id="post-container" class="max-w-4xl mx-auto">
+  <div id="post-container" class="max-w-4xl mx-auto relative">
+
+    <!-- 북마크 버튼: 본문 상단 오른쪽 -->
+    <% if user_signed_in? && current_user.bookmarked_posts.exists?(@post.id) %>
+      <div class="absolute top-0 right-0 mt-2 mr-2">
+        <%= button_to post_unbookmark_path(@post), method: :delete, class: "flex items-center" do %>
+          <%= image_tag "icon/post/Vector 41.svg", class: "w-4 h-6 fill-current text-[#97705E]" %>
+        <% end %>
+      </div>
+    <% elsif user_signed_in? %>
+      <div class="absolute top-0 right-0 mt-2 mr-2">
+        <%= button_to post_bookmark_path(@post), method: :post, class: "flex items-center" do %>
+          <%= image_tag "icon/post/Vector 40.svg", class: "w-4 h-6 fill-current text-gray-400" %>
+        <% end %>
+      </div>
+    <% end %>
 
     <!-- 왼쪽 컬럼 : 제목, 메타정보, 본문 -->
     <div id="left-column" class="space-y-6 text-gray-800">
@@ -191,47 +205,6 @@
           </div>
         </div>
 
-        <% if user_signed_in? %>
-          <div class="flex space-x-3 mb-6">
-<% likeable = @post %>
-
-<% liked = likeable.likes.exists?(user: current_user) %>
-
-<%= form_with(
-      url: liked ? like_path(likeable.likes.find_by(user: current_user)) : likes_path,
-      method: liked ? :delete : :post,
-      remote: true,
-      html: { id: dom_id(likeable, :like_button), class: "like-form" },
-      data: { disable_with: "처리 중..." }
-    ) do |f| %>
-  <%= hidden_field_tag :likeable_type, likeable.class.name %>
-  <%= hidden_field_tag :likeable_id, likeable.id %>
-
-<button type="submit" class="flex items-center space-x-1 focus:outline-none">
-  <% if liked %>
-    <%= image_tag "icon/post/filledheart.svg", class: "w-4 h-4" %>
-  <% else %>
-    <%= image_tag "icon/post/emptyheart.svg", class: "w-4 h-4" %>
-  <% end %>
-  <span class="text-xs"><%= likeable.likes.count %></span>
-</button>
-
-<% end %>
-
-            <% if current_user.bookmarked_posts.exists?(@post.id) %>
-              <%= button_to post_unbookmark_path(@post), method: :delete, class: "flex items-center" do %>
-                <%= image_tag "icon/post/Vector 41.svg", class: "w-4 h-6 fill-current text-[#97705E]" %>
-              <% end %>
-            <% else %>
-              <%= button_to post_bookmark_path(@post), method: :post, class: "flex items-center" do %>
-                <%= image_tag "icon/post/Vector 40.svg", class: "w-4 h-6 fill-current text-gray-400" %>
-              <% end %>
-            <% end %>
-
-            
-          </div>
-        <% end %>
-
         <hr class="border-t border-[#e3d5c6]" />
       </div>
 
@@ -244,26 +217,60 @@
               <% when 'paragraph' %>
                 <p id="post-block-<%= block.id %>" data-block-id="<%= block.id %>"><%= raw(block.content.gsub(/\r?\n/, '<br>')) %></p>
               <% when 'subtitle' %>
-                <h2 id="post-block-<%= block.id %>" data-block-id="<%= block.id %>" class="text-lg font-semibold text-[#2c1a0d]"><%= block.content %></h2>
+                <h2 id="post-block-<%= block.id %>" data-block-id="<%= block.id %>" class="text-lg font-semibold text-[#2c1a0d]">
+                  <%= block.content %>
+                </h2>
               <% when 'quote' %>
-                <blockquote id="post-block-<%= block.id %>" data-block-id="<%= block.id %>" class="pl-4 border-l-4 border-[#2c1a0d] italic text-[#2c1a0d]">“<%= block.content %>”</blockquote>
+                <blockquote id="post-block-<%= block.id %>" data-block-id="<%= block.id %>" class="pl-4 border-l-4 border-[#2c1a0d] italic text-[#2c1a0d]">
+                  “<%= block.content %>”
+                </blockquote>
               <% else %>
                 <p id="post-block-<%= block.id %>" data-block-id="<%= block.id %>"><%= simple_format(block.content) %></p>
               <% end %>
             </div>
 
             <% if block.block_type != 'quote'%>
-            <div class="ml-3 flex-shrink-0">
-              <button type="button"
-                class="text-xs px-2 py-1 border border-gray-300 rounded text-gray-600 hover:bg-gray-100 comment-view-btn"
-                data-block-id="<%= block.id %>">
-                댓글 보기
-              </button>
-            </div>
+              <div class="ml-3 flex-shrink-0">
+                <button type="button"
+                  class="text-xs px-2 py-1 border border-gray-300 rounded text-gray-600 hover:bg-gray-100 comment-view-btn"
+                  data-block-id="<%= block.id %>">
+                  댓글 보기
+                </button>
+              </div>
             <% end %>
           </div>
         <% end %>
       </div>
+
+      <!-- 좋아요 버튼: 댓글 입력창 위로 이동 -->
+      <% if user_signed_in? %>
+        <div class="flex items-center justify-between mt-12 mb-4">
+          <div>
+            <% likeable = @post %>
+            <% liked = likeable.likes.exists?(user: current_user) %>
+            <%= form_with(
+              url: liked ? like_path(likeable.likes.find_by(user: current_user)) : likes_path,
+              method: liked ? :delete : :post,
+              remote: true,
+              html: { id: dom_id(likeable, :like_button), class: "like-form" },
+              data: { disable_with: "처리 중..." }
+            ) do |f| %>
+              <%= hidden_field_tag :likeable_type, likeable.class.name %>
+              <%= hidden_field_tag :likeable_id, likeable.id %>
+
+              <button type="submit" class="flex items-center space-x-1 focus:outline-none">
+                <% if liked %>
+                  <%= image_tag "icon/post/filledheart.svg", class: "w-4 h-4" %>
+                <% else %>
+                  <%= image_tag "icon/post/emptyheart.svg", class: "w-4 h-4" %>
+                <% end %>
+                <span class="text-xs"><%= likeable.likes.count %></span>
+              </button>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
+
   <hr class="border-t border-[#e3d5c6]" />
       <!-- ✅ 전체 댓글 작성 폼 (루트 댓글) 본문 바로 아래 -->
  <%= form_with model: Comment.new, url: post_comments_path(@post), local: true do |f| %>
