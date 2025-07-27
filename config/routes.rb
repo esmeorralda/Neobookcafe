@@ -49,6 +49,7 @@ resources :reports, only: [:create]
   resources :users, only: [:show] do
     member do
       get :my_posts
+      get :drafted_posts
       get :liked_posts
       get :saved_posts
     end

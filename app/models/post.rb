@@ -13,6 +13,7 @@ class Post < ApplicationRecord
 
   accepts_nested_attributes_for :post_blocks, allow_destroy: true
   after_commit :clear_post_cache
+  validates :title, presence: true, unless: :draft?
 
   pg_search_scope :pg_search,
     against: [:title, :book_title, :book_author],

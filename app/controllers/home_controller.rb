@@ -5,6 +5,8 @@ class HomeController < ApplicationController
     # Start with a base query
     @show_sidebar = true
     base_query = Post.includes(:user, :comments, :post_blocks)
+                     .where(draft: false) # Only include published posts
+                     .or(Post.where(draft: nil)) # Include posts with draft as nil
 
     # Apply sorting
     @posts = case params[:sort]

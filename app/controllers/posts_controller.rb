@@ -6,16 +6,30 @@ class PostsController < ApplicationController
       3.times { @post.post_blocks.build } # 기본 3개 블록 생성
     end
   
-    def create
-        @post = Post.new(post_params)
-        @post.user = current_user 
-        if @post.save
-          redirect_to @post, notice: "포스트가 저장되었습니다."
-        else
-          logger.debug @post.errors.full_messages
-          render :new, status: :unprocessable_entity
-        end
+  def create
+    @post = current_user.posts.new(post_params)
+
+    if params[:commit] == "draft"
+      @post.draft = true
+      if @post.save
+       respond_to do |format|
+  format.any { redirect_to root_path, notice: "임시 저장 완료" }
+
+end
+
+      else
+        render :new, status: :unprocessable_entity
       end
+    else
+      @post.draft = false
+      if @post.save
+        redirect_to @post, notice: "게시글이 등록되었습니다."
+      else
+        render :new, status: :unprocessable_entity
+      end
+    end
+  end
+
       
   def show
 
@@ -100,6 +114,7 @@ def search
 
   base_scope = Post.pg_search(@query)
                    .includes(:user, :post_blocks) # 여기 포함!
+                   .where("draft = ? OR draft IS NULL", false)
 
    # category 필터
   if params[:category].present?
@@ -180,10 +195,10 @@ def fetch_cached_posts
     category = params[:category].presence || "all"
     book_genre    = params[:book_genre].presence || "all"
 
-    cache_key = "posts/#{category}/#{book_genre}"
+    cache_key = "posts/#{category}/#{book_genre}/published"
 
     Rails.cache.fetch(cache_key, expires_in: 10.minutes) do
-      scope = Post.all
+      scope = Post.where(draft: false).or(Post.where(draft: nil))
       scope = scope.where(category: category) unless category == "all"
       scope = scope.where(book_genre: book_genre) unless book_genre == "all"
       scope.order(created_at: :desc).to_a

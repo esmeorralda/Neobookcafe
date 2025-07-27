@@ -1,0 +1,9 @@
+<!-- app/views/shared/_draft_saved.turbo_stream.erb -->
+<turbo-stream action="replace" target="flash">
+  <template>
+    <div id="flash" class="fixed bottom-5 right-5 bg-white border border-gray-300 px-4 py-2 rounded shadow">
+      임시 저장되었습니다.
+      <button onclick="window.history.back()" class="ml-4 text-blue-500 underline text-sm">돌아가기</button>
+    </div>
+  </template>
+</turbo-stream>

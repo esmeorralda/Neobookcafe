@@ -69,7 +69,13 @@
 
   <!-- 오른쪽 세로 버튼들 -->
   <div class="flex flex-col space-y-2 sticky top-24 mt-10 " style="height: fit-content;">
-    <button type="button" class="border border-gray-300 bg-white px-3 py-1 text-sm  ">임시 저장</button>
+<%= button_tag "임시 저장",
+    type: "submit",
+    name: "commit",
+    value: "draft",
+    form: "post-form",
+    data: { turbo_confirm: "임시 저장하시겠습니까? 지금 페이지를 떠납니다." },
+    class: "border border-gray-300 bg-white px-3 py-1 text-sm" %>
     <%= button_tag "업로드", type: "submit", form: "post-form", class: "bg-[#5d3b2e] text-white px-4 py-2 text-sm  " %>
   </div>
 </div>

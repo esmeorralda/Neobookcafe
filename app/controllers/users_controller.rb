@@ -97,10 +97,18 @@ end
   # end
 def my_posts
   page = params[:page] || 1
-  @posts = current_user.posts.order(created_at: :desc).page(page).per(10)
+  @posts = current_user.posts.where(draft: [false, nil]).order(created_at: :desc).page(page).per(10)
   @total_pages = @posts.total_pages
   @current_page = @posts.current_page
   render partial: "users/posts_with_pagination", locals: { posts: @posts, page_no: @current_page, total_pages: @total_pages, tab: "my_posts" }
+end
+
+def drafted_posts
+  page = params[:page] || 1
+  @posts = current_user.posts.where(draft: true).order(created_at: :desc).page(page).per(10)
+  @total_pages = @posts.total_pages
+  @current_page = @posts.current_page
+  render partial: "users/posts_with_pagination", locals: { posts: @posts, page_no: @current_page, total_pages: @total_pages, tab: "drafted_posts" }
 end
 
 def liked_posts
