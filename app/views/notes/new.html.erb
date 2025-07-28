@@ -1,106 +1,118 @@
-<div class="max-w-2xl mx-auto bg-white p-6 rounded-xl shadow space-y-6">
-<h2 class="text-xl font-bold text-gray-800">
-  <% if @note&.book.present? %>
-    <%= @note.book.title %>
-  <% elsif @note&.book_id == "new_book" %>
-    <%= params[:note][:book_title].presence || "새로운 메모" %>
-  <% else %>
-    새로운 메모
-  <% end %>
-</h2>
+<!-- 전체 배경 -->
+<div class="min-h-screen bg-[#f7f1ea] flex flex-col">
 
+  <!-- 상단 여백 제거 -->
+  <main class="flex-1">
+<div class="max-w-2xl mx-auto bg-white p-6 rounded-xl shadow space-y-6 mt-5">
+
+  <h2 class="text-xl font-bold text-gray-800">
+    <% if @note&.book.present? %>
+      <%= @note.book.title %>
+    <% elsif @note&.book_id == "new_book" %>
+      <%= params[:note][:book_title].presence || "새로운 메모" %>
+    <% else %>
+      새로운 메모
+    <% end %>
+  </h2>
 
   <%= form_with(model: @note, local: true) do |f| %>
 
     <!-- 📘 책 선택 -->
-<div id="book_select_wrapper" class="mb-4">
-  <%= label_tag :book_id, "책 선택 또는 새로 입력", class: "block font-medium mb-1" %>
-  <%= select_tag "note[book_id]",
-      options_for_select(
-        [["📖 새로운 책 입력", "new_book"]] + current_user.books.pluck(:title, :id),
-        selected: @note.book_id
-      ),
-      prompt: "책을 선택하세요",
-      class: "w-full border border-gray-300 rounded p-2",
-      id: "book_select" %>
+    <div id="book_select_wrapper" class="mb-4">
+      <%= label_tag :book_id, "책 선택 또는 새로 입력", class: "block font-medium mb-1" %>
+      <%= select_tag "note[book_id]",
+          options_for_select(
+            [["📖 새로운 책 입력", "new_book"]] + current_user.books.pluck(:title, :id),
+            selected: @note.book_id
+          ),
+          prompt: "책을 선택하세요",
+          class: "w-full border border-gray-300 rounded p-2",
+          id: "book_select" %>
+    </div>
+
+    <!-- 새 책 제목 입력 필드 (초기엔 숨김) -->
+    <div id="new_book_title_field" class="mb-4 hidden">
+      <%= label_tag "note[book_title]", "새 책 제목", class: "block font-medium mb-1" %>
+      <%= text_field_tag "note[book_title]", nil, placeholder: "예: 나미야 잡화점의 기적", class: "w-full border border-gray-300 rounded p-2" %>
+    </div>
+
+   
+
+    <!-- 쪽수와 목차 영역만 그리드 -->
+    <!-- 새 책 제목 입력 필드 (초기엔 숨김) -->
+   <div class="flex items-center space-x-6"> <!-- items-center로 세로 중앙 정렬 -->
+   
+
+    <div class="flex flex-col space-y-2">
+     <label for="page_from_field " class="block font-medium mb-1 text-sm text-gray-700 leading-6">범위</label> <!-- 폰트 크기, 줄높이 동일하게 -->
+      <div class="flex items-center space-x-2 mb-2">
+     
+        <%= f.number_field :page_from, id: "page_from_field", class: "w-20 border border-gray-300 rounded-md p-2 text-sm" %>
+      <span class="text-sm text-gray-700 leading-6">쪽부터 ~ </span>
+      <%= f.number_field :page_to, class: "w-20 border border-gray-300 rounded-md p-2 text-sm" %>
+      <span class="text-sm text-gray-700 leading-6">쪽까지</span>
+      </div>
+      </div>
+
+
+      <!-- 목차 드롭다운 영역 -->
+      <div  class="flex flex-col flex-1 space-y-2" id="chapter_select_wrapper">
+         <%= label_tag :chapter_id, "목차 선택 또는 새로 입력", class: "block font-medium mb-1 text-sm text-gray-700 leading-6", id: "chapter_select_label" %>  
+       <%= select_tag "note[chapter_id]",
+        options_for_select(
+          (@chapters || []).map { |ch| [ch.title, ch.id] } + [["➕ 새로운 목차 입력", "new_chapter"]],
+          selected: @note.chapter_id
+        ),
+        prompt: "목차를 선택하세요",
+        class: "w-full border border-gray-300 rounded p-2",
+        id: "chapter_select" %>
+
+    <div id="new_chapter_title_field" class="mt-2 hidden">
+      <%= label_tag "note[chapter_title]", "새 목차 제목", class: "block font-medium mb-1 text-sm text-gray-700 leading-6" %>
+      <%= text_field_tag "note[chapter_title]", nil, placeholder: "예: 1장 시작하기", class: "w-full border border-gray-300 rounded p-2" %>
+    </div>
+      </div>
+    </div>
+
+    <!-- 색상 선택 (그리드 바깥) -->
+    <div>
+      <%= f.label :color, "색상", class: "block text-sm font-medium text-gray-700 mb-2" %>
+      <div class="flex space-x-4">
+        <% [['#FFFFCD'], ['#E3FFDC'], ['#FFF0F8'], ['#E1FAFF']].each_with_index do |(hex), index| %>
+          <label class="cursor-pointer">
+            <%= f.radio_button :color, hex, id: "color_#{index}", class: "hidden peer", checked: @note.color.blank? && hex == "#FFFFCD" %>
+            <span class="w-8 h-8 rounded-full border-2 border-gray-300 peer-checked:ring-2 ring-offset-2 ring-blue-500 inline-block" style="background-color: <%= hex %>"></span>
+          </label>
+        <% end %>
+      </div>
+    </div>
+
+    <!-- 🧠 메모 입력 영역 (그리드 바깥, 중앙 정렬, 너비 제한) -->
+    <div class="space-y-6 w-full flex flex-col items-center mt-6">
+     <div class="w-full max-w-[600px]">
+  <%= f.label :memo, "메모를 남겨주세요", class: "block text-sm font-medium text-gray-700 mb-1" %>
+  <%= f.text_area :memo, rows: 10, class: "block w-full border border-gray-300 rounded-md shadow-sm p-3 resize-none", id: "auto-resize-textarea" %>
 </div>
 
-
-<!-- 새 책 제목 입력 필드 (초기엔 숨김) -->
-<div id="new_book_title_field" class="mb-4 hidden">
-  <%= label_tag "note[book_title]", "새 책 제목", class: "block font-medium mb-1" %>
-  <%= text_field_tag "note[book_title]", nil, placeholder: "예: 나미야 잡화점의 기적", class: "w-full border border-gray-300 rounded p-2" %>
-</div>
-
-  <%= f.label :chapter, "범위", class: "block text-sm font-medium text-gray-700" %>
-    <!-- ✏️ 페이지, 목차, 색상 -->
-    <div class="grid grid-cols-2 gap-4">
-    
-    <!-- ✅ 쪽 범위 입력 한 줄에 표시 -->
-<div class="flex items-center space-x-2">
-<%= f.number_field :page_from, id: "page_from_field", class: "w-20 border border-gray-300 rounded-md p-2 text-sm" %>
-  <span class="text-sm text-gray-700">쪽부터 ~ </span>
-  <%= f.number_field :page_to, class: "w-20 border border-gray-300 rounded-md p-2 text-sm" %>
-  <span class="text-sm text-gray-700">쪽까지</span>
-</div>
-
-
-
-<!-- 목차 드롭다운 영역 -->
-<!-- 목차 드롭다운 영역 -->
-<div id="chapter_select_wrapper" class="mb-4">
-  <%= label_tag :chapter_id, "목차 선택 또는 새로 입력", class: "block font-medium mb-1", id: "chapter_select_label" %>
-  <%= select_tag "note[chapter_id]",
-      options_for_select(
-        (@chapters || []).map { |ch| [ch.title, ch.id] } + [["➕ 새로운 목차 입력", "new_chapter"]],
-        selected: @note.chapter_id
-      ),
-      prompt: "목차를 선택하세요",
-      class: "w-full border border-gray-300 rounded p-2",
-      id: "chapter_select" %>
-</div>
-
-<!-- 새로운 목차 입력란 (초기엔 숨김) -->
-<div id="new_chapter_title_field" class="mb-4 hidden">
-  <%= label_tag "note[chapter_title]", "새 목차 제목", class: "block font-medium mb-1" %>
-  <%= text_field_tag "note[chapter_title]", nil, placeholder: "예: 1장 시작하기", class: "w-full border border-gray-300 rounded p-2" %>
-</div>
-
-<div class="col-span-2">
-  <%= f.label :color, "색상", class: "block text-sm font-medium text-gray-700 mb-2" %>
-  <div class="flex space-x-4">
-    <% [['#FFFFCD'], ['#E3FFDC'], ['#FFF0F8'], ['#E1FAFF']].each_with_index do |(hex), index| %>
-      <label class="cursor-pointer">
-        <%= f.radio_button :color, hex, id: "color_#{index}", class: "hidden peer" %>
-        <span class="w-8 h-8 rounded-full border-2 border-gray-300 peer-checked:ring-2 ring-offset-2 ring-blue-500 inline-block" style="background-color: <%= hex %>"></span>
-      </label>
-    <% end %>
-  </div>
-</div>
-
-    <!-- 🧠 메모 입력 -->
-  <div class="space-y-6"> <!-- 전체 세로 간격 -->
-  <div>
-    <%= f.label :memo, "메모를 남겨주세요", class: "block text-sm font-medium text-gray-700" %>
-   <%= f.text_area :memo, rows: 10, class: "mt-1 block w-[600px] border border-gray-300 rounded-md shadow-sm p-3 resize-y" %>
-
-  </div>
-
-  <div class="flex justify-center gap-4">
-    <%= f.submit "저장", class: "bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-xl" %>
-    <%= link_to "취소", new_note_path, class: "bg-gray-300 hover:bg-gray-400 text-gray-800 py-2 px-4 rounded-xl flex items-center justify-center" %>
-    <% if @note.persisted? %>
-      <%= link_to "삭제", note_path(@note), method: :delete, data: { confirm: "정말 삭제할까요?" }, class: "bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded-xl flex items-center justify-center" %>
-    <% end %>
-  </div>
-</div>
+      <div class="flex justify-end gap-4 w-full max-w-[600px]">
+        <%= f.submit "저장", class: "bg-[#644536] rounded text-white py-2 px-4 rounded-sm" %>
+        <%= link_to "취소", new_note_path, class: "rounded bg-gray-300 hover:bg-gray-400 text-gray-800 py-2 px-4 rounded-sm flex items-center justify-center" %>
+        <% if @note.persisted? %>
+          <%= link_to "삭제", note_path(@note), method: :delete, data: { confirm: "정말 삭제할까요?" }, class: "bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded-sm flex items-center justify-center" %>
+        <% end %>
+      </div>
+    </div>
 
   <% end %>
+</div>
+
+</main>
+
 </div>
 <!-- ✅ JS: 책 선택 → 새 입력란 표시 + 목차 로딩 및 새로운 목차 입력란 토글 -->
 <script>
 document.addEventListener("DOMContentLoaded", function () {
-  // DOM 요소
+  // DOM 요소들
   const bookSelect = document.getElementById("book_select");
   const bookWrapper = document.getElementById("book_select_wrapper");
   const newBookField = document.getElementById("new_book_title_field");
@@ -109,30 +121,27 @@ document.addEventListener("DOMContentLoaded", function () {
   const chapterWrapper = document.getElementById("chapter_select_wrapper");
   const newChapterField = document.getElementById("new_chapter_title_field");
 
-  // 새로 추가한 목차 라벨 id
   const chapterLabel = document.getElementById("chapter_select_label");
 
-  // 1) 책 선택 상태 토글 함수
+  // 책 선택 상태에 따라 새 책 입력 필드 및 목차 입력 필드 토글
   function toggleBookField() {
     const isNewBook = bookSelect.value === "new_book";
 
     newBookField.classList.toggle("hidden", !isNewBook);
-  bookWrapper.classList.toggle("hidden", isNewBook);
+    bookWrapper.classList.toggle("hidden", isNewBook);
 
-  if (isNewBook) {
-    // 새 책 입력 시
-    chapterWrapper.classList.add("hidden");       // 목차 드롭다운 숨김
-    chapterLabel.classList.add("hidden");         // 목차 라벨 숨김
-    newChapterField.classList.remove("hidden");   // 새 목차 입력 필드 보임
-  } else {
-    // 책 선택 시
-    chapterWrapper.classList.remove("hidden");    // 목차 드롭다운 보임
-    chapterLabel.classList.remove("hidden");      // 목차 라벨 보임
-    newChapterField.classList.add("hidden");      // 새 목차 입력 필드 숨김
-  }
+    if (isNewBook) {
+      chapterWrapper.classList.add("hidden");
+      chapterLabel.classList.add("hidden");
+      newChapterField.classList.remove("hidden");
+    } else {
+      chapterWrapper.classList.remove("hidden");
+      chapterLabel.classList.remove("hidden");
+      newChapterField.classList.add("hidden");
+    }
   }
 
-  // 2) 목차 선택 상태 토글 함수 (라벨도 같이 토글)
+  // 목차 드롭박스 or 입력 필드 토글
   function toggleChapterField() {
     const isNewChapter = chapterSelect.value === "new_chapter";
 
@@ -144,52 +153,54 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
 
-  // 3) 책 선택시 목차 데이터 AJAX로 불러오기
-async function loadChapters(bookId) {
-  if (!bookId || bookId === "new_book") return;
+  // 📘 책 선택 시 목차와 current_page 가져오는 Ajax
+  async function loadChapters(bookId) {
+    if (!bookId || bookId === "new_book") return;
 
-  try {
-    const response = await fetch(`/books/${bookId}/chapters_and_current_page`);
-    if (!response.ok) throw new Error("Failed to fetch chapters");
+    try {
+      const response = await fetch(`/books/${bookId}/chapters_and_current_page`);
+      if (!response.ok) throw new Error("Failed to fetch chapters");
 
-    const data = await response.json();
-    const chapters = data.chapters;
+      const data = await response.json();
+      const chapters = data.chapters;
 
-    // chapter select 채우기
-    chapterSelect.innerHTML = "";
-    chapters.forEach(ch => {
-      const option = document.createElement("option");
-      option.value = ch.id;
-      option.text = ch.title;
-      chapterSelect.appendChild(option);
-    });
+      // 목차 드롭다운 채우기
+      chapterSelect.innerHTML = "";
+      chapters.forEach(ch => {
+        const option = document.createElement("option");
+        option.value = ch.id;
+        option.text = ch.title;
+        chapterSelect.appendChild(option);
+      });
 
-    const newOption = document.createElement("option");
-    newOption.value = "new_chapter";
-    newOption.text = "➕ 새로운 목차 입력";
-    chapterSelect.appendChild(newOption);
+      const newOption = document.createElement("option");
+      newOption.value = "new_chapter";
+      newOption.text = "➕ 새로운 목차 입력";
+      chapterSelect.appendChild(newOption);
 
-    chapterWrapper.classList.remove("hidden");
-    newChapterField.classList.add("hidden");
+      chapterWrapper.classList.remove("hidden");
+      chapterSelect.classList.remove("hidden");
+      newChapterField.classList.add("hidden");
 
-    // 라벨도 보이게
-    if (chapterLabel) {
-      chapterLabel.classList.remove("hidden");
+      if (chapterLabel) {
+        chapterLabel.classList.remove("hidden");
+      }
+
+      // current_page + 1 → page_from 필드에 자동 입력
+      const pageFromField = document.getElementById("page_from_field");
+      if (pageFromField) {
+        const currentPage = parseInt(data.current_page, 10);
+        pageFromField.value = isNaN(currentPage) ? 0 : currentPage + 1;
+      }
+    } catch (error) {
+      console.error("Ajax error:", error);
+      chapterSelect.innerHTML = "";
+
+
     }
-
-    // ✅ page_from에 current_page 채우기
-    const pageFromField = document.getElementById("page_from_field");
-    if (pageFromField) {
-      pageFromField.value = data.current_page || 0;
-    }
-
-  } catch (error) {
-    console.error(error);
-    chapterSelect.innerHTML = "";
   }
-}
 
-  // 이벤트 바인딩
+  // 📌 이벤트 바인딩
   bookSelect.addEventListener("change", () => {
     toggleBookField();
 
@@ -198,18 +209,18 @@ async function loadChapters(bookId) {
     }
   });
 
-  chapterSelect.addEventListener("change", toggleChapterField);
+  if (chapterSelect) {
+    chapterSelect.addEventListener("change", toggleChapterField);
+  }
 
   // 초기 로딩 시 상태 반영
   toggleBookField();
-
   if (bookSelect.value && bookSelect.value !== "new_book") {
     loadChapters(bookSelect.value);
   }
-
   toggleChapterField();
-});
-  // 폼 유효성 검사
+
+  // 📋 폼 유효성 검사
   const form = document.querySelector("form");
 
   form.addEventListener("submit", function (e) {
@@ -224,46 +235,55 @@ async function loadChapters(bookId) {
     const pageTo = document.querySelector("input[name='note[page_to]']").value;
     const pageFrom = document.querySelector("input[name='note[page_from]']").value;
 
-    // 책 유효성
     if (bookId === "new_book" && bookTitle === "") {
       alert("새 책 제목을 입력해주세요.");
       e.preventDefault();
       return;
     }
+
     if (!bookId) {
       alert("책을 선택하거나 새로 입력해주세요.");
       e.preventDefault();
       return;
     }
 
-    // 목차 유효성
     if ((bookId !== "new_book") && (!chapterId || (chapterId === "new_chapter" && chapterTitle === ""))) {
       alert("목차를 선택하거나 새로 입력해주세요.");
       e.preventDefault();
       return;
     }
 
-    // 메모 유효성
     if (memo === "") {
       alert("메모 내용을 입력해주세요.");
       e.preventDefault();
       return;
     }
 
-    // page_to 유효성 (필수)
     if (!pageTo || isNaN(parseInt(pageTo))) {
       alert("마지막 쪽 수(page_to)를 입력해주세요.");
       e.preventDefault();
       return;
     }
 
-    // 선택사항: page_from > page_to 인 경우
     if (pageFrom && pageTo && parseInt(pageFrom) > parseInt(pageTo)) {
       alert("시작 쪽은 끝 쪽보다 작거나 같아야 합니다.");
       e.preventDefault();
       return;
     }
   });
+});
 
+document.addEventListener("DOMContentLoaded", function () {
+    const textarea = document.getElementById("auto-resize-textarea");
 
+    function resizeTextarea() {
+      textarea.style.height = "auto";  // 초기화
+      textarea.style.height = (textarea.scrollHeight) + "px";  // 콘텐츠 높이만큼 설정
+    }
+
+    if (textarea) {
+      textarea.addEventListener("input", resizeTextarea);
+      resizeTextarea();  // 초기 로딩 시에도 조절
+    }
+  });
 </script>

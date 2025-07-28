@@ -34,9 +34,12 @@ resources :reports, only: [:create]
   resources :likes
 
   resources :books do
+ 
     resources :notes, only: [:new, :create, :edit, :update, :destroy]
     resources :chapters, only: [:index]
-    get 'chapters_and_current_page', on: :member
+      member do
+    get :chapters_and_current_page
+  end
   end
 
   resources :notes

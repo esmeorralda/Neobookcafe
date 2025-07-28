@@ -1,5 +1,20 @@
 class BooksController < ApplicationController
     before_action :authenticate_user!
+    # app/controllers/books_controller.rb
+# app/controllers/books_controller.rb
+def chapters_and_current_page
+
+  book = Book.find(params[:id])
+  if book.nil?
+    render json: { error: "책을 찾을 수 없습니다." }, status: :not_found
+    return
+  end
+
+  render json: {
+    chapters: book.chapters.select(:id, :title),
+    current_page: book.current_page
+  }
+end
 
  def index
   @books = current_user.books.includes(:notes)
@@ -36,16 +51,6 @@ end
         render :new
       end
     end
-
-    def chapters_and_current_page
-      book = Book.find(params[:book_id])
-      chapters = book.chapters.select(:id, :title).order(:position)
-    
-      render json: {
-        chapters: chapters.as_json(only: [:id, :title]),
-        current_page: book.current_page || 0
-      }
-    end
   
     private
   
@@ -57,5 +62,7 @@ end
       end
     end
     
+
+
 
 end
