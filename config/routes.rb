@@ -43,6 +43,10 @@ resources :reports, only: [:create]
 
   resources :feedbacks, only: [:new, :create, :index]
 
+  resources :posts do
+  resources :comments, only: [:create, :update, :destroy]
+end
+
 
   get '/search', to: 'posts#search', as: :search 
 

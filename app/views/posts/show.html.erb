@@ -2,7 +2,6 @@
   <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/font-kopub@1.0/kopubbatang.min.css">
   <meta name="csrf-token" content="<%= form_authenticity_token %>" />
   <style>
-    /* 컨테이너가 flex가 될 때 본문과 댓글 사이드바가 나란히 */
     #post-container.grid-active {
       display: flex;
       gap: 2rem;
@@ -13,7 +12,6 @@
       align-items: flex-start;
     }
 
-    /* 본문 너비 조정 */
     #left-column {
       flex-grow: 1;
       min-width: 500px;
@@ -130,8 +128,6 @@
     #comment-sidebar-content textarea {
       width: 100%;
       padding: 0.5rem;
-      # border: 1px solid #d1c4b2;
-      # border-radius: 6px;
       resize: vertical;
       font-size: 0.9rem;
       font-family: inherit;
@@ -141,18 +137,12 @@
 
     /* 댓글 폼 버튼 사이드바 안 */
     #comment-sidebar-content button[type="submit"] {
-      background-color: #b88b65;
       color: white;
       border: none;
       padding: 0.4rem 1rem;
       border-radius: 6px;
-      cursor: pointer;
       font-size: 0.9rem;
       font-weight: 600;
-      transition: background-color 0.3s ease;
-    }
-    #comment-sidebar-content button[type="submit"]:hover {
-      background-color: #a5774e;
     }
 
     
@@ -319,22 +309,36 @@
     end
   %>
 
-  <% sorted_comments.each do |comment| %>
-    <div class="bg-white rounded-lg shadow p-4 mb-4 border border-transparent last:mb-0">
+<!-- 댓글 리스트 -->
+<!-- 댓글 목록 -->
+<!-- 댓글 리스트 -->
+<div class="space-y-4">
+  <% @comments.where(parent_id: nil).each do |comment| %>
+    <div class="comment  rounded-md p-4 bg-white shadow-sm" data-comment-id="<%= comment.id %>">
+      
+      <!-- 유저 이름 + 날짜 + 좋아요 + 버튼 -->
+      <div class="flex justify-between items-start">
+        <div>
+          <p class="text-sm font-semibold text-gray-800"><%= comment.user.name %></p>
+        </div>
+        <div class="flex items-center space-x-2">
+          <p class="text-xs text-gray-400"><%= comment.created_at.strftime('%Y년 %-m월 %-d일 %H:%M') %></p>
+          <%= render partial: 'comment_like', locals: { likeable: comment }  %>
 
-      <div class="flex justify-between items-center border-b border-[#d1c4b2] pb-2 mb-2">
-        <p class="font-semibold text-gray-800 text-sm"><%= comment.user.name %></p>
-
-        <div class="flex items-center space-x-4">
-          <p class="text-xs text-gray-500"><%= comment.created_at.strftime('%Y년 %-m월 %-d일 %H:%M') %></p>
-          <%= render partial: 'comment_like', locals: { likeable: comment } %>
+          <% if user_signed_in? && comment.user_id == current_user.id %>
+            <button class="edit-comment-button text-xs text-black hover:underline" data-comment-id="<%= comment.id %>">편집</button>
+            <%= link_to '삭제', comment_path(comment), method: :delete, data: { confirm: '정말 삭제하시겠습니까?' }, class: 'text-xs text-red-500 hover:underline' %>
+          <% end %>
         </div>
       </div>
 
-      <p class="text-gray-700 text-sm mb-3"><%= comment.content %></p>
+      <!-- 댓글 본문 -->
+      <div class="comment-content text-sm text-gray-700 mt-1">
+        <%= comment.content %>
+      </div>
 
-      <!-- 대댓글 보기/답글 달기 토글 -->
-      <button class="mt-1 text-xs text-[#b88b65] hover:text-[#a5774e] reply-toggle" data-comment-id="<%= comment.id %>">
+      <!-- 답글 토글 -->
+      <button class="mt-2 text-xs text-[#b88b65] hover:text-[#a5774e] reply-toggle" data-comment-id="<%= comment.id %>">
         <% if comment.children.any? %>
           💬 <%= comment.children.count %>개의 답글 보기
         <% else %>
@@ -342,33 +346,52 @@
         <% end %>
       </button>
 
-      <!-- 대댓글 목록 + 입력 폼 -->
+      <!-- 대댓글 컨테이너 -->
       <div class="ml-4 mt-3 space-y-2 hidden reply-container" id="reply-container-<%= comment.id %>">
         <% comment.children.order(created_at: :asc).each do |reply| %>
-          <div class="border-l-2 pl-4 border-[#d1c4b2] bg-[#f2efe9] rounded-md py-3 shadow-sm">
-            <p class="text-xs font-semibold text-gray-700"><%= reply.user.name %></p>
-            <p class="text-xs text-gray-800 mt-1"><%= reply.content %></p>
-            <p class="text-xs text-gray-400 mt-1"><%= reply.created_at.strftime('%Y년 %-m월 %-d일 %H:%M') %></p>
+          <div class="comment rounded-md p-4 bg-[#f9f6f2] shadow-sm" data-comment-id="<%= reply.id %>">
+            
+            <!-- 유저 이름 + 날짜 + 좋아요 + 버튼 -->
+            <div class="flex justify-between items-start">
+              <div>
+                <p class="text-sm font-semibold text-gray-800"><%= reply.user.name %></p>
+               
+              </div>
+              <div class="flex items-center space-x-2">
+                <p class="text-xs text-gray-400"><%= reply.created_at.strftime('%Y년 %-m월 %-d일 %H:%M') %></p>
+                <%= render partial: 'comment_like', locals: { likeable: reply }  %>
+                
+                <% if user_signed_in? && reply.user_id == current_user.id %>
+                  <button class="edit-comment-button text-xs text-black hover:underline" data-comment-id="<%= reply.id %>">편집</button>
+                  <%= link_to '삭제', comment_path(reply), method: :delete, data: { confirm: '정말 삭제하시겠습니까?' }, class: 'text-xs text-red-500 hover:underline' %>
+                <% end %>
+              </div>
+            </div>
+
+            <!-- 본문 -->
+            <div class="comment-content text-sm text-gray-700 mt-1">
+              <%= reply.content %>
+            </div>
           </div>
         <% end %>
 
-        <!-- 대댓글 입력 폼 -->
-        <%= form_with model: Comment.new, url: post_comments_path(@post), local: true do |f| %>
-          <%= f.hidden_field :post_block_id, value: nil %>
-          <%= f.hidden_field :parent_id, value: comment.id %>
-          <%= f.hidden_field :post_id, value: @post.id %>
-           <div class="flex flex-col space-y-1">
-          <%= f.text_area :content, placeholder: "답글을 작성해주세요", rows: 1, class: "w-full p-1 border border-[#d1c4b2] rounded text-sm mb-1 resize-none focus:outline-none focus:ring-1 focus:ring-[#b88b65]" %>
-          <div class="flex justify-end">
-          <button type="submit" style="display: inline-block !important; background-color: #5d3b2e; color: white; padding: 6px 12px; font-size: 12px; border-radius: 4px; border: none; cursor: pointer;">
-            대댓글 등록
-          </button>
-          </div>
-          </div>
+        <!-- 대댓글 작성 폼 -->
+        <% if user_signed_in? %>
+          <%= form_with model: Comment.new, url: post_comments_path(@post), local: false, html: { class: "reply-form" } do |f| %>
+            <%= f.hidden_field :parent_id, value: comment.id %>
+            <%= f.hidden_field :post_id, value: @post.id %>
+            <%= f.text_area :content, rows: 2, placeholder: "대댓글을 작성해주세요", class: "w-full p-2 border border-[#d1c4b2] rounded resize-none text-sm" %>
+            <div class="flex justify-end mt-1">
+              <%= f.submit "답글 등록", class: "px-3 py-1 bg-[#5d3b2e] text-white rounded text-xs cursor-pointer" %>
+            </div>
+          <% end %>
         <% end %>
       </div>
+
     </div>
   <% end %>
+</div>
+ 
 </div>
 
 
@@ -394,7 +417,7 @@
        <% if comments.any? %>
  <div class="space-y-3 overflow-y-auto pb-3" style="max-height: 500px;">
   <% comments.each do |comment| %>
-    <div class="border-b border-[#d1c4b2] pb-2 mb-2">
+    <div class="comment border-b border-[#d1c4b2] pb-2 mb-2">
       
       <!-- 상단: 유저이름 / 날짜 + 하트 -->
       <div class="flex justify-between items-start">
@@ -403,6 +426,21 @@
         <div class="flex items-center space-x-2">
           <p class="text-xs text-gray-500"><%= comment.created_at.strftime('%Y년 %-m월 %-d일 %H:%M') %></p>
           <%= render partial: 'comment_like', locals: { likeable: comment }  %>
+
+  <div class="flex items-center edit-comment-button space-x-2" style="line-height: 1.25; font-size: 0.75rem;">
+  <%= button_tag '편집',
+  type: 'button',
+  class: ' hover:underline',
+  data: { comment_id: comment.id } %>
+
+  <%= button_to post_comment_path(@post, comment), method: :delete,
+      data: { confirm: "댓글을 삭제하시겠습니까?" },
+      class: "hover:underline bg-transparent p-0 border-0",
+      style: "background:none !important; padding:0 !important; border:none !important; color:inherit; cursor:pointer; font-size: 0.75rem; line-height: 1.25;" do %>
+    삭제
+  <% end %>
+</div>
+
         </div>
       </div>
 
@@ -419,7 +457,7 @@
       <%= form_with model: Comment.new, url: post_comments_path(@post), local: true do |f| %>
   <%= f.hidden_field :post_block_id, value: block.id %>
   <%= f.hidden_field :post_id, value: @post.id %>
-<div class="mb-0">
+<div class="mb-1 comment-content ">
   <%= f.text_area :content, placeholder: "댓글을 작성해주세요", rows: 2, class: "w-full p-2 border border-[#d1c4b2] rounded resize-none" %>
 </div>
 
@@ -615,6 +653,98 @@ document.addEventListener('input', function(event) {
     textarea.style.height = 'auto';
     textarea.style.height = textarea.scrollHeight + 'px';
   });
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('.edit-comment-button').forEach(button => {
+    button.addEventListener('click', () => {
+ 
+      const commentEl = button.closest('.comment');
+      const contentEl = commentEl.querySelector('.comment-content');
+      const originalText = contentEl.textContent.trim();
+      const commentId = commentEl.dataset.commentId;
+
+      // textarea 생성
+      const textarea = document.createElement('textarea');
+      textarea.classList.add('edit-comment-textarea', 'w-full', 'p-2', 'border', 'border-gray-300', 'rounded-md', 'mt-2', 'text-sm');
+      textarea.value = originalText;
+      contentEl.replaceWith(textarea);
+
+      // 버튼 변경
+      button.textContent = '업데이트';
+      button.classList.remove('edit-comment-button');
+      button.classList.add('update-comment-button');
+
+      // 삭제 → 취소 버튼으로 변경
+      const deleteButton = commentEl.querySelector('a.text-red-500');
+      const cancelButton = document.createElement('button');
+      cancelButton.textContent = '취소';
+      cancelButton.className = 'cancel-edit-button text-xs text-gray-500 hover:underline';
+      deleteButton.replaceWith(cancelButton);
+
+      // 취소 클릭 시 원래 상태로 복원
+      cancelButton.addEventListener('click', () => {
+        // textarea → 원래 div
+        const restoredContent = document.createElement('div');
+        restoredContent.classList.add('comment-content', 'text-sm', 'text-gray-700', 'mt-1');
+        restoredContent.textContent = originalText;
+        textarea.replaceWith(restoredContent);
+
+        // 버튼 원상복구
+        button.textContent = '편집';
+        button.classList.remove('update-comment-button');
+        button.classList.add('edit-comment-button');
+
+        cancelButton.replaceWith(deleteButton);
+      });
+
+      // 업데이트 클릭 시 저장
+      button.addEventListener('click', () => {
+        const updatedContent = textarea.value.trim();
+        if (!updatedContent) {
+          alert('내용을 입력해주세요.');
+          return;
+        }
+
+        fetch(`/comments/${commentId}`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content,
+          },
+          body: JSON.stringify({ comment: { content: updatedContent } }),
+          redirect: 'manual', // 리다이렉트 방지
+        })
+        .then(res => {
+          if (!res.ok) throw new Error('업데이트 실패');
+            //디버그
+          if (res.redirected) {
+            console.log('Redirected to:', res.url);
+            window.location.href = res.url; // 리다이렉트 처리
+            return;
+          }
+          return res.json();
+        })
+        .then(data => {
+          const newContentEl = document.createElement('div');
+          newContentEl.classList.add('comment-content', 'text-sm', 'text-gray-700', 'mt-1');
+          newContentEl.textContent = data.content;
+
+          textarea.replaceWith(newContentEl);
+          button.textContent = '편집';
+          button.classList.remove('update-comment-button');
+          button.classList.add('edit-comment-button');
+
+          cancelButton.replaceWith(deleteButton);
+        })
+        .catch(err => {
+          alert('댓글 업데이트에 실패했습니다.');
+          console.error(err);
+        });
+      }, { once: true });
+    });
+  });
+
+ 
+});
 
 </script>
 </body>
