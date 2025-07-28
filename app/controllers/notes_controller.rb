@@ -1,5 +1,8 @@
 class NotesController < ApplicationController
   before_action :authenticate_user!
+def index
+  @notes = current_user.notes.includes(:book)
+end
 
 def new
   @note = Note.new
@@ -88,8 +91,31 @@ end
       update_book_current_page(book)
     end
   
-    redirect_to notes_path, notice: "노트가 삭제되었습니다."
+   redirect_to books_path, notice: "노트가 삭제되었습니다." 
   end
+
+  def edit
+  @note = current_user.notes.find(params[:id])
+  @chapters = @note.book.chapters
+end
+
+def update
+  @note = current_user.notes.find(params[:id])
+  
+  if params[:note][:chapter_id] == "new_chapter"
+    chapter = @note.book.chapters.create!(title: params[:note][:chapter_title])
+    params[:note][:chapter_id] = chapter.id
+  end
+
+  if @note.update(note_params)
+   redirect_to note_path(@note), notice: "노트가 성공적으로 업데이트되었습니다."
+
+  else
+    @chapters = @note.book.chapters
+    render :edit, alert: "업데이트 실패"
+  end
+end
+
   
   private
 
