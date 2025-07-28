@@ -1,9 +1,9 @@
 class BooksController < ApplicationController
     before_action :authenticate_user!
 
-    def index
-      @books = Book.includes(:notes).order(created_at: :desc)
-    end
+ def index
+  @books = current_user.books.includes(:notes)
+end
     
     def edit
       @book = current_user.books.find(params[:id])

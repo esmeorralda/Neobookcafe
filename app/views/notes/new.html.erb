@@ -1,7 +1,14 @@
 <div class="max-w-2xl mx-auto bg-white p-6 rounded-xl shadow space-y-6">
-  <h2 class="text-xl font-bold text-gray-800">
-    <%= @note.book&.title.presence || "새로운 메모" %>
-  </h2>
+<h2 class="text-xl font-bold text-gray-800">
+  <% if @note&.book.present? %>
+    <%= @note.book.title %>
+  <% elsif @note&.book_id == "new_book" %>
+    <%= params[:note][:book_title].presence || "새로운 메모" %>
+  <% else %>
+    새로운 메모
+  <% end %>
+</h2>
+
 
   <%= form_with(model: @note, local: true) do |f| %>
 
@@ -202,6 +209,61 @@ async function loadChapters(bookId) {
 
   toggleChapterField();
 });
+  // 폼 유효성 검사
+  const form = document.querySelector("form");
+
+  form.addEventListener("submit", function (e) {
+    const bookId = bookSelect.value;
+    const bookTitle = document.querySelector("input[name='note[book_title]']").value.trim();
+
+    const chapterId = chapterSelect ? chapterSelect.value : "";
+    const chapterTitleInput = document.querySelector("input[name='note[chapter_title]']");
+    const chapterTitle = chapterTitleInput ? chapterTitleInput.value.trim() : "";
+
+    const memo = document.querySelector("textarea[name='note[memo]']").value.trim();
+    const pageTo = document.querySelector("input[name='note[page_to]']").value;
+    const pageFrom = document.querySelector("input[name='note[page_from]']").value;
+
+    // 책 유효성
+    if (bookId === "new_book" && bookTitle === "") {
+      alert("새 책 제목을 입력해주세요.");
+      e.preventDefault();
+      return;
+    }
+    if (!bookId) {
+      alert("책을 선택하거나 새로 입력해주세요.");
+      e.preventDefault();
+      return;
+    }
+
+    // 목차 유효성
+    if ((bookId !== "new_book") && (!chapterId || (chapterId === "new_chapter" && chapterTitle === ""))) {
+      alert("목차를 선택하거나 새로 입력해주세요.");
+      e.preventDefault();
+      return;
+    }
+
+    // 메모 유효성
+    if (memo === "") {
+      alert("메모 내용을 입력해주세요.");
+      e.preventDefault();
+      return;
+    }
+
+    // page_to 유효성 (필수)
+    if (!pageTo || isNaN(parseInt(pageTo))) {
+      alert("마지막 쪽 수(page_to)를 입력해주세요.");
+      e.preventDefault();
+      return;
+    }
+
+    // 선택사항: page_from > page_to 인 경우
+    if (pageFrom && pageTo && parseInt(pageFrom) > parseInt(pageTo)) {
+      alert("시작 쪽은 끝 쪽보다 작거나 같아야 합니다.");
+      e.preventDefault();
+      return;
+    }
+  });
 
 
 </script>

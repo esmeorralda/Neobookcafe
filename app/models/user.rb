@@ -13,4 +13,5 @@ has_many :liked_posts, through: :likes, source: :likeable, source_type: "Post"
   has_many :bookmarks, dependent: :destroy
   has_many :bookmarked_posts, through: :bookmarks, source: :post  # posts user bookmarked
   has_many :book_intros, dependent: :destroy
+  has_many :notes, dependent: :destroy
 end

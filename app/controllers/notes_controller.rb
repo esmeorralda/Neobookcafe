@@ -1,53 +1,76 @@
 class NotesController < ApplicationController
   before_action :authenticate_user!
 
-  def new
-    @note = Note.new
-    @show_new_book_field = false
-     # URL 파라미터로 들어온 book_id가 있으면 미리 설정
+def new
+  @note = Note.new
+  @show_new_book_field = false
   @note.book_id = params[:book_id] if params[:book_id].present?
 
-  # 책에 따른 목차도 미리 로드
-  if @note.book_id
+  if @note.book_id.present? && @note.book_id != "new_book"
     @chapters = Book.find_by(id: @note.book_id)&.chapters
+  else
+    @chapters = []
   end
+end
+def create
+  @saved_note = nil
+
+  ActiveRecord::Base.transaction do
+    # 새 책 생성 or 기존 책 연결
+    if params[:note][:book_id] == "new_book"
+      book_title = params[:note][:book_title].presence || "제목 없는 책"
+      @book = current_user.books.create!(title: book_title.strip)
+    else
+      @book = current_user.books.find(params[:note][:book_id])
+    end
+
+    # 새 챕터 생성 or 기존 챕터 연결
+    chapter_id = params[:note][:chapter_id]
+    if chapter_id.blank? && params[:note][:chapter_title].present?
+      @chapter = @book.chapters.create!(title: params[:note][:chapter_title].strip)
+    else
+      @chapter = @book.chapters.find_by(id: chapter_id)
+    end
+
+    last_position = @book.notes.maximum(:position) || 0
+    # 노트 생성
+    @saved_note = @book.notes.create!(
+      user_id: current_user.id, 
+      chapter: @chapter,
+      page_from: params[:note][:page_from],
+      page_to: params[:note][:page_to],
+      memo: params[:note][:memo],
+      color: params[:note][:color],
+      position: last_position + 1 
+    )
   end
 
-  def create
-    if params[:note][:book_id] == "new_book"
-      @book = current_user.books.create(title: params[:note][:book_title])
-    else
-      @book = current_user.books.find_by(id: params[:note][:book_id])
-    end
-  
-    if @book.nil?
-      flash[:alert] = "책을 선택하거나 제목을 입력해주세요."
-      redirect_to new_note_path and return
-    end
-  
-    if params[:note][:chapter_id] == "new_chapter"
-      @chapter = @book.chapters.create(title: params[:note][:chapter_title])
-    elsif params[:note][:chapter_id].present?
-      @chapter = Chapter.find_by(id: params[:note][:chapter_id])
-    end
-  
-    @note = @book.notes.new(note_params)
-    @note.chapter = @chapter if @chapter.present?
-  
-    ActiveRecord::Base.transaction do
-      max_position = @book.notes.lock.maximum(:position) || 0
-      @note.position = max_position + 1
-      @note.save!
-    end
-  
-    update_book_current_page(@note.book)
-    redirect_to note_path(@note), notice: "메모가 저장되었습니다."
-  
-  rescue ActiveRecord::RecordInvalid
-    @show_new_book_field = params[:note][:book_id] == "new_book"
-    render :new
+  if @saved_note.persisted?
+     update_book_current_page(@book)
+    redirect_to note_path(@saved_note), notice: "메모가 저장되었습니다."
+  else
+    render_failed_note
   end
-  
+
+rescue ActiveRecord::RecordInvalid => e
+  flash[:alert] = "메모 저장 중 오류가 발생했습니다: #{e.message}"
+  render_failed_note
+end
+
+def render_failed_note
+  @show_new_book_field = params[:note][:book_id] == "new_book"
+  @note ||= Note.new(note_params)  # 이 시점엔 note_params는 안전함
+  @note.book_id = params[:note][:book_id]
+
+  @chapters = if @note.book_id.present? && @note.book_id != "new_book"
+    Book.find_by(id: @note.book_id)&.chapters || []
+  else
+    []
+  end
+
+  render :new
+end
+
 
   def show
     @note = Note.find(params[:id])
@@ -70,19 +93,22 @@ class NotesController < ApplicationController
   
   private
 
-  def note_params
-    params.require(:note).permit(:color, :memo, :page_from, :page_to)
+def note_params
+  params.require(:note).permit(
+    :book_id, :chapter_id,
+    :page_from, :page_to, :memo, :color
+  )
+end
+
+
+def update_book_current_page(book)
+  return unless book
+
+  max_page_to = book.notes.maximum(:page_to) || 0
+
+  if book.current_page.nil? || max_page_to > book.current_page
+    book.update(current_page: max_page_to)
   end
+end
 
-  def update_book_current_page(book)
-    return unless book
-
-    # book의 노트 중 가장 큰 page_to 찾기 (최대 읽은 페이지)
-    max_page_to = book.notes.maximum(:page_to) || 0
-
-    # 현재 current_page 보다 크면 업데이트
-    if book.current_page.nil? || max_page_to > book.current_page
-      book.update(current_page: max_page_to)
-    end
-  end
 end

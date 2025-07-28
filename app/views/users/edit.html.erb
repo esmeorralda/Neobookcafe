@@ -27,14 +27,14 @@
 
     <!-- 책 소개 입력칸 -->
     <section>
-      <h2 class="text-xl font-semibold mb-4 text-[#3e2f23]">책 소개 (최대 3개)</h2>
+      <h2 class="text-xl font-semibold mb-4 text-[#3e2f23]">책 소개</h2>
       <div id="book-intros" class="space-y-6">
         <% existing_intros = current_user.book_intros.limit(3).to_a %>
         <% 3.times do |i| %>
           <% intro = existing_intros[i] || BookIntro.new %>
           <div class="bg-[#f8f3ef] p-6 rounded-md shadow-sm mb-6 relative">
             <!-- 삭제 버튼 -->
-            <button type="button" class="absolute top-3 right-3 text-[#6e4d3c] hover:text-[#3e2f23] transition">&times;</button>
+        
 
             <!-- 인용문 -->
             <blockquote class="mb-4">

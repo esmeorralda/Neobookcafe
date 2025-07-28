@@ -1,10 +1,16 @@
-<div class="relative max-w-4xl mx-auto space-y-10 px-6">
-  <!-- 상단: 제목/저자/진행률 + 버튼 -->
+<div class="relative max-w-4xl mx-auto space-y-10 px-6 mt-10">
+  <!-- 상단 영역: 제목과 버튼을 flex로 분리 -->
   <div class="flex justify-between items-start">
-    <!-- 왼쪽 -->
+    <!-- 왼쪽: 제목, 저자, 진행률 -->
     <div>
-      <h1 class="text-2xl font-bold">책 제목 <%= @book.title %></h1>
-      <p class="text-sm text-gray-600">책 저자 <%= @book.author %></p>
+      <div class="flex items-center space-x-2">
+  <h1 class="text-2xl font-bold whitespace-nowrap"><%= @book.title %></h1>
+  <p class="text-sm text-gray-600 whitespace-nowrap self-end">
+    <%= @book.author.present? ? @book.author : "책 저자 정보 없음"  %>
+  </p>
+</div>
+
+
       <div class="mt-2 text-sm text-gray-700">
         <% if @book.current_page.present? && @book.total_pages.present? && @book.total_pages > 0 %>
           <div><%= @book.current_page %>쪽 · <%= number_to_percentage((@book.current_page.to_f / @book.total_pages * 100).round, precision: 0) %></div>
@@ -14,16 +20,16 @@
       </div>
     </div>
 
-    <!-- 오른쪽 -->
-    <div class="flex flex-col items-end space-y-2">
-      <%= link_to "메모 추가", new_book_note_path(@book), class: "bg-[#644536] text-white px-4 py-2 rounded text-sm" %>
-      <%= link_to "편집", edit_book_path(@book), class: "border px-4 py-2 text-sm" %>
+    <!-- 오른쪽: 버튼들만 별도 div -->
+    <div class="flex flex-col space-y-2">
+      <%= link_to "메모 추가", new_book_note_path(@book), class: "bg-[#644536] text-white px-4 py-2 text-sm" %>
+      <%= link_to "책 편집", edit_book_path(@book), class: "border px-4 py-2 text-sm text-center" %>
     </div>
   </div>
 
   <!-- 노트 메모지 그리드 -->
   <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
-    <% @book.notes.where.not(position: nil).order(position: :desc).each do |note| %>
+    <% @book.notes.order(created_at: :desc).each do |note| %>
       <%= link_to note_path(note), class: "block" do %>
         <div class="relative text-base shadow-md p-6 pt-10 pb-8 w-full aspect-square font-serif overflow-hidden hover:shadow-lg transition"
          style="background-color: <%= note.color  %>; clip-path: polygon(0 0, 100% 0, 100% 95%, 95% 100%, 0 100%);">
