@@ -65,6 +65,40 @@
       box-sizing: border-box;
     }
 
+    .reply-form textarea {
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid #d1c4b2;
+  border-radius: 6px;
+  resize: vertical; /* 세로로 리사이징 가능 */
+  font-size: 0.9rem;
+  font-family: inherit;
+  box-sizing: border-box;
+  min-height: 2.5rem; /* rows=3 정도 높이 */
+  margin-bottom: 0.5rem;
+  transition: border-color 0.3s ease;
+}
+
+
+/* 블록별 댓글 textarea */
+.hidden-comment-forms textarea {
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid #d1c4b2;
+  border-radius: 6px;
+  resize: vertical;
+  font-size: 0.9rem;
+  font-family: inherit;
+  box-sizing: border-box;
+  min-height: 6rem;
+  margin-bottom: 0.5rem;
+  transition: border-color 0.3s ease;
+  height: auto; /* 자동 높이 조절 */
+
+}
+
+
+
     /* 전체 댓글 폼 버튼 */
     #root-comment-form button[type="submit"] {
       margin-top: 0.5rem;
@@ -380,8 +414,8 @@
           <%= form_with model: Comment.new, url: post_comments_path(@post), local: false, html: { class: "reply-form" } do |f| %>
             <%= f.hidden_field :parent_id, value: comment.id %>
             <%= f.hidden_field :post_id, value: @post.id %>
-            <%= f.text_area :content, rows: 2, placeholder: "대댓글을 작성해주세요", class: "w-full p-2 border border-[#d1c4b2] rounded resize-none text-sm" %>
-            <div class="flex justify-end mt-1">
+            <%= f.text_area :content, rows: 1, placeholder: "대댓글을 작성해주세요",rows: 2,class: "auto-resize-textarea w-full p-2 border border-[#d1c4b2] rounded text-sm focus:outline-none focus:ring-1 focus:ring-[#b88b65]" %>
+            <div class="flex justify-end mt-1 ">
               <%= f.submit "답글 등록", class: "px-3 py-1 bg-[#5d3b2e] text-white rounded text-xs cursor-pointer" %>
             </div>
           <% end %>
@@ -417,7 +451,7 @@
        <% if comments.any? %>
  <div class="space-y-3 overflow-y-auto pb-3" style="max-height: 500px;">
   <% comments.each do |comment| %>
-    <div class="comment border-b border-[#d1c4b2] pb-2 mb-2">
+    <div class="comment border-b border-[#d1c4b2] pb-2 mb-2 ">
       
       <!-- 상단: 유저이름 / 날짜 + 하트 -->
       <div class="flex justify-between items-start">
@@ -427,25 +461,21 @@
           <p class="text-xs text-gray-500"><%= comment.created_at.strftime('%Y년 %-m월 %-d일 %H:%M') %></p>
           <%= render partial: 'comment_like', locals: { likeable: comment }  %>
 
-  <div class="flex items-center edit-comment-button space-x-2" style="line-height: 1.25; font-size: 0.75rem;">
+  <div class="flex items-center space-x-2" style="line-height: 1.25; font-size: 0.75rem;">
   <%= button_tag '편집',
-  type: 'button',
-  class: ' hover:underline',
-  data: { comment_id: comment.id } %>
+    type: 'button',
+    class: 'edit-comment-button text-xs hover:underline',
+    data: { comment_id: comment.id } %>
 
-  <%= button_to post_comment_path(@post, comment), method: :delete,
-      data: { confirm: "댓글을 삭제하시겠습니까?" },
-      class: "hover:underline bg-transparent p-0 border-0",
-      style: "background:none !important; padding:0 !important; border:none !important; color:inherit; cursor:pointer; font-size: 0.75rem; line-height: 1.25;" do %>
-    삭제
-  <% end %>
+   <%= link_to '삭제', comment_path(comment), method: :delete, data: { confirm: '정말 삭제하시겠습니까?' }, class: 'text-xs text-red-500 hover:underline' %>
 </div>
 
         </div>
       </div>
 
       <!-- 본문 -->
-      <p class="text-sm mt-2"><%= comment.content %></p>
+    <p class="comment-content text-sm mt-2 text-gray-700 "><%= comment.content %></p>
+
     </div>
   <% end %>
 </div>
@@ -454,11 +484,13 @@
           <p class="text-gray-500 text-sm italic mt-2">댓글이 없습니다.</p>
         <% end %>
 
-      <%= form_with model: Comment.new, url: post_comments_path(@post), local: true do |f| %>
+     <%= form_with model: Comment.new, url: post_comments_path(@post), local: true , html: { id: "hidden-comment-forms" } do |f| %>
+
   <%= f.hidden_field :post_block_id, value: block.id %>
   <%= f.hidden_field :post_id, value: @post.id %>
-<div class="mb-1 comment-content ">
-  <%= f.text_area :content, placeholder: "댓글을 작성해주세요", rows: 2, class: "w-full p-2 border border-[#d1c4b2] rounded resize-none" %>
+<div class="mb-1 comment-content  ">
+  <%= f.text_area :content, placeholder: "댓글을 작성해주세요", rows: 3, style: "min-height: 6rem;", class: "auto-resize-textarea w-full p-2 border border-[#d1c4b2] rounded text-sm focus:outline-none focus:ring-1 focus:ring-[#b88b65]" %>
+
 </div>
 
 <div class="flex justify-end mt-0">  <button type="submit" class="px-4 py-2 bg-[#5d3b2e] text-white rounded text-sm">
@@ -473,222 +505,159 @@
     <% end %>
   </div>
 </div>
-
 <script>
-  document.addEventListener('DOMContentLoaded', () => {
-    const postContainer = document.getElementById('post-container');
-    const commentSidebar = document.getElementById('comment-sidebar');
-    const commentSidebarContent = document.getElementById('comment-sidebar-content');
-    const closeBtn = document.getElementById('close-comment-sidebar');
+document.addEventListener('DOMContentLoaded', () => {
+  const postContainer = document.getElementById('post-container');
+  const commentSidebar = document.getElementById('comment-sidebar');
+  const commentSidebarContent = document.getElementById('comment-sidebar-content');
+  const closeBtn = document.getElementById('close-comment-sidebar');
 
-    // 블록별 댓글 보기 버튼 클릭
-document.querySelectorAll('.comment-view-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    const blockId = btn.getAttribute('data-block-id');
-    const isOpen = !commentSidebar.classList.contains('hidden');
-
-    const wrapperSelector = `#post-block-wrapper-${blockId}`;
-    const currentBlockWrapper = document.querySelector(wrapperSelector);
-
-    if (isOpen && btn.classList.contains('active')) {
-      // 사이드바 닫기
-      commentSidebar.classList.add('hidden');
-      postContainer.classList.remove('grid-active');
-      commentSidebarContent.innerHTML = '';
-
-      // 모든 버튼 초기화
-      document.querySelectorAll('.comment-view-btn').forEach(b => {
-        b.textContent = '댓글 보기';
-        b.classList.remove('active');
-      });
-
-      // 모든 블록 강조 제거
-      document.querySelectorAll('[id^="post-block-wrapper-"]').forEach(wrapper => {
-        wrapper.classList.remove('comment-highlight');
-      });
-    } else {
-      // 모든 버튼 초기화
-      document.querySelectorAll('.comment-view-btn').forEach(b => {
-        b.textContent = '댓글 보기';
-        b.classList.remove('active');
-      });
-
-      // 모든 블록 강조 제거
-      document.querySelectorAll('[id^="post-block-wrapper-"]').forEach(wrapper => {
-        wrapper.classList.remove('comment-highlight');
-      });
-
-      // 현재 버튼/블록 강조
-      commentSidebar.classList.remove('hidden');
-      postContainer.classList.add('grid-active');
-      btn.textContent = '댓글 닫기';
-      btn.classList.add('active');
-      currentBlockWrapper?.classList.add('comment-highlight');
-
-      loadComments(blockId);
-    }
-  });
-});
-
-
-    // 댓글 사이드바 닫기 버튼 클릭
- closeBtn.addEventListener('click', () => {
-  commentSidebar.classList.add('hidden');
-  postContainer.classList.remove('grid-active');
-  commentSidebarContent.innerHTML = '';
-
+  // 블록별 댓글 보기 버튼 클릭
   document.querySelectorAll('.comment-view-btn').forEach(btn => {
-    btn.textContent = '댓글 보기';
-    btn.classList.remove('active');
-  });
+    btn.addEventListener('click', () => {
+      const blockId = btn.getAttribute('data-block-id');
+      const isOpen = !commentSidebar.classList.contains('hidden');
+      const wrapperSelector = `#post-block-wrapper-${blockId}`;
+      const currentBlockWrapper = document.querySelector(wrapperSelector);
 
-  document.querySelectorAll('[id^="post-block-wrapper-"]').forEach(wrapper => {
-    wrapper.classList.remove('comment-highlight');
-  });
-});
+      if (isOpen && btn.classList.contains('active')) {
+        commentSidebar.classList.add('hidden');
+        postContainer.classList.remove('grid-active');
+        commentSidebarContent.innerHTML = '';
 
+        document.querySelectorAll('.comment-view-btn').forEach(b => {
+          b.textContent = '댓글 보기';
+          b.classList.remove('active');
+        });
 
-    // 댓글 로드 함수 (블록별)
-    function loadComments(blockId) {
-      const commentForm = document.getElementById(`comment-form-${blockId}`);
-      if (!commentForm) {
-        commentSidebarContent.innerHTML = '<p>댓글이 없습니다.</p>';
-        return;
+        document.querySelectorAll('[id^="post-block-wrapper-"]').forEach(wrapper => {
+          wrapper.classList.remove('comment-highlight');
+        });
+      } else {
+        document.querySelectorAll('.comment-view-btn').forEach(b => {
+          b.textContent = '댓글 보기';
+          b.classList.remove('active');
+        });
+
+        document.querySelectorAll('[id^="post-block-wrapper-"]').forEach(wrapper => {
+          wrapper.classList.remove('comment-highlight');
+        });
+
+        commentSidebar.classList.remove('hidden');
+        postContainer.classList.add('grid-active');
+        btn.textContent = '댓글 닫기';
+        btn.classList.add('active');
+        currentBlockWrapper?.classList.add('comment-highlight');
+
+        loadComments(blockId);
       }
-      commentSidebarContent.innerHTML = '';
-      const clone = commentForm.cloneNode(true);
-      clone.classList.remove('hidden');
-      commentSidebarContent.appendChild(clone);
-
-      // 댓글 폼 제출 이벤트 바인딩 (AJAX)
-      const form = clone.querySelector('form');
-form.addEventListener('submit', (e) => {
-  e.preventDefault();
-  const formData = new FormData(form);
-  const token = document.querySelector('meta[name="csrf-token"]').content;
-
-  fetch(form.action, {
-    method: form.method.toUpperCase(),
-    headers: {
-      'Accept': 'application/json',
-      'X-CSRF-Token': token
-    },
-    body: formData
-  })
-  .then(async (response) => {
-    if (!response.ok) {
-      // 실패 시 JSON 읽어서 에러 메시지 보여주기
-      const errorData = await response.json();
-      const errors = errorData.errors || ['댓글 등록 실패'];
-      throw new Error(errors.join(', '));
-    }
-    return response.json();
-  })
-  .then(data => {
-    alert('댓글이 성공적으로 등록되었습니다.');
-    window.location.reload();  // 새로고침
-  })
-  .catch(error => alert(`댓글 등록에 실패했습니다: ${error.message}`));
-});
-
-    }
-
-    // 신고 버튼 누르면 모달 열기
-    const reportButton = document.getElementById('report-button');
-    if (reportButton) {
-      reportButton.addEventListener('click', () => {
-        openReportModal();
-      });
-    }
-
-    function openReportModal() {
-      // 여기에 신고 모달을 구현하거나 라이브러리 호출
-      alert('신고 모달을 열 예정입니다.');
-    }
-
+    });
   });
-// 대댓글 보기/답글 달기 버튼 클릭 시 대댓글 목록과 입력폼 토글
-document.querySelectorAll('.reply-toggle').forEach(button => {
-  button.addEventListener('click', () => {
-    const commentId = button.getAttribute('data-comment-id');
-    const replyContainer = document.getElementById(`reply-container-${commentId}`);
 
-    if (!replyContainer) {
-      console.log(`reply-container-${commentId} not found`);
+  closeBtn.addEventListener('click', () => {
+    commentSidebar.classList.add('hidden');
+    postContainer.classList.remove('grid-active');
+    commentSidebarContent.innerHTML = '';
+
+    document.querySelectorAll('.comment-view-btn').forEach(btn => {
+      btn.textContent = '댓글 보기';
+      btn.classList.remove('active');
+    });
+
+    document.querySelectorAll('[id^="post-block-wrapper-"]').forEach(wrapper => {
+      wrapper.classList.remove('comment-highlight');
+    });
+  });
+
+  function loadComments(blockId) {
+    const commentForm = document.getElementById(`comment-form-${blockId}`);
+    if (!commentForm) {
+      commentSidebarContent.innerHTML = '<p>댓글이 없습니다.</p>';
       return;
     }
 
-    const isHidden = replyContainer.classList.contains('hidden');
-    console.log(`Toggling reply-container-${commentId}, currently hidden: ${isHidden}`);
+    commentSidebarContent.innerHTML = '';
+    const clone = commentForm.cloneNode(true);
+    clone.classList.remove('hidden');
+    commentSidebarContent.appendChild(clone);
 
-    if (isHidden) {
-      replyContainer.classList.remove('hidden');
-      const replyCount = replyContainer.querySelectorAll('.border-l-2').length;
-      if (replyCount === 0) {
-        button.textContent = '답글 달기';
-      } else {
-        button.textContent = '대댓글 닫기';
-      }
-    } else {
-      replyContainer.classList.add('hidden');
-      const replyCount = replyContainer.querySelectorAll('.border-l-2').length;
-      if (replyCount === 0) {
-        button.textContent = '답글 달기';
-      } else {
-        button.textContent = `💬 ${replyCount}개의 답글 보기`;
-      }
-    }
-  });
-});
-document.addEventListener('input', function(event) {
-    if (event.target.classList.contains('auto-resize-textarea')) {
-      const textarea = event.target;
-      textarea.style.height = 'auto';
-      textarea.style.height = textarea.scrollHeight + 'px';
-    }
-  });
+    // 댓글 폼 제출
+    const form = clone.querySelector('form');
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const formData = new FormData(form);
+      const token = document.querySelector('meta[name="csrf-token"]').content;
 
-  // 페이지 로드 시 기본 높이 맞추기
-  document.querySelectorAll('.auto-resize-textarea').forEach(textarea => {
-    textarea.style.height = 'auto';
-    textarea.style.height = textarea.scrollHeight + 'px';
-  });
-document.addEventListener('DOMContentLoaded', () => {
-  document.querySelectorAll('.edit-comment-button').forEach(button => {
+      fetch(form.action, {
+        method: form.method.toUpperCase(),
+        headers: {
+          'Accept': 'application/json',
+          'X-CSRF-Token': token
+        },
+        body: formData
+      })
+      .then(async (response) => {
+        if (!response.ok) {
+          const errorData = await response.json();
+          const errors = errorData.errors || ['댓글 등록 실패'];
+          throw new Error(errors.join(', '));
+        }
+        return response.json();
+      })
+      .then(data => {
+        alert('댓글이 성공적으로 등록되었습니다.');
+        window.location.reload();
+      })
+      .catch(error => alert(`댓글 등록에 실패했습니다: ${error.message}`));
+    });
+
+    // ✨ 편집 버튼 재바인딩
+    bindEditCommentButtons(clone);
+  }
+
+  // 편집 기능 정의
+function bindEditCommentButtons(scope = document) {
+  scope.querySelectorAll('.edit-comment-button').forEach(button => {
     button.addEventListener('click', () => {
- 
       const commentEl = button.closest('.comment');
       const contentEl = commentEl.querySelector('.comment-content');
       const originalText = contentEl.textContent.trim();
       const commentId = commentEl.dataset.commentId;
 
-      // textarea 생성
+      // textarea 생성 및 스타일 적용
       const textarea = document.createElement('textarea');
-      textarea.classList.add('edit-comment-textarea', 'w-full', 'p-2', 'border', 'border-gray-300', 'rounded-md', 'mt-2', 'text-sm');
+      textarea.className = 'edit-comment-textarea auto-resize-textarea w-full p-2 border border-[#d1c4b2] rounded text-sm resize-none focus:outline-none focus:ring-1 focus:ring-[#b88b65] mt-2';
       textarea.value = originalText;
       contentEl.replaceWith(textarea);
 
-      // 버튼 변경
+      // textarea 자동 리사이즈 즉시 적용
+      textarea.style.height = 'auto';
+      textarea.style.height = textarea.scrollHeight + 'px';
+
+      textarea.addEventListener('input', () => {
+        textarea.style.height = 'auto';
+        textarea.style.height = textarea.scrollHeight + 'px';
+      });
+
+      // 편집 버튼 → 업데이트로 변경
       button.textContent = '업데이트';
       button.classList.remove('edit-comment-button');
       button.classList.add('update-comment-button');
 
-      // 삭제 → 취소 버튼으로 변경
+      // 삭제 버튼 → 취소 버튼으로 변경
       const deleteButton = commentEl.querySelector('a.text-red-500');
       const cancelButton = document.createElement('button');
       cancelButton.textContent = '취소';
-      cancelButton.className = 'cancel-edit-button text-xs text-gray-500 hover:underline';
+      cancelButton.className = 'cancel-edit-button text-xs text-gray-500 hover:underline ml-2';
       deleteButton.replaceWith(cancelButton);
 
-      // 취소 클릭 시 원래 상태로 복원
+      // 취소 시 원래 상태로 복원
       cancelButton.addEventListener('click', () => {
-        // textarea → 원래 div
-        const restoredContent = document.createElement('div');
-        restoredContent.classList.add('comment-content', 'text-sm', 'text-gray-700', 'mt-1');
+        const restoredContent = document.createElement('p');
+        restoredContent.className = 'comment-content text-sm mt-2 text-gray-700 px-4';
         restoredContent.textContent = originalText;
         textarea.replaceWith(restoredContent);
 
-        // 버튼 원상복구
         button.textContent = '편집';
         button.classList.remove('update-comment-button');
         button.classList.add('edit-comment-button');
@@ -696,7 +665,7 @@ document.addEventListener('DOMContentLoaded', () => {
         cancelButton.replaceWith(deleteButton);
       });
 
-      // 업데이트 클릭 시 저장
+      // 업데이트 시 서버로 PATCH 요청
       button.addEventListener('click', () => {
         const updatedContent = textarea.value.trim();
         if (!updatedContent) {
@@ -711,21 +680,19 @@ document.addEventListener('DOMContentLoaded', () => {
             'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content,
           },
           body: JSON.stringify({ comment: { content: updatedContent } }),
-          redirect: 'manual', // 리다이렉트 방지
+          redirect: 'manual',
         })
         .then(res => {
           if (!res.ok) throw new Error('업데이트 실패');
-            //디버그
           if (res.redirected) {
-            console.log('Redirected to:', res.url);
-            window.location.href = res.url; // 리다이렉트 처리
+            window.location.href = res.url;
             return;
           }
           return res.json();
         })
         .then(data => {
-          const newContentEl = document.createElement('div');
-          newContentEl.classList.add('comment-content', 'text-sm', 'text-gray-700', 'mt-1');
+          const newContentEl = document.createElement('p');
+          newContentEl.className = 'comment-content text-sm mt-2 text-gray-700 px-4';
           newContentEl.textContent = data.content;
 
           textarea.replaceWith(newContentEl);
@@ -739,12 +706,65 @@ document.addEventListener('DOMContentLoaded', () => {
           alert('댓글 업데이트에 실패했습니다.');
           console.error(err);
         });
-      }, { once: true });
+      }, { once: true }); // 중복 이벤트 방지
+    });
+  });
+}
+
+  // 초기에 로드된 댓글용 편집 버튼도 바인딩
+  bindEditCommentButtons();
+
+  // 대댓글 보기 토글
+  document.querySelectorAll('.reply-toggle').forEach(button => {
+    button.addEventListener('click', () => {
+      const commentId = button.getAttribute('data-comment-id');
+      const replyContainer = document.getElementById(`reply-container-${commentId}`);
+
+      if (!replyContainer) {
+        console.log(`reply-container-${commentId} not found`);
+        return;
+      }
+
+      const isHidden = replyContainer.classList.contains('hidden');
+
+      if (isHidden) {
+        replyContainer.classList.remove('hidden');
+        const replyCount = replyContainer.querySelectorAll('.border-l-2').length;
+        button.textContent = replyCount === 0 ? '답글 달기' : '대댓글 닫기';
+      } else {
+        replyContainer.classList.add('hidden');
+        const replyCount = replyContainer.querySelectorAll('.border-l-2').length;
+        button.textContent = replyCount === 0 ? '답글 달기' : `💬 ${replyCount}개의 답글 보기`;
+      }
     });
   });
 
- 
-});
+  // textarea 자동 높이 조절
+  document.addEventListener('input', function(event) {
+    if (event.target.classList.contains('auto-resize-textarea')) {
+      const textarea = event.target;
+      textarea.style.height = 'auto';
+      textarea.style.height = textarea.scrollHeight + 'px';
+    }
+  });
 
+  document.querySelectorAll('.auto-resize-textarea').forEach(textarea => {
+    textarea.style.height = 'auto';
+    textarea.style.height = textarea.scrollHeight + 'px';
+  });
+
+  // 신고 버튼
+  const reportButton = document.getElementById('report-button');
+  if (reportButton) {
+    reportButton.addEventListener('click', () => {
+      openReportModal();
+    });
+  }
+
+  function openReportModal() {
+    alert('신고 모달을 열 예정입니다.');
+  }
+});
 </script>
+
 </body>
