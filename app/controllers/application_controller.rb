@@ -1,5 +1,7 @@
 class ApplicationController < ActionController::Base
   # Only allow modern browsers supporting webp images, web push, badges, import maps, CSS nesting, and CSS :has.
+   before_action :configure_permitted_parameters, if: :devise_controller?
+   
   allow_browser versions: :modern
    include Pagination
     helper_method :page_no, :per_page 

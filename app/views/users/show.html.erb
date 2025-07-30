@@ -27,6 +27,7 @@
 
   <!-- 인용 슬라이더 -->
   <div id="intro-slider" class="relative overflow-hidden mt-10 border-y py-6 text-center text-lg text-[#3e2f23] font-serif italic">
+  <% if @user.book_intros.where.not(quote: [nil, ""]).exists? %>
     <div id="intro-track" class="flex transition-transform duration-1500 ease-in-out">
       <% @user.book_intros.where.not(quote: [nil, ""]).each do |intro| %>
         <div class="flex-shrink-0 w-full px-4">
@@ -35,9 +36,15 @@
         </div>
       <% end %>
     </div>
+    <!-- 좌우 버튼 -->
     <button id="prev-btn" class="absolute left-2 top-1/2 transform -translate-y-1/2 bg-[#3e2f23] text-white px-3 py-1 rounded opacity-70 hover:opacity-100">‹</button>
     <button id="next-btn" class="absolute right-2 top-1/2 transform -translate-y-1/2 bg-[#3e2f23] text-white px-3 py-1 rounded opacity-70 hover:opacity-100">›</button>
-  </div>
+  <% else %>
+    <div class="text-sm text-[#a09388] italic">
+      책 소개 정보를 추가하세요.
+    </div>
+  <% end %>
+</div>
 
   <!-- 탭 메뉴 -->
   <% if current_user == @user %>

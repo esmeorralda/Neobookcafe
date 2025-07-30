@@ -1,4 +1,5 @@
 Rails.application.routes.draw do
+  get "notifications/index"
   get "reports/create"
   get "feedbacks/new"
   get "feedbacks/create"
@@ -67,6 +68,13 @@ end
 resources :comments do
   post 'like', to: 'likes#create', defaults: { likeable: 'Comment' }
   delete 'unlike', to: 'likes#destroy', defaults: { likeable: 'Comment' }
+end
+
+# config/routes.rb
+resources :notifications, only: [:index] do
+  member do
+    patch :mark_as_read
+  end
 end
 
 

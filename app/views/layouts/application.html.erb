@@ -53,6 +53,10 @@
 
    <div class="nav-links">
   <% if user_signed_in? %>
+  <!-- 헤더 영역에 알림 버튼 -->
+<button id="toggle-notification" class="text-[14px] text-[#333] no-underline ml-4">
+  🔔
+</button>
     <button id="toggle-right-sidebar" class="text-[14px] text-[#333] no-underline">프로필</button>
 <%= link_to "설정", "#", class: "open-settings-modal text-sm underline", data: { url: settings_path } %>
 
@@ -89,7 +93,7 @@
         <h3 class="text-xl font-semibold mb-3">알림 설정</h3>
         <label class="inline-flex items-center mt-1">
           <input type="checkbox" class="form-checkbox" />
-          <span class="ml-2">푸시 알림 받기</span>
+          <span class="ml-2">이메일 알림 받기</span>
         </label>
 
         <div class="flex justify-center gap-6 mt-6">
@@ -181,7 +185,50 @@
   </div>
 <% end %>
 
+<% if user_signed_in? %>
+<div id="notification-panel" class="hidden fixed right-0 top-12 w-64 h-[calc(100vh-4rem)] bg-white shadow-lg border-l border-gray-200 z-50 overflow-y-auto">
+  <div class="px-4 py-4">
+    <h3 class="text-base font-semibold text-[#3e2f23] mb-3">알림</h3>
 
+    <% if current_user.notifications.any? %>
+      <ul class="space-y-3">
+        <% current_user.notifications.order(created_at: :desc).limit(10).each do |notification| %>
+          <% if notification.notifiable_type == "Comment" %>
+            <% comment = Comment.find_by(id: notification.notifiable_id) %>
+            <% if comment && comment.post %>
+              <li class="text-sm text-gray-700 border-b border-gray-100 pb-2">
+                <%= notification.message %>
+                <div class="mt-1 text-xs text-gray-500">
+                  <%= truncate(comment.content, length: 50) %>
+                </div>
+                <div class="flex justify-between items-center mt-1">
+                  <span class="text-xs text-gray-400">
+                    <%= time_ago_in_words(notification.created_at) %> 전
+                  </span>
+                  <%= link_to "글로 이동", post_path(comment.post, anchor: "comment-#{comment.id}"),
+                        class: "text-blue-500 text-xs hover:underline" %>
+                </div>
+              </li>
+            <% end %>
+          <% else %>
+            <li class="text-sm text-gray-700 border-b border-gray-100 pb-2">
+              <%= notification.message %>
+              <div class="flex justify-between items-center mt-1">
+                <span class="text-xs text-gray-400">
+                  <%= time_ago_in_words(notification.created_at) %> 전
+                </span>
+              </div>
+            </li>
+          <% end %>
+        <% end %>
+      </ul>
+    <% else %>
+      <p class="text-sm text-gray-500">새로운 알림이 없습니다.</p>
+    <% end %>
+  </div>
+</div>
+
+<%end %>
     </header>
 
 
@@ -211,6 +258,21 @@
 
 <% if user_signed_in? %>
 <script>
+ document.addEventListener("DOMContentLoaded", function () {
+    const toggleBtn = document.getElementById("toggle-notification");
+    const panel = document.getElementById("notification-panel");
+
+    toggleBtn.addEventListener("click", function () {
+      panel.classList.toggle("hidden");
+    });
+
+    // 바깥 클릭 시 알림 패널 닫기 (선택 사항)
+    document.addEventListener("click", function (e) {
+      if (!panel.contains(e.target) && !toggleBtn.contains(e.target)) {
+        panel.classList.add("hidden");
+      }
+    });
+  });
 document.addEventListener("DOMContentLoaded", () => {
 
 

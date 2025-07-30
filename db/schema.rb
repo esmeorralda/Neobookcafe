@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_07_28_044611) do
+ActiveRecord::Schema[8.0].define(version: 2025_07_30_075157) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -105,6 +105,18 @@ ActiveRecord::Schema[8.0].define(version: 2025_07_28_044611) do
     t.index ["user_id"], name: "index_notes_on_user_id"
   end
 
+  create_table "notifications", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.string "notifiable_type", null: false
+    t.bigint "notifiable_id", null: false
+    t.string "message"
+    t.boolean "read", default: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["notifiable_type", "notifiable_id"], name: "index_notifications_on_notifiable"
+    t.index ["user_id"], name: "index_notifications_on_user_id"
+  end
+
   create_table "post_blocks", force: :cascade do |t|
     t.integer "post_id", null: false
     t.text "content"
@@ -173,6 +185,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_07_28_044611) do
   add_foreign_key "notes", "books"
   add_foreign_key "notes", "chapters"
   add_foreign_key "notes", "users"
+  add_foreign_key "notifications", "users"
   add_foreign_key "post_blocks", "posts"
   add_foreign_key "posts", "users"
   add_foreign_key "reports", "posts"
