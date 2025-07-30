@@ -3,17 +3,24 @@
   <div class="flex justify-between items-start">
     <!-- 왼쪽: 제목, 저자, 진행률 -->
     <div>
-      <div class="flex items-center space-x-2">
-  <h1 class="text-2xl font-bold whitespace-nowrap"><%= @book.title %></h1>
-  <p class="text-sm text-gray-600 whitespace-nowrap self-end">
-    <%= @book.author.present? ? @book.author : "책 저자 정보 없음"  %>
-  </p>
-</div>
+      <div class="flex items-center space-x-2 mb-4"> <!-- 제목과 저자 사이 간격 추가 -->
+        <h1 class="text-2xl font-bold whitespace-nowrap"><%= @book.title %></h1>
+        <p class="text-sm text-gray-600 whitespace-nowrap self-end">
+          <%= @book.author.present? ? @book.author : "책 저자 정보 없음"  %>
+        </p>
+      </div>
 
+      <% total_pages = @book.total_pages || 0 %>
+      <% current_page = @book.current_page || 0 %>
 
-      <div class="mt-2 text-sm text-gray-700">
+      <!-- 쪽수 및 진행률 정보를 왼쪽 정렬하고 제목과 간격 띄우기 -->
+      <div class="flex items-center text-sm" style="color: #815e4e; font-weight: 350;">
         <% if @book.current_page.present? && @book.total_pages.present? && @book.total_pages > 0 %>
-          <div><%= @book.current_page %>쪽 · <%= number_to_percentage((@book.current_page.to_f / @book.total_pages * 100).round, precision: 0) %></div>
+          <span><%= @book.current_page %>쪽 · <%= number_to_percentage((@book.current_page.to_f / @book.total_pages * 100).round, precision: 0) %></span>
+          <span id="progress1" class="ml-2 inline-block" style="width: 20px; height: 20px;" 
+            data-current-page="<%= current_page %>" 
+            data-total-pages="<%= total_pages %>">
+          </span>
         <% else %>
           페이지 정보 없음
         <% end %>
@@ -57,3 +64,30 @@
     <% end %>
   </div>
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/progressbar.js"></script>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const container = document.getElementById('progress1');
+    if (!container || typeof ProgressBar === 'undefined') return;
+
+    const currentPage = Number(container.dataset.currentPage) || 0;
+    const totalPages = Number(container.dataset.totalPages) || 0;
+
+    const progress = (currentPage > 0 && totalPages > 0) 
+      ? Math.min(currentPage / totalPages, 1)
+      : 0;
+
+    const bar = new ProgressBar.Circle(container, {
+      strokeWidth: 12,
+      color: '#815e4e',
+      trailColor: '#fff',
+      trailWidth: 1,
+      easing: 'easeInOut',
+      duration: 1400,
+    });
+
+    bar.animate(progress);
+  });
+</script>

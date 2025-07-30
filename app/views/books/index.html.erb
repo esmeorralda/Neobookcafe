@@ -14,20 +14,32 @@
   <% else %>
     <% @books.each do |book| %>
       <% recent_notes = book.notes.order(position: :desc).limit(3) %>
+<div>
+  <!-- 책 제목 + 전체 쪽수 + 진행률 -->
+  <div class="flex justify-between items-center mb-4">
+    <div class="text-xl font-semibold text-gray-800 flex items-center">
+      <%= book.title %>
 
-      <div>
-        <!-- 책 제목 + 전체 쪽수 + 진행률 -->
-        <div class="flex justify-between items-center mb-4">
-          <div class="text-xl font-semibold text-gray-800">
-            <%= book.title %>
-            <% total_pages = book.total_pages || 0 %>
-            <% current_page = book.current_page || 0 %>
-            <span class="ml-4 text-sm text-gray-500">
-              <%= current_page %>쪽 · <%= total_pages > 0 ? number_to_percentage((current_page.to_f / total_pages) * 100, precision: 0) : "0%" %>
-            </span>
-          </div>
-          <%= link_to "더보기 »", book_path(book), class: "text-sm text-gray-500 hover:underline" %>
-        </div>
+      <% total_pages = book.total_pages || 0 %>
+      <% current_page = book.current_page || 0 %>
+
+     <!-- 진행률 텍스트 + 차트 감싸는 flex 박스 -->
+<span class="ml-4 text-sm flex items-center" style="color: #815e4e; font-weight: 350;">
+  <%= current_page %>쪽 · 
+  <%= total_pages > 0 ? number_to_percentage((current_page.to_f / total_pages) * 100, precision: 0) : "0%" %> ·
+
+  <!-- div 대신 span 으로 변경 -->
+  <span id="progress1" class="ml-1 inline-block" style="width: 20px; height: 20px;" 
+        data-current-page="<%= current_page %>" 
+        data-total-pages="<%= total_pages %>">
+  </span>
+</span>
+
+    </div>
+
+    <%= link_to "더보기 »", book_path(book), class: "text-sm text-gray-500 hover:underline" %>
+  </div>
+</div>
 
         <div class="flex flex-wrap gap-6 relative">
           <% recent_notes.each_with_index do |note, index| %>
@@ -67,3 +79,30 @@
     clip-path: polygon(100% 0, 100% 100%, 0 100%);
   }
 </style>
+
+
+<script src="https://cdn.jsdelivr.net/npm/progressbar.js"></script>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const container = document.getElementById('progress1');
+    if (!container || typeof ProgressBar === 'undefined') return;
+
+    const currentPage = Number(container.dataset.currentPage) || 0;
+    const totalPages = Number(container.dataset.totalPages) || 0;
+
+    const progress = (currentPage > 0 && totalPages > 0) 
+      ? Math.min(currentPage / totalPages, 1)
+      : 0;
+    const bar = new ProgressBar.Circle(container, {
+      strokeWidth: 12,
+      color: '#815e4e',
+      trailColor: '#fff',
+      trailWidth: 1,
+      easing: 'easeInOut',
+      duration: 1400,
+    });
+
+    bar.animate(progress);
+  });
+</script>
