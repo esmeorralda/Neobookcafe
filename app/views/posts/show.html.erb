@@ -1,7 +1,8 @@
 <head>
-  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/font-kopub@1.0/kopubbatang.min.css">
   <meta name="csrf-token" content="<%= form_authenticity_token %>" />
   <style>
+
+
     #post-container.grid-active {
       display: flex;
       gap: 2rem;
@@ -61,7 +62,6 @@
       border-radius: 6px;
       resize: vertical;
       font-size: 0.9rem;
-      font-family: inherit;
       box-sizing: border-box;
     }
 
@@ -72,7 +72,6 @@
   border-radius: 6px;
   resize: vertical; /* 세로로 리사이징 가능 */
   font-size: 0.9rem;
-  font-family: inherit;
   box-sizing: border-box;
   min-height: 2.5rem; /* rows=3 정도 높이 */
   margin-bottom: 0.5rem;
@@ -88,7 +87,6 @@
   border-radius: 6px;
   resize: vertical;
   font-size: 0.9rem;
-  font-family: inherit;
   box-sizing: border-box;
   min-height: 6rem;
   margin-bottom: 0.5rem;
@@ -138,7 +136,6 @@
       margin-bottom: 1rem;
     }
     #close-comment-sidebar {
-      font-size: 1.5rem;
       background: none;
       border: none;
       cursor: pointer;
@@ -164,7 +161,6 @@
       padding: 0.5rem;
       resize: vertical;
       font-size: 0.9rem;
-      font-family: inherit;
       box-sizing: border-box;
       margin-bottom: 0.5rem;
     }
@@ -179,7 +175,6 @@
       font-weight: 600;
     }
 
-    
   </style>
 </head>
 
@@ -195,10 +190,10 @@
   <!-- 제목 + 공유/편집/삭제 버튼 한 줄 정렬 -->
 <div class="flex justify-between items-center mb-4">
   <!-- 왼쪽: 제목 -->
-  <h1 class="text-3xl font-semibold text-[#2c1a0d]"><%= @post.title %></h1>
+  <h1 class="text-3xl font-semibold text-[#2c1a0d]" , style="font-family: 'Noto Serif KR', serif;"><%= @post.title %></h1>
 
   <!-- 오른쪽: 버튼들 -->
-  <div class="flex space-x-2">
+  <div class="flex space-x-2", style="font-family: 'Inter', sans-serif;" >
     <% if user_signed_in? && @post.user_id == current_user.id %>
       <button 
         id="copy-link-btn"
@@ -210,7 +205,6 @@
 
       <%= link_to "편집", edit_post_path(@post),
           class: "bg-[#b88b65] text-white px-3 py-1 text-sm hover:bg-[#a27958]" %>
-
       <%= button_to post_path(@post), method: :delete,
             data: { confirm: "정말 삭제하시겠습니까?" },
             class: "border border-gray-300 bg-white px-3 py-1 text-sm hover:bg-red-100" do %>
@@ -231,7 +225,7 @@
 </div>
 
 
-    <p class="text-sm text-gray-700 mb-2">
+    <p class="text-sm text-gray-700 mb-2", style="font-family: 'Noto Serif KR', serif;" >
       책 제목 <%= @post.book_title %> (<%= @post.book_author %>)
     </p>
 
@@ -243,7 +237,7 @@
     </p>
 
 
-    <p class="text-sm text-gray-900 mb-2  text-right">
+    <p class="text-sm text-gray-900 mb-2 text-right">
       <%= @post.user.name %> 씀, <%= @post.created_at.strftime('%Y년 %-m월 %-d일') %>
     </p>
 
@@ -273,7 +267,7 @@
 
 
       <!-- 본문 영역 -->
-      <div id="post-content" class="space-y-6 text-base leading-relaxed">
+      <div id="post-content" class="space-y-6 text-base leading-relaxed" , style="font-family: 'Noto Serif KR', serif;">
         <% @post.post_blocks.order(:position).each do |block| %>
           <div class="relative flex items-start" id="post-block-wrapper-<%= block.id %>">
             <div class="flex-1">
@@ -296,7 +290,7 @@
             <% if block.block_type != 'quote' && @post.draft !=true%>
               <div class="ml-3 flex-shrink-0">
                 <button type="button"
-                  class="text-xs px-2 py-1 border border-gray-300 rounded text-gray-600 hover:bg-gray-100 comment-view-btn"
+                  class="text-xs px-2 py-1 border border-gray-300 rounded text-gray-600 hover:bg-gray-100 comment-view-btn",  style="font-family: 'Inter', sans-serif;"
                   data-block-id="<%= block.id %>">
                   댓글 보기
                 </button>
@@ -347,7 +341,7 @@
     <%= f.text_area :content, placeholder: "답글을 작성해주세요", rows: 4, class: "auto-resize-textarea w-full p-2 border border-[#d1c4b2] rounded text-sm resize-none focus:outline-none focus:ring-1 focus:ring-[#b88b65]" %>
 
     <div class="flex justify-end mt-2">
-      <button type="submit" class="bg-[#5d3b2e] text-white px-4 py-1 rounded text-sm cursor-pointer">
+      <button type="submit" class="bg-[#5d3b2e] text-white px-4 py-1 rounded text-sm cursor-pointer",  style="font-family: 'Inter', sans-serif;">
         댓글 등록
       </button>
     </div>
@@ -361,8 +355,8 @@
 <div id="root-comment-list" class="mt-6 max-h-[600px] overflow-y-auto bg-[#f9f6f2] p-4 rounded-lg shadow-inner">
 
   <!-- 댓글 정렬 드롭다운 -->
-  <div class="mb-4 flex items-center space-x-2">
-    <label for="sort-comments" class="text-sm font-medium text-gray-700">댓글 정렬:</label>
+  <div class="mb-4 flex items-center space-x-2"ㅡ  style="font-family: 'Inter', sans-serif;">
+    <label for="sort-comments" class="text-sm font-medium text-gray-700",  style="font-family: 'Inter', sans-serif;">댓글 정렬:</label>
     <select id="sort-comments" name="sort" class="border rounded px-2 py-1 text-sm" onchange="location = this.value;">
       <option value="<%= url_for(params.permit(:id).merge(sort: 'latest')) %>" <%= 'selected' if params[:sort] == 'latest' || params[:sort].blank? %>>최신순</option>
       <option value="<%= url_for(params.permit(:id).merge(sort: 'oldest')) %>" <%= 'selected' if params[:sort] == 'oldest' %>>오래된 순</option>
@@ -392,15 +386,21 @@
       <!-- 유저 이름 + 날짜 + 좋아요 + 버튼 -->
       <div class="flex justify-between items-start">
         <div>
-          <p class="text-sm font-semibold text-gray-800"><%= comment.user.name %></p>
+      <%= link_to comment.user.name, user_path(comment.user), class: "text-sm font-semibold text-gray-800 hover:underline", style: "font-family: 'Noto Serif KR';" %>
+
         </div>
         <div class="flex items-center space-x-2">
           <p class="text-xs text-gray-400"><%= comment.created_at.strftime('%Y년 %-m월 %-d일 %H:%M') %></p>
           <%= render partial: 'comment_like', locals: { likeable: comment }  %>
 
           <% if user_signed_in? && comment.user_id == current_user.id %>
-            <button class="edit-comment-button text-xs text-black hover:underline" data-comment-id="<%= comment.id %>">편집</button>
-            <%= link_to '삭제', comment_path(comment), method: :delete, data: { confirm: '정말 삭제하시겠습니까?' }, class: 'text-xs text-red-500 hover:underline' %>
+            <button class="edit-comment-button text-xs text-black hover:underline" data-comment-id="<%= comment.id %>",  style="font-family: 'Inter', sans-serif;">편집</button>
+       <%= link_to '삭제', comment_path(comment),
+  method: :delete,
+  data: { confirm: '정말 삭제하시겠습니까?' },
+  class: 'text-xs text-red-500 hover:underline',
+  style: 'font-family: Inter, sans-serif;' %>
+
           <% end %>
         </div>
       </div>
@@ -411,7 +411,7 @@
       </div>
 
       <!-- 답글 토글 -->
-      <button class="mt-2 text-xs text-[#b88b65] hover:text-[#a5774e] reply-toggle" data-comment-id="<%= comment.id %>">
+      <button class="mt-2 text-xs text-[#b88b65] hover:text-[#a5774e] reply-toggle" data-comment-id="<%= comment.id %>", style="font-family: 'Inter', sans-serif;">
         <% if comment.children.any? %>
           💬 <%= comment.children.count %>개의 답글 보기
         <% else %>
@@ -427,7 +427,7 @@
             <!-- 유저 이름 + 날짜 + 좋아요 + 버튼 -->
             <div class="flex justify-between items-start">
               <div>
-                <p class="text-sm font-semibold text-gray-800"><%= reply.user.name %></p>
+                <p class="text-sm font-semibold text-gray-800" , style="font-family: 'Noto Serif KR', serif;" ><%= reply.user.name %></p>
                
               </div>
               <div class="flex items-center space-x-2">
@@ -435,8 +435,8 @@
                 <%= render partial: 'comment_like', locals: { likeable: reply }  %>
                 
                 <% if user_signed_in? && reply.user_id == current_user.id %>
-                  <button class="edit-comment-button text-xs text-black hover:underline" data-comment-id="<%= reply.id %>">편집</button>
-                  <%= link_to '삭제', comment_path(reply), method: :delete, data: { confirm: '정말 삭제하시겠습니까?' }, class: 'text-xs text-red-500 hover:underline' %>
+                  <button class="edit-comment-button text-xs text-black hover:underline" data-comment-id="<%= reply.id %>", ,  style="font-family: 'Inter', sans-serif;">편집</button>
+                  <%= link_to '삭제', comment_path(reply), method: :delete, data: { confirm: '정말 삭제하시겠습니까?' }, class: 'text-xs text-red-500 hover:underline',  style: 'font-family: Inter, sans-serif;'  %>
                 <% end %>
               </div>
             </div>
@@ -454,7 +454,7 @@
             <%= f.hidden_field :parent_id, value: comment.id %>
             <%= f.hidden_field :post_id, value: @post.id %>
             <%= f.text_area :content, rows: 1, placeholder: "대댓글을 작성해주세요",rows: 2,class: "auto-resize-textarea w-full p-2 border border-[#d1c4b2] rounded text-sm focus:outline-none focus:ring-1 focus:ring-[#b88b65]" %>
-            <div class="flex justify-end mt-1 ">
+            <div class="flex justify-end mt-1 ",  style="font-family: 'Inter', sans-serif;">
               <%= f.submit "답글 등록", class: "px-3 py-1 bg-[#5d3b2e] text-white rounded text-xs cursor-pointer" %>
             </div>
           <% end %>
@@ -474,7 +474,7 @@
     <!-- 오른쪽 컬럼 : 댓글 사이드바 -->
     <div id="comment-sidebar" class="hidden">
       <div>
-        <h3 class="font-semibold text-lg">댓글</h3>
+        <h3 class=" text-lg",  style="font-family: 'Inter', sans-serif;" >댓글</h3>
         <button id="close-comment-sidebar" aria-label="댓글 사이드바 닫기">&times;</button>
       </div>
       <div id="comment-sidebar-content" class="text-sm text-gray-700">
@@ -495,17 +495,18 @@
       
       <!-- 상단: 유저이름 / 날짜 + 하트 -->
       <div class="flex justify-between items-start">
-        <p class="font-semibold text-gray-800 text-sm"><%= comment.user.name %></p>
+        <p class="font-semibold text-gray-800 text-sm", style="font-family: 'Noto Serif KR', serif;"><%= comment.user.name %></p>
 
         <div class="flex items-center space-x-2">
           <p class="text-xs text-gray-500"><%= comment.created_at.strftime('%Y년 %-m월 %-d일 %H:%M') %></p>
           <%= render partial: 'comment_like', locals: { likeable: comment }  %>
 
-  <div class="flex items-center space-x-2" style="line-height: 1.25; font-size: 0.75rem;">
+  <div class="flex items-center space-x-2" style="line-height: 1.25; font-size: 0.75rem;", ,  style="font-family: 'Inter', sans-serif;">
   <%= button_tag '편집',
     type: 'button',
     class: 'edit-comment-button text-xs hover:underline',
-    data: { comment_id: comment.id } %>
+    data: { comment_id: comment.id },
+      style: 'font-family: Inter, sans-serif;'  %>
 
    <%= link_to '삭제', comment_path(comment), method: :delete, data: { confirm: '정말 삭제하시겠습니까?' }, class: 'text-xs text-red-500 hover:underline' %>
 </div>
@@ -533,7 +534,7 @@
 
 </div>
 
-<div class="flex justify-end mt-0">  <button type="submit" class="px-4 py-2 bg-[#5d3b2e] text-white rounded text-sm">
+<div class="flex justify-end mt-0">  <button type="submit" class="px-4 py-2 bg-[#5d3b2e] text-white rounded text-sm",  style="font-family: 'Inter', sans-serif;">
     댓글 등록
   </button>
 </div>

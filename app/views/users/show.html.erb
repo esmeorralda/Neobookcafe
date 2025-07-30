@@ -1,5 +1,5 @@
 <!-- app/views/users/show.html.erb -->
-<div class="max-w-4xl mx-auto px-6 py-12 text-[#3e2f23] font-serif">
+<div class="max-w-4xl mx-auto px-6 py-12 text-[#3e2f23]">
   <div class="flex justify-between items-start">
     <!-- 왼쪽: 이름 + 자기소개 -->
     <div>
@@ -26,7 +26,7 @@
   </div>
 
   <!-- 인용 슬라이더 -->
-  <div id="intro-slider" class="relative overflow-hidden mt-10 border-y py-6 text-center text-lg text-[#3e2f23] font-serif italic">
+  <div id="intro-slider" class="relative overflow-hidden mt-10 border-y py-6 text-center text-lg text-[#3e2f23] italic">
   <% if @user.book_intros.where.not(quote: [nil, ""]).exists? %>
     <div id="intro-track" class="flex transition-transform duration-1500 ease-in-out">
       <% @user.book_intros.where.not(quote: [nil, ""]).each do |intro| %>
@@ -41,7 +41,7 @@
     <button id="next-btn" class="absolute right-2 top-1/2 transform -translate-y-1/2 bg-[#3e2f23] text-white px-3 py-1 rounded opacity-70 hover:opacity-100">›</button>
   <% else %>
     <div class="text-sm text-[#a09388] italic">
-      책 소개 정보를 추가하세요.
+      책 소개 정보가 없습니다.
     </div>
   <% end %>
 </div>
