@@ -188,65 +188,89 @@
   <div id="post-container" class="max-w-4xl mx-auto relative">
 
 
-   <div class="flex justify-end space-x-2 mt-3">
-  <% if user_signed_in? && @post.user_id == current_user.id %>
-  <button 
-      id="copy-link-btn"
-      data-url="<%= post_url(@post) %>" 
-      class="border border-gray-300 bg-white px-3 py-1 text-sm hover:bg-gray-100"
-    >
-      공유하기
-    </button>
-    <%= link_to "편집", edit_post_path(@post), class: " bg-[#b88b65] text-white px-3 py-1 text-sm" %>
-    <%= button_to post_path(@post), method: :delete,
-          data: { confirm: "정말 삭제하시겠습니까?" },
-          class: "border border-gray-300 bg-white px-3 py-1 text-sm" do %>
-      삭제
+
+    <div id="left-column" class="space-y-6 text-gray-800">
+  <!-- 제목 / 메타 정보 -->
+  <div>
+  <!-- 제목 + 공유/편집/삭제 버튼 한 줄 정렬 -->
+<div class="flex justify-between items-center mb-4">
+  <!-- 왼쪽: 제목 -->
+  <h1 class="text-3xl font-semibold text-[#2c1a0d]"><%= @post.title %></h1>
+
+  <!-- 오른쪽: 버튼들 -->
+  <div class="flex space-x-2">
+    <% if user_signed_in? && @post.user_id == current_user.id %>
+      <button 
+        id="copy-link-btn"
+        data-url="<%= post_url(@post) %>" 
+        class="border border-gray-300 bg-white px-3 py-1 text-sm hover:bg-gray-100"
+      >
+        공유하기
+      </button>
+
+      <%= link_to "편집", edit_post_path(@post),
+          class: "bg-[#b88b65] text-white px-3 py-1 text-sm hover:bg-[#a27958]" %>
+
+      <%= button_to post_path(@post), method: :delete,
+            data: { confirm: "정말 삭제하시겠습니까?" },
+            class: "border border-gray-300 bg-white px-3 py-1 text-sm hover:bg-red-100" do %>
+        삭제
+      <% end %>
+
+    <% elsif user_signed_in? && current_user.bookmarked_posts.exists?(@post.id) %>
+      <%= button_to post_unbookmark_path(@post), method: :delete, class: "flex items-center" do %>
+        <%= image_tag "icon/post/Vector 41.svg", class: "w-4 h-6 fill-current text-[#2c1a0d]" %>
+      <% end %>
+
+    <% elsif user_signed_in? %>
+      <%= button_to post_bookmark_path(@post), method: :post, class: "flex items-center" do %>
+        <%= image_tag "icon/post/Vector 40.svg", class: "w-4 h-6 fill-current text-gray-400" %>
+      <% end %>
     <% end %>
-  <% elsif user_signed_in? && current_user.bookmarked_posts.exists?(@post.id) %>
-    <%= button_to post_unbookmark_path(@post), method: :delete, class: "flex items-center" do %>
-      <%= image_tag "icon/post/Vector 41.svg", class: "w-4 h-6 fill-current text-[#2c1a0d]" %>
-    <% end %>
-  <% elsif user_signed_in? %>
-    <%= button_to post_bookmark_path(@post), method: :post, class: "flex items-center" do %>
-      <%= image_tag "icon/post/Vector 40.svg", class: "w-4 h-6 fill-current text-gray-400" %>
-    <% end %>
-  <% end %>
+  </div>
 </div>
 
-    <!-- 왼쪽 컬럼 : 제목, 메타정보, 본문 -->
-    <div id="left-column" class="space-y-6 text-gray-800">
-      <!-- 제목 / 메타 정보 -->
-      <div>
-        <h1 class="text-3xl font-semibold text-[#2c1a0d] mb-2"><%= @post.title %></h1>
-        <p class="text-sm text-gray-700 mb-2">
-          책 제목 <%= @post.book_title %> (<%= @post.book_author %>)
-        </p>
-        <p class="text-sm text-gray-500 mb-4">
-          <%= @post.user.name %> 씀, <%= @post.created_at.strftime('%Y년 %-m월 %-d일') %>
-        </p>
-       <% if @post.draft %>
-  <p class="text-sm  space-x-6 mb-6">이 글은 작성 중입니다.</p>
-<% else %>
-  <div class="flex items-center space-x-6 mb-6">
-    <div class="flex items-center space-x-1">
-      <%= image_tag "icon/post/viewCount.svg", class: "w-4 h-4", alt: "조회수" %>
-      <span class="text-xs"><%= @post.view_count.to_i %>회</span>
-    </div>
-    <div class="flex items-center space-x-1">
-      <%= image_tag "icon/post/comments.svg", class: "w-4 h-4", alt: "댓글" %>
-      <span class="text-xs"><%= total_comments_count(@post) %>개</span>
-    </div>
-    <div class="flex items-center space-x-1">
-      <%= image_tag "icon/post/likes.svg", class: "w-4 h-4", alt: "좋아요" %>
-      <span class="text-xs"><%= @post.like_count.to_i %>개</span>
-    </div>
-  </div>
-<% end %>
+
+    <p class="text-sm text-gray-700 mb-2">
+      책 제목 <%= @post.book_title %> (<%= @post.book_author %>)
+    </p>
+
+  <p class="text-sm text-gray-900 mb-2 text-right mb-2">
+    <%= @post.category.present? ? Post.category_korean[@post.category.to_sym] : "카테고리 없음" %>
+    <span class="mx-2">, </span>
+    <%= @post.book_genre.present? ? Post.book_genre_korean[@post.book_genre.to_sym] : "장르 없음" %>
+    <span class="mx-2"></span>
+    </p>
 
 
-        <hr class="border-t border-[#e3d5c6]" />
+    <p class="text-sm text-gray-900 mb-2  text-right">
+      <%= @post.user.name %> 씀, <%= @post.created_at.strftime('%Y년 %-m월 %-d일') %>
+    </p>
+
+    <% if @post.draft %>
+      <p class="text-sm space-x-3 mb-2 font-medium">이 글은 작성 중입니다.</p>
+    <% else %>
+      <!-- 통계 정보 오른쪽 정렬 -->
+      <div class="flex justify-end space-x-3 mb-3 text-right">
+        <div class="flex items-center space-x-1">
+          <%= image_tag "icon/post/viewCount.svg", class: "w-4 h-4", alt: "조회수" %>
+          <span class="text-xs"><%= @post.view_count.to_i %>회</span>
+        </div>
+        <div class="flex items-center space-x-1">
+          <%= image_tag "icon/post/comments.svg", class: "w-4 h-4", alt: "댓글" %>
+          <span class="text-xs"><%= total_comments_count(@post) %>개</span>
+        </div>
+        <div class="flex items-center space-x-1">
+          <%= image_tag "icon/post/likes.svg", class: "w-4 h-4", alt: "좋아요" %>
+          <span class="text-xs"><%= @post.like_count.to_i %>개</span>
+        </div>
       </div>
+    <% end %>
+
+
+    <hr class="border-t border-[#e3d5c6] mt-3" />
+  </div>
+
 
       <!-- 본문 영역 -->
       <div id="post-content" class="space-y-6 text-base leading-relaxed">
