@@ -218,21 +218,25 @@
         <p class="text-sm text-gray-500 mb-4">
           <%= @post.user.name %> 씀, <%= @post.created_at.strftime('%Y년 %-m월 %-d일') %>
         </p>
+       <% if @post.draft %>
+  <p class="text-sm  space-x-6 mb-6">이 글은 작성 중입니다.</p>
+<% else %>
+  <div class="flex items-center space-x-6 mb-6">
+    <div class="flex items-center space-x-1">
+      <%= image_tag "icon/post/viewCount.svg", class: "w-4 h-4", alt: "조회수" %>
+      <span class="text-xs"><%= @post.view_count.to_i %>회</span>
+    </div>
+    <div class="flex items-center space-x-1">
+      <%= image_tag "icon/post/comments.svg", class: "w-4 h-4", alt: "댓글" %>
+      <span class="text-xs"><%= total_comments_count(@post) %>개</span>
+    </div>
+    <div class="flex items-center space-x-1">
+      <%= image_tag "icon/post/likes.svg", class: "w-4 h-4", alt: "좋아요" %>
+      <span class="text-xs"><%= @post.like_count.to_i %>개</span>
+    </div>
+  </div>
+<% end %>
 
-        <div class="flex items-center space-x-6 mb-6">
-          <div class="flex items-center space-x-1">
-            <%= image_tag "icon/post/viewCount.svg", class: "w-4 h-4", alt: "조회수" %>
-            <span class="text-xs"><%= @post.view_count.to_i %>회</span>
-          </div>
-          <div class="flex items-center space-x-1">
-            <%= image_tag "icon/post/comments.svg", class: "w-4 h-4", alt: "댓글" %>
-            <span class="text-xs"><%= total_comments_count(@post) %>개</span>
-          </div>
-          <div class="flex items-center space-x-1">
-            <%= image_tag "icon/post/likes.svg", class: "w-4 h-4", alt: "좋아요" %>
-            <span class="text-xs"><%= @post.like_count.to_i %>개</span>
-          </div>
-        </div>
 
         <hr class="border-t border-[#e3d5c6]" />
       </div>
@@ -258,7 +262,7 @@
               <% end %>
             </div>
 
-            <% if block.block_type != 'quote'%>
+            <% if block.block_type != 'quote' && @post.draft !=true%>
               <div class="ml-3 flex-shrink-0">
                 <button type="button"
                   class="text-xs px-2 py-1 border border-gray-300 rounded text-gray-600 hover:bg-gray-100 comment-view-btn"
@@ -272,7 +276,7 @@
       </div>
 
       <!-- 좋아요 버튼: 댓글 입력창 위로 이동 -->
-      <% if user_signed_in? %>
+      <% if user_signed_in? && @post.draft == false%>
         <div class="flex items-center justify-between mt-12 mb-4">
           <div>
             <% likeable = @post %>
@@ -306,6 +310,8 @@
   <%= f.hidden_field :post_block_id, value: nil %>
   <%= f.hidden_field :post_id, value: @post.id %>
 
+  <% if @post.draft != true %>
+   
   <div class="flex flex-col space-y-1">
     <%= f.text_area :content, placeholder: "답글을 작성해주세요", rows: 4, class: "auto-resize-textarea w-full p-2 border border-[#d1c4b2] rounded text-sm resize-none focus:outline-none focus:ring-1 focus:ring-[#b88b65]" %>
 
@@ -315,10 +321,12 @@
       </button>
     </div>
   </div>
+  <% end %>
 <% end %>
 
 
 
+  <% if @post.draft != true %>
 <div id="root-comment-list" class="mt-6 max-h-[600px] overflow-y-auto bg-[#f9f6f2] p-4 rounded-lg shadow-inner">
 
   <!-- 댓글 정렬 드롭다운 -->
@@ -427,6 +435,7 @@
 </div>
  
 </div>
+  <% end %>
 
 
     </div>

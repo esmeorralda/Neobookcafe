@@ -4,7 +4,7 @@ class UsersController < ApplicationController
   per_page = 10
 
   # 각 카테고리별 1페이지(10개) 초기 로드
-  @my_posts = @user.posts.order(created_at: :desc).page(1).per(per_page)
+ @my_posts = @user.posts.where(draft: false).order(created_at: :desc).page(1).per(per_page)
   @liked_posts = @user.liked_posts.order(created_at: :desc).page(1).per(per_page)
   @saved_posts = @user.bookmarked_posts.order(created_at: :desc).page(1).per(per_page)
 
