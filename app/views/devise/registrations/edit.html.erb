@@ -59,3 +59,19 @@
           class: "bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition" %>
   </div>
 </div>
+
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    <% if resource.errors.any? %>
+      const errors = "<%= j(resource.errors.full_messages.join('\\n')) %>";
+      alert(errors);
+    <% end %>
+  });
+</script>
+
+<% if notice.present? %>
+  <script>
+    alert("<%= j(notice) %>");
+  </script>
+<% end %>

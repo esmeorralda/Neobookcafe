@@ -98,18 +98,17 @@
         </div>
       </section>
 
-      <section class="tab-content hidden">
-        <h3 class="text-xl font-semibold mb-3">글자 설정</h3>
-        <label class="block mt-2">
-          <span class="text-sm font-medium mb-1 block">글자 크기 조절</span>
-          <input type="range" min="12" max="36" value="16" class="w-full" />
-        </label>
+ <section class="tab-content hidden">
+  <h3 class="text-xl font-semibold mb-3">글자 설정</h3>
+  <label class="block mt-2">
+    <span class="text-sm font-medium mb-1 block">글자 크기 조절</span>
+    <input type="range" id="font-size-slider" min="13" max="19" value="16" class="w-full" />
+  </label>
 
-        <div class="flex justify-center gap-6 mt-6">
-          <button class="bg-[#3e2f23] text-white py-2 px-6 rounded hover:bg-[#5b4633]">적용하기</button>
-          <button id="close-modal-btn-2" class="bg-gray-300 py-2 px-6 rounded hover:bg-gray-400">닫기</button>
-        </div>
-      </section>
+  <div class="flex justify-center gap-6 mt-6">
+    <button id="close-modal-btn-2" class="bg-gray-300 py-2 px-6 rounded hover:bg-gray-400">닫기</button>
+  </div>
+</section>
 
       <section class="tab-content hidden">
         <h3 class="text-xl font-semibold mb-3">언어 설정</h3>
@@ -127,23 +126,37 @@
 
       <section class="tab-content hidden">
         <h3 class="text-xl font-semibold mb-3">비밀번호 변경</h3>
-        <label class="block mb-3">
-          <span class="text-sm font-medium">현재 비밀번호</span>
-          <input type="password" class="w-full border border-gray-300 rounded px-3 py-2" />
-        </label>
-        <label class="block mb-3">
-          <span class="text-sm font-medium">새 비밀번호</span>
-          <input type="password" class="w-full border border-gray-300 rounded px-3 py-2" />
-        </label>
-        <label class="block mb-6">
-          <span class="text-sm font-medium">새 비밀번호 확인</span>
-          <input type="password" class="w-full border border-gray-300 rounded px-3 py-2" />
-        </label>
+       <% if user_signed_in? %>
+<% resource = current_user %>
+<% resource_name = :user %>
+<% devise_mapping = Devise.mappings[:user] %>
+<% @minimum_password_length = Devise.password_length.min %>
 
-        <div class="flex justify-center gap-6 mt-6">
-          <button class="bg-[#3e2f23] text-white py-2 px-6 rounded hover:bg-[#5b4633]">적용하기</button>
-          <button id="close-modal-btn-4" class="bg-gray-300 py-2 px-6 rounded hover:bg-gray-400">닫기</button>
-        </div>
+<%= form_for(resource, as: resource_name, url: registration_path(resource_name), html: { method: :put }) do |f| %>
+  <div class="mb-6">
+    <%= f.label :current_password, "현재 비밀번호 (변경 사항 확인용)", class: "block text-sm font-medium mb-1" %>
+    <%= f.password_field :current_password, autocomplete: "current-password", class: "w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-[#3e2f23]" %>
+  </div>
+
+  <div class="mb-6">
+    <%= f.label :password, "새 비밀번호 (변경하지 않으려면 비워두세요)", class: "block text-sm font-medium mb-1" %>
+    <%= f.password_field :password, autocomplete: "new-password", class: "w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-[#3e2f23]" %>
+    <% if @minimum_password_length %>
+      <p class="text-xs mt-1 text-gray-500">최소 <%= @minimum_password_length %>자 이상</p>
+    <% end %>
+  </div>
+
+  <div class="mb-6">
+    <%= f.label :password_confirmation, "새 비밀번호 확인", class: "block text-sm font-medium mb-1" %>
+    <%= f.password_field :password_confirmation, autocomplete: "new-password", class: "w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-[#3e2f23]" %>
+  </div>
+
+  <div class="flex justify-center gap-6 mt-6">
+    <%= f.submit "적용하기", class: "bg-[#3e2f23] text-white py-2 px-6 rounded hover:bg-[#5b4633]" %>
+    <button type="button" id="close-modal-btn-4" class="bg-gray-300 py-2 px-6 rounded hover:bg-gray-400">닫기</button>
+  </div>
+<% end %>
+<% end %>
       </section>
     </div>
 
@@ -195,7 +208,65 @@
   </body>
 
 </html>
-<script>document.addEventListener("DOMContentLoaded", () => {
+
+<% if user_signed_in? %>
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+
+
+
+  const form = document.querySelector("form"); // 실제 form 선택자 맞게 수정 필요
+  const currentPasswordInput = form.querySelector("[name='user[current_password]']");
+  const newPasswordInput = form.querySelector("[name='user[password]']");
+  const confirmPasswordInput = form.querySelector("[name='user[password_confirmation]']");
+  const submitBtn = document.getElementById("password-submit");
+
+  form.addEventListener("submit", (e) => {
+    e.preventDefault();
+
+    const currentPassword = currentPasswordInput.value.trim();
+    const newPassword = newPasswordInput.value.trim();
+    const confirmPassword = confirmPasswordInput.value.trim();
+
+    if (!currentPassword) {
+      alert("현재 비밀번호를 입력하세요.");
+      currentPasswordInput.focus();
+      return;
+    }
+
+    if (newPassword || confirmPassword) {
+      // 새 비밀번호를 입력했다면 검증
+      if (newPassword.length < 6) {  // 최소길이 예시
+        alert("새 비밀번호는 최소 6자 이상이어야 합니다.");
+        newPasswordInput.focus();
+        return;
+      }
+
+      if (newPassword !== confirmPassword) {
+        alert("새 비밀번호와 확인용 비밀번호가 일치하지 않습니다.");
+        confirmPasswordInput.focus();
+        return;
+      }
+
+      if (newPassword === currentPassword) {
+        alert("새 비밀번호는 현재 비밀번호와 달라야 합니다.");
+        newPasswordInput.focus();
+        return;
+      }
+    }
+
+    // 여기에 서버에 비밀번호 변경 요청 로직 수행 (AJAX 등)
+    // 또는 폼 submit 진행
+    form.submit();
+  });
+
+  // 닫기 버튼
+  document.getElementById("close-modal-btn-4").addEventListener("click", () => {
+    document.getElementById("test-modal").classList.add("hidden");
+  });
+});
+
+document.addEventListener("DOMContentLoaded", () => {
   const modal = document.getElementById("test-modal");
   const openBtns = document.querySelectorAll(".open-settings-modal");
   const closeBtns = modal.querySelectorAll("button[id^='close-modal-btn']");
@@ -243,4 +314,52 @@
   }
 });
 
+document.addEventListener("DOMContentLoaded", () => {
+  const slider = document.getElementById("font-size-slider");
+  const applyBtn = document.getElementById("apply-font-size");
+
+  // 적용 버튼 클릭 시, <html> 폰트 크기 변경
+  applyBtn.addEventListener("click", () => {
+    const fontSize = slider.value + "px";
+    document.documentElement.style.fontSize = fontSize;
+  });
+
+  slider.addEventListener("input", () => {
+    const fontSize = slider.value + "px";
+    document.documentElement.style.fontSize = fontSize;  // 실시간 적용
+  });
+
+});
+document.addEventListener("DOMContentLoaded", () => {
+  const slider = document.getElementById("font-size-slider");
+
+  // 저장된 값이 있으면 적용
+  const savedFontSize = localStorage.getItem("fontSize");
+  if (savedFontSize) {
+    document.documentElement.style.fontSize = savedFontSize;
+    slider.value = parseInt(savedFontSize);
+  }
+
+  // 슬라이더 이동할 때마다 실시간 적용 + 저장
+  slider.addEventListener("input", () => {
+    const fontSize = slider.value + "px";
+    document.documentElement.style.fontSize = fontSize;
+    localStorage.setItem("fontSize", fontSize);
+  });
+});
+
 </script>
+
+<% if notice.present? %>
+  <script>
+    alert("<%= j(notice) %>");
+  </script>
+<% end %>
+
+<% if alert.present? %>
+  <script>
+    alert("<%= j(alert) %>");
+  </script>
+<% end %>
+
+<% end %>
