@@ -54,7 +54,9 @@
    <div class="nav-links">
   <% if user_signed_in? %>
     <button id="toggle-right-sidebar" class="text-[14px] text-[#333] no-underline">프로필</button>
-    <%= link_to "설정", settings_path %>
+<%= link_to "설정", "#", class: "open-settings-modal text-sm underline", data: { url: settings_path } %>
+
+
       <%= link_to "로그아웃", destroy_user_session_path, method: :delete, data: { turbo_method: :delete }, class: "text-[14px] text-[#333] no-underline" %>
   <% else %>
     <%= link_to "로그인", new_user_session_path %>
@@ -62,10 +64,91 @@
 </div>
 
 
+
          <%# <button onclick="openModal()" class="bg-blue-600 px-4 py-2">
             로그인
           </button> %>
       </div>
+   <div id="test-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center"
+     style="top: 50%; left: 50%; transform: translate(-50%, -50%);">
+  <div class="bg-white p-6 rounded shadow-lg max-w-6xl w-full max-h-[90vh] overflow-auto border border-gray-300">
+
+    <h2 class="text-2xl font-bold mb-6">설정</h2>
+
+    <!-- 탭 버튼 -->
+    <nav class="flex border-b border-gray-300 mb-6" id="modal-tabs">
+      <button class="tab-btn px-4 py-2 border-b-2 border-[#3e2f23] font-semibold focus:outline-none" data-tab="0">알림</button>
+      <button class="tab-btn px-4 py-2 border-b-2 border-transparent hover:border-gray-400 focus:outline-none ml-6" data-tab="1">글자</button>
+      <button class="tab-btn px-4 py-2 border-b-2 border-transparent hover:border-gray-400 focus:outline-none ml-6" data-tab="2">언어</button>
+      <button class="tab-btn px-4 py-2 border-b-2 border-transparent hover:border-gray-400 focus:outline-none ml-6" data-tab="3">비밀번호 변경</button>
+    </nav>
+
+    <!-- 탭 내용 -->
+    <div id="tab-contents">
+      <section class="tab-content">
+        <h3 class="text-xl font-semibold mb-3">알림 설정</h3>
+        <label class="inline-flex items-center mt-1">
+          <input type="checkbox" class="form-checkbox" />
+          <span class="ml-2">푸시 알림 받기</span>
+        </label>
+
+        <div class="flex justify-center gap-6 mt-6">
+          <button class="bg-[#3e2f23] text-white py-2 px-6 rounded hover:bg-[#5b4633]">적용하기</button>
+          <button id="close-modal-btn" class="bg-gray-300 py-2 px-6 rounded hover:bg-gray-400">닫기</button>
+        </div>
+      </section>
+
+      <section class="tab-content hidden">
+        <h3 class="text-xl font-semibold mb-3">글자 설정</h3>
+        <label class="block mt-2">
+          <span class="text-sm font-medium mb-1 block">글자 크기 조절</span>
+          <input type="range" min="12" max="36" value="16" class="w-full" />
+        </label>
+
+        <div class="flex justify-center gap-6 mt-6">
+          <button class="bg-[#3e2f23] text-white py-2 px-6 rounded hover:bg-[#5b4633]">적용하기</button>
+          <button id="close-modal-btn-2" class="bg-gray-300 py-2 px-6 rounded hover:bg-gray-400">닫기</button>
+        </div>
+      </section>
+
+      <section class="tab-content hidden">
+        <h3 class="text-xl font-semibold mb-3">언어 설정</h3>
+        <label for="language-select" class="block text-sm mb-1">언어 선택</label>
+        <select id="language-select" class="w-full border border-gray-300 rounded px-3 py-2">
+          <option value="ko">한국어 (Korean)</option>
+          <option value="en">English</option>
+        </select>
+
+        <div class="flex justify-center gap-6 mt-6">
+          <button class="bg-[#3e2f23] text-white py-2 px-6 rounded hover:bg-[#5b4633]">적용하기</button>
+          <button id="close-modal-btn-3" class="bg-gray-300 py-2 px-6 rounded hover:bg-gray-400">닫기</button>
+        </div>
+      </section>
+
+      <section class="tab-content hidden">
+        <h3 class="text-xl font-semibold mb-3">비밀번호 변경</h3>
+        <label class="block mb-3">
+          <span class="text-sm font-medium">현재 비밀번호</span>
+          <input type="password" class="w-full border border-gray-300 rounded px-3 py-2" />
+        </label>
+        <label class="block mb-3">
+          <span class="text-sm font-medium">새 비밀번호</span>
+          <input type="password" class="w-full border border-gray-300 rounded px-3 py-2" />
+        </label>
+        <label class="block mb-6">
+          <span class="text-sm font-medium">새 비밀번호 확인</span>
+          <input type="password" class="w-full border border-gray-300 rounded px-3 py-2" />
+        </label>
+
+        <div class="flex justify-center gap-6 mt-6">
+          <button class="bg-[#3e2f23] text-white py-2 px-6 rounded hover:bg-[#5b4633]">적용하기</button>
+          <button id="close-modal-btn-4" class="bg-gray-300 py-2 px-6 rounded hover:bg-gray-400">닫기</button>
+        </div>
+      </section>
+    </div>
+
+  </div>
+</div>
 <% if @show_sidebar %>
   <div class="bg-[#f3ede3] pt-1 text-sm text-[#7c6243] flex justify-center space-x-8 relative">
     <% if params[:category] == "creation" %>
@@ -102,7 +185,62 @@
 
      <%= render 'layouts/right_sidebar' %>
 
-</div>
-  </body>
-</html>
 
+</div>
+
+
+
+
+
+  </body>
+
+</html>
+<script>document.addEventListener("DOMContentLoaded", () => {
+  const modal = document.getElementById("test-modal");
+  const openBtns = document.querySelectorAll(".open-settings-modal");
+  const closeBtns = modal.querySelectorAll("button[id^='close-modal-btn']");
+  const tabs = modal.querySelectorAll(".tab-btn");
+  const tabContents = modal.querySelectorAll(".tab-content");
+
+  // 모달 열기
+  openBtns.forEach(btn => {
+    btn.addEventListener("click", e => {
+      e.preventDefault();
+      modal.classList.remove("hidden");
+      showTab(0); // 첫 탭 기본 표시
+    });
+  });
+
+  // 모달 닫기
+  closeBtns.forEach(btn => {
+    btn.addEventListener("click", () => {
+      modal.classList.add("hidden");
+    });
+  });
+
+  // 탭 클릭 이벤트
+  tabs.forEach((tab, i) => {
+    tab.addEventListener("click", () => {
+      showTab(i);
+    });
+  });
+
+  // 탭 표시 함수
+  function showTab(index) {
+    tabs.forEach((tab, i) => {
+      if(i === index){
+        tab.classList.remove("border-transparent");
+        tab.classList.add("border-[#3e2f23]", "font-semibold");
+      } else {
+        tab.classList.add("border-transparent");
+        tab.classList.remove("border-[#3e2f23]", "font-semibold");
+      }
+    });
+
+    tabContents.forEach((content, i) => {
+      content.classList.toggle("hidden", i !== index);
+    });
+  }
+});
+
+</script>

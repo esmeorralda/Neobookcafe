@@ -16,6 +16,14 @@ class UsersController < ApplicationController
   @liked_posts_total_pages = @liked_posts.total_pages
   @saved_posts_total_pages = @saved_posts.total_pages
 end
+def settings
+  if request.xhr?
+    render partial: 'users/settings_modal_content' # AJAX 요청이면 부분뷰 렌더
+  else
+    # 일반 요청일 경우 페이지 렌더링
+  end
+end
+
 
   def edit
   end
