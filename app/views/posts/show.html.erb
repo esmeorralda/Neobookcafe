@@ -190,6 +190,13 @@
 
    <div class="flex justify-end space-x-2 mt-3">
   <% if user_signed_in? && @post.user_id == current_user.id %>
+  <button 
+      id="copy-link-btn"
+      data-url="<%= post_url(@post) %>" 
+      class="border border-gray-300 bg-white px-3 py-1 text-sm hover:bg-gray-100"
+    >
+      공유하기
+    </button>
     <%= link_to "편집", edit_post_path(@post), class: " bg-[#b88b65] text-white px-3 py-1 text-sm" %>
     <%= button_to post_path(@post), method: :delete,
           data: { confirm: "정말 삭제하시겠습니까?" },
@@ -774,6 +781,25 @@ function bindEditCommentButtons(scope = document) {
     alert('신고 모달을 열 예정입니다.');
   }
 });
+
+document.addEventListener('DOMContentLoaded', () => {
+  const copyBtn = document.getElementById('copy-link-btn');
+  
+  if (copyBtn) {
+    copyBtn.addEventListener('click', () => {
+      const url = copyBtn.dataset.url;
+
+      navigator.clipboard.writeText(url)
+        .then(() => {
+          alert('링크가 복사되었습니다!');
+        })
+        .catch(err => {
+          console.error('복사 실패:', err);
+        });
+    });
+  }
+});
+
 </script>
 
 </body>
