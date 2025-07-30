@@ -145,20 +145,25 @@ def search
   render 'search'
 end
 
+def update
+  @post = Post.find(params[:id])
 
-  
-  def update
-    @post = Post.find(params[:id])
+  Post.transaction do
+    # 기존 블럭들 삭제
+    @post.post_blocks.destroy_all
 
-  
     if @post.update(post_params)
       redirect_to @post, notice: "게시글이 성공적으로 수정되었습니다."
     else
-      flash.now[:alert] = "수정에 실패했습니다."
-      render :edit
+      raise ActiveRecord::Rollback
     end
-
   end
+
+rescue
+  flash.now[:alert] = "수정에 실패했습니다."
+  render :edit
+end
+
 
     def edit
   @post = Post.find(params[:id])
