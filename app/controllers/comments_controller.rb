@@ -40,6 +40,37 @@ def create
   @comment = Comment.new(comment_params)
   @comment.user = current_user
 
+
+  full_text = @comment.content.to_s
+  flagged_results = KorcenFilterService.analyze_text(full_text)
+
+  if flagged_results.any?
+    @comment.contains_profanity = true if @comment.respond_to?(:contains_profanity)
+
+    alert_messages = flagged_results.map do |result|
+      sentence = clean_sentence(result[:sentence])
+      categories = result[:categories]
+                      .select { |_, v| v }
+                      .keys
+                      .map { |cat| korean_reason_map(cat.to_s) }
+                      .join(", ")
+      "문장: #{sentence}\n\n감지된 비속어 유형: #{categories}"
+    end.join("\n\n")
+
+    @alert_messages = "비속어가 포함된 문장이 감지되었습니다:\n\n" + alert_messages +
+                      "\n\n이는 청소년 보호 정책의 일환으로 제한됩니다. 문장을 수정하여 다시 시도해 주세요."
+
+    respond_to do |format|
+      format.html do
+        flash[:alert] = @alert_messages
+        redirect_back fallback_location: root_path
+      end
+      format.json do
+        render json: { errors: @alert_messages }, status: :unprocessable_entity
+      end
+    end
+    return
+  end
   respond_to do |format|
     if @comment.save
       format.html do
@@ -70,6 +101,26 @@ def set_comment
   @post = @comment.post
 end
 
+def korean_reason_map(category)
+  case category
+  when "general" then "일반 비속어"
+  when "minor" then "경미한 비속어"
+  when "sexual" then "성적 비속어"
+  when "belittle" then "모욕적 표현"
+  when "race" then "인종차별적 표현"
+  when "parents" then "가족 비하"
+  when "foreign" then "외국인 비하"
+  when "special" then "특수 비속어"
+  when "politics" then "정치적 비속어"
+  else category
+  end
+end
+
+def clean_sentence(text)
+  text.gsub(/[\r\n\t]+/, " ")  # 줄바꿈과 탭을 공백으로 변환
+      .gsub(/[\d,]+/, "")      # 숫자와 쉼표 제거
+      .strip                   # 앞뒤 공백 제거
+end
 
   
     def comment_params
