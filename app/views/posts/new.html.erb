@@ -4,66 +4,125 @@
       <div class="flex justify-between items-center mb-6">
         <h1 class="text-xl font-bold text-gray-800">새 게시글 작성</h1>
       </div>
+<% if @alert_messages.present? %>
+  <div class="mb-6 text-left whitespace-pre-wrap break-words bg-white rounded-md p-4 shadow-md border border-yellow-400 text-yellow-800">
+    <%= @alert_messages %>
+  </div>
+  <% if @post.present? %>
+  <p>선택된 장르: <%= @post.book_genre %></p>
+
+  <h3>본문 블록 내용</h3>
+  <% @post.post_blocks.each_with_index do |block, index| %>
+    <div>
+      <strong>블록 <%= index + 1 %> (타입: <%= block.block_type %>):</strong>
+      <p><%= block.content %></p>
+    </div>
+  <% end %>
+<% end %>
+
+<% end %>
 
       <!-- 기본 정보 -->
       <div class="flex justify-between items-center gap-2 max-w-4xl mx-auto bg-[#f7f1ea]">
+      
         <div class="flex flex-col w-1/3">
           <label for="category-select" class="mb-1  text-sm font-medium">게시판 선택</label>
-          <select id="category-select" name="post[category]" class="border border-gray-300 p-2 bg-white w-full rounded">
-            <option value="thought">감상문</option>
-            <option value="discussion">논설문</option>
-            <option value="creation">창작물</option>
-            <option value="board">자유게시글</option>
-          </select>
+         <select id="category-select" name="post[category]" class="border border-gray-300 p-2 bg-white w-full rounded">
+           <option value="discussion" <%= "selected" if @post&.category == "discussion" %>>논설문</option>
+  <option value="thought" <%= "selected" if @post&.category == "thought" %>>감상문</option>
+  <option value="creation" <%= "selected" if @post&.category == "creation" %>>창작물</option>
+  <option value="board" <%= "selected" if @post&.category == "board" %>>자유게시글</option>
+</select>
         </div>
 
         <div class="flex flex-col w-1/2">
           <label for="book_title" class="mb-1  text-sm font-medium">책 제목</label>
-          <input type="text" id="book_title" name="post[book_title]" class="border border-gray-300 p-2 bg-white w-full rounded" />
+          <input type="text" id="book_title" name="post[book_title]" class="border border-gray-300 p-2 bg-white w-full rounded" value="<%= @post&.book_title %>" />
         </div>
 
         <div class="flex flex-col w-1/3">
           <label for="book_author" class="mb-1  text-sm font-medium">책 저자</label>
-          <input type="text" id="book_author" name="post[book_author]" class="border border-gray-300 p-2 bg-white w-full rounded" />
+        <input type="text" id="book_author" name="post[book_author]" class="border border-gray-300 p-2 bg-white w-full rounded" value="<%= @post&.book_author %>" />
         </div>
       </div>
 
       <div class="text-sm">
         <%= f.label :title, "게시글 제목", class: " mb-1" %>
-        <%= f.text_field :title, class: "w-full border border-gray-300 p-2 bg-white rounded" %>
+       <%= f.text_field :title, class: "w-full border border-gray-300 p-2 bg-white rounded" %>
+
       </div>
 
       <!-- 장르 선택 -->
       <div id="genre-container">
         <span class="text-sm mr-2">장르</span>
 
-        <% ["철학", "문학", "역사", "사회", "경제", "과학/기술"].each do |genre| %>
-          <label class="mr-2 text-sm genre-default">
-            <%= radio_button_tag "genres[]", genre %> <%= genre %>
-          </label>
-        <% end %>
+<% genre_maps = {
+  default: {
+    "philosophy" => "철학",
+    "literature" => "문학",
+    "history" => "역사",
+    "society" => "사회",
+    "economy" => "경제",
+    "science_technology" => "과학/기술"
+  },
+  creation: {
+    "poetry" => "시",
+    "essay" => "에세이",
+    "novel" => "소설"
+  },
+  board: {
+    "book_recommendation" => "책 추천",
+    "book_promotion" => "책 홍보",
+    "author_story" => "작가 이야기",
+    "reading_tips" => "독서팁/습관",
+    "event_promotion" => "책 관련 행사 홍보",
+    "book_qna" => "책 Q&A",
+    "others" => "기타"
+  }
+} %>
 
-        <% ["시", "에세이", "소설"].each do |genre| %>
-          <label class="mr-2 text-sm genre-creation hidden">
-            <%= radio_button_tag "genres[]", genre %> <%= genre %>
-          </label>
-        <% end %>
+<!-- default 장르 -->
+<% genre_maps[:default].each do |eng, kor| %>
+  <label class="mr-2 text-sm genre-default">
+    <%= radio_button_tag "post[book_genre]", eng, @post.book_genre == eng %>
+    <%= kor %>
+  </label>
+<% end %>
 
-        <% ["책 추천", "책 홍보", "작가 이야기", "독서팁/습관", "책 관련 행사 홍보", "책 Q&A", "기타"].each do |genre| %>
-          <label class="mr-2 text-sm genre-board hidden">
-            <%= radio_button_tag "genres[]", genre %> <%= genre %>
-          </label>
-        <% end %>
+<!-- 창작물 장르 -->
+<% genre_maps[:creation].each do |eng, kor| %>
+  <label class="mr-2 text-sm genre-creation hidden">
+    <%= radio_button_tag "post[book_genre]", eng, @post.book_genre == eng %>
+    <%= kor %>
+  </label>
+<% end %>
 
-        <label class="ml-4 text-sm">
-          <%= check_box_tag :allow_comments, true %> 댓글 허용
-        </label>
+<!-- 자유게시판 장르 -->
+<% genre_maps[:board].each do |eng, kor| %>
+  <label class="mr-2 text-sm genre-board hidden">
+    <%= radio_button_tag "post[book_genre]", eng, @post.book_genre == eng %>
+    <%= kor %>
+  </label>
+<% end %>
+
+
+  
       </div>
 
       <!-- 본문 (종이 느낌 영역) -->
-      <div id="blocks-container" class="bg-white p-6 shadow mt-4 rounded" style="min-height: 800px; max-height: 1200px; overflow-y: auto; font-family: 'Noto Sans KR', sans-serif; line-height: 1.4;">
-        <!-- 자바스크립트로 동적 블록 생성 -->
-      </div>
+  <div id="blocks-container" class="bg-white p-6 shadow mt-4 rounded"
+     style="min-height: 800px; max-height: 1200px; overflow-y: auto; font-family: 'Noto Sans KR', sans-serif; line-height: 1.4;">
+
+  <% if @post.post_blocks.present? && @post.post_blocks.any? %>
+    <% @post.post_blocks.each_with_index do |block, index| %>
+      <%= render partial: "post_blocks", locals: { block: block, index: index } %>
+    <% end %>
+  <% else %>
+    <%= render partial: "post_blocks", locals: { block: PostBlock.new(block_type: "paragraph", content: ""), index: 0 } %>
+  <% end %>
+
+</div>
+
     <% end %>
   </div>
 
@@ -81,6 +140,33 @@
 </div>
 
 <style>
+#alert-modal {
+  position: fixed;
+  inset: 0; /* top, right, bottom, left 모두 0 */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  background-color: rgba(0, 0, 0, 0.5);
+  padding: 1rem;
+}
+
+#alert-modal > div {
+  background-color: #fff;
+  border-radius: 0.5rem; /* 8px */
+  width: 90vw;
+  max-width: 600px;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  position: relative;
+}
+
+
   blocks-container {
     font-family: 'Noto Sans KR', sans-serif;
     border: 1px solid #ddd;
@@ -198,7 +284,32 @@
 
 </style>
 <script>
+
+  let isFormDirty = false;
+
+  // 사용자가 내용을 입력했는지 감지
+  document.addEventListener("input", (e) => {
+    if (e.target.closest("#blocks-container")) {
+      isFormDirty = true;
+    }
+  });
+
+  // 페이지 이탈 또는 새로고침 시 경고
+  window.addEventListener("beforeunload", function (e) {
+    if (isFormDirty) {
+      const message = "작성 중인 내용이 사라집니다. 페이지를 떠나시겠습니다?";
+      e.preventDefault();
+      e.returnValue = message; 
+      return message;
+    }
+  });
+
+  
+ const serverPostBlocks = <%= raw @post.post_blocks.present? ? @post.post_blocks.map.with_index { |block, idx| 
+    { block_type: block.block_type, content: block.content, index: idx } 
+  }.to_json : '[]' %>;
 document.addEventListener("DOMContentLoaded", () => {
+
   const container = document.getElementById("blocks-container");
 
   function autoResizeTextarea(textarea) {
@@ -391,8 +502,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // 초기 블럭 하나 생성
-  createBlock();
 
   // 카테고리 선택 시 장르 토글 (기존 로직)
   const categorySelect = document.getElementById("category-select");
@@ -405,4 +514,10 @@ document.addEventListener("DOMContentLoaded", () => {
   categorySelect.addEventListener("change", toggleGenres);
   toggleGenres();
 });
+
+  </script>
+
+  <!-- 항상 최소 하나의 블럭을 보장 -->
+<script>
+
 </script>

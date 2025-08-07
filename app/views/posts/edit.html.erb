@@ -1,3 +1,4 @@
+
 <div class="mx-auto flex justify-center gap-8 bg-[#f7f1ea] relative">
   <div class="max-w-4xl w-full p-8 bg-[#f7f1ea] rounded">
     <%= form_with model: @post, local: true, class: "space-y-6", id: "post-form" do |f| %>
@@ -70,25 +71,74 @@
           </label>
         <% end %>
 
-        <label class="ml-4 text-sm">
-          <%= check_box_tag :allow_comments, true, @post.allow_comments %> 댓글 허용
-        </label>
+  
       </div>
 
       <!-- 본문 (종이 느낌 영역) -->
-      <div
-        id="blocks-container"
-        class="bg-white p-6 shadow mt-4 rounded"
-        style="min-height: 800px; max-height: 1200px; overflow-y: auto; font-family: 'Noto Sans KR', sans-serif; line-height: 1.4;"
-      >
-        <!-- 자바스크립트에서 서버 데이터 기반으로 블록 생성 -->
+      <!-- 자바스크립트에서 채우는 대신 서버에서 초기 블럭을 렌더링 -->
+<div id="blocks-container" class="bg-white p-6 shadow mt-4 rounded"
+     style="min-height: 800px; max-height: 1200px; overflow-y: auto; font-family: 'Noto Sans KR', sans-serif; line-height: 1.4;">
+
+  <% if @post.post_blocks.present? %>
+    <% @post.post_blocks.each_with_index do |block, i| %>
+      <% 
+        # 초기 높이 계산
+        line_height = 22
+        max_chars_per_line = 50
+        content = block.content || ""
+        estimated_lines = [1, (content.length / max_chars_per_line.to_f).ceil].max
+        initial_height = estimated_lines * line_height
+      %>
+
+      <div class="block block-type-<%= block.block_type || 'paragraph' %>">
+        <select name="post[post_blocks_attributes][<%= i %>][block_type]"
+                class="block-type-selector block-controls-left"
+                style="padding: 0.2rem 0.5rem; border: 1px solid #ccc; border-radius: 0.25rem; background: white;">
+          <option value="paragraph" <%= "selected" if block.block_type == "paragraph" %>>문단</option>
+          <option value="quote" <%= "selected" if block.block_type == "quote" %>>인용</option>
+          <option value="subtitle" <%= "selected" if block.block_type == "subtitle" %>>소제목</option>
+        </select>
+
+        <textarea name="post[post_blocks_attributes][<%= i %>][content]"
+                  placeholder="내용을 입력하세요"
+                  oninput="this.style.height='auto';this.style.height=this.scrollHeight + 'px';"
+                  style="width: 100%; font-size: 1rem; resize: none; background: transparent; outline: none; min-height: 1.4em; line-height: 1.4; margin: 0; padding: 0.1em 0.25em; font-family: serif; overflow-y: hidden; border: none; box-sizing: border-box; height: <%= initial_height %>px;"><%= block.content %></textarea>
+
+        <% unless i == 0 %>
+          <button type="button" class="block-controls-right" title="블록 삭제">삭제</button>
+        <% end %>
       </div>
+    <% end %>
+  <% else %>
+    <% # 아무 블럭도 없으면 빈 블럭 하나 기본 추가 %>
+    <% 
+      line_height = 22
+      content = ""
+      initial_height = line_height
+    %>
+    <div class="block block-type-paragraph">
+      <select name="post[post_blocks_attributes][0][block_type]"
+              class="block-type-selector block-controls-left"
+              style="padding: 0.2rem 0.5rem; border: 1px solid #ccc; border-radius: 0.25rem; background: white;">
+        <option value="paragraph" selected>문단</option>
+        <option value="quote">인용</option>
+        <option value="subtitle">소제목</option>
+      </select>
+
+      <textarea name="post[post_blocks_attributes][0][content]"
+                placeholder="내용을 입력하세요"
+                oninput="this.style.height='auto';this.style.height=this.scrollHeight + 'px';"
+                style="width: 100%; font-size: 1rem; resize: none; background: transparent; outline: none; min-height: 1.4em; line-height: 1.4; margin: 0; padding: 0.1em 0.25em; font-family: serif; overflow-y: hidden; border: none; box-sizing: border-box; height: <%= initial_height %>px;"></textarea>
+    </div>
+  <% end %>
+</div>
+
     <% end %>
   </div>
 
   <!-- 오른쪽 세로 버튼들 -->
-  <div class="flex flex-col space-y-2 sticky top-24 mt-10" style="height: fit-content;">
-   
+<div class="flex flex-col space-y-2 sticky top-24 mt-10" style="height: fit-content;">
+  <% if @post.persisted? %>
     <%= button_tag "업데이트", type: "submit",
       name: "commit",
       value: "update",
@@ -96,14 +146,31 @@
       data: { turbo_confirm: "수정 내용을 저장하시겠습니까?" }, class: "bg-[#5d3b2e] text-white px-4 py-2 text-sm" %>
 
     <div class="flex flex-col space-y-2 sticky top-24 " style="height: fit-content;">
-          <a href="<%= post_path(@post) %>"
-     class="bg-white text-black px-4 py-2 text-sm border border-gray-300 inline-block text-center"
-     data-turbo-confirm="취소하시겠습니까? 변경 내용은 저장되지 않습니다."
-     data-turbo-method="get">
-    취소
-  </a>
-        </div>
-  </div>
+      <a href="<%= post_path(@post) %>"
+         class="bg-white text-black px-4 py-2 text-sm border border-gray-300 inline-block text-center"
+         data-turbo-confirm="취소하시겠습니까? 변경 내용은 저장되지 않습니다."
+         data-turbo-method="get">
+        취소
+      </a>
+    </div>
+  <% else %>
+    <%= button_tag "업로드", type: "submit",
+      name: "commit",
+      value: "create",
+      form: "post-form",
+      data: { turbo_confirm: "게시글을 업로드하시겠습니까?" }, class: "bg-[#5d3b2e] text-white px-4 py-2 text-sm" %>
+
+    <div class="flex flex-col space-y-2 sticky top-24 " style="height: fit-content;">
+      <a href="<%= posts_path %>"
+         class="bg-white text-black px-4 py-2 text-sm border border-gray-300 inline-block text-center"
+         data-turbo-confirm="취소하시겠습니까? 변경 내용은 저장되지 않습니다."
+         data-turbo-method="get">
+        취소
+      </a>
+    </div>
+  <% end %>
+</div>
+
 </div>
 <style>
   blocks-container {
@@ -221,6 +288,12 @@
 <script>
 document.addEventListener("DOMContentLoaded", () => {
   const container = document.getElementById("blocks-container");
+
+   document.addEventListener("DOMContentLoaded", () => {
+    setTimeout(() => {
+      location.reload();
+    }, 3000); // 3000ms = 3초
+  });
 
 
   function autoResizeTextarea(textarea) {
@@ -390,7 +463,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // 서버에서 받아온 블록 데이터
   const initialBlocks = <%= raw @post.post_blocks.map { |b| { content: b.content, block_type: b.block_type } }.to_json.html_safe %>;
 
   if (initialBlocks.length > 0) {
@@ -413,4 +485,5 @@ document.addEventListener("DOMContentLoaded", () => {
   categorySelect.addEventListener("change", toggleGenres);
   toggleGenres();
 });
+
 </script>

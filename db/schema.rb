@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_07_30_075157) do
+ActiveRecord::Schema[8.0].define(version: 2025_08_04_105122) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -124,7 +124,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_07_30_075157) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.integer "block_type", default: 0, null: false
-    t.index ["content"], name: "index_post_blocks_on_content"
+    t.index "to_tsvector('simple'::regconfig, content)", name: "idx_post_blocks_content_tsv", using: :gin
     t.index ["post_id"], name: "index_post_blocks_on_post_id"
   end
 
@@ -142,6 +142,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_07_30_075157) do
     t.boolean "draft", default: false, null: false
     t.boolean "allow_comments", default: true
     t.integer "book_genre", default: 0, null: false
+    t.boolean "contains_profanity", default: true
     t.index ["book_author"], name: "index_posts_on_book_author"
     t.index ["book_title"], name: "index_posts_on_book_title"
     t.index ["title"], name: "index_posts_on_title"

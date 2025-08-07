@@ -1,0 +1,25 @@
+<h2>비속어 감지기</h2>
+
+<%= form_with url: check_filters_path, method: :get, local: true do %>
+  <label>문장 입력:</label><br>
+  <%= text_area_tag :text, params[:text], rows: 4, cols: 60, required: true %><br><br>
+  <%= submit_tag "분석하기" %>
+<% end %>
+
+<% if params[:text].present? %>
+  <hr>
+  <h3>결과</h3>
+  <p><strong>입력 문장:</strong> <%= @input %></p>
+
+  <% if @flagged %>
+    <p style="color: red;"><strong>🚨 비속어가 포함되어 있습니다!</strong></p>
+    <p><strong>감지된 이유:</strong></p>
+    <ul>
+      <% @reasons.each do |reason| %>
+        <li><%= reason %></li>
+      <% end %>
+    </ul>
+  <% else %>
+    <p style="color: green;"><strong>✅ 비속어가 포함되지 않았습니다.</strong></p>
+  <% end %>
+<% end %>

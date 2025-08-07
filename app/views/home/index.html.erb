@@ -3,11 +3,11 @@
     <%= params[:category].present? ? Post.category_korean[params[:category].to_sym] : "전체 글" %>
   </h2>
 
-  <p class="text-sm text-gray-400 mb-4">페이지 설명</p>
 
-  <div class="mb-6">
+  <div class="mb-6 text-right">
     <form method="get" action="">
       <input type="hidden" name="category" value="<%= params[:category] %>" />
+      <input type="hidden" name="book_genre" value="<%= params[:book_genre] %>" /> 
       <select name="sort" onchange="this.form.submit()" class="border border-gray-300 rounded px-2 py-1">
         <option value="newest" <%= params[:sort] == "newest" || params[:sort].blank? ? "selected" : "" %>>최신순</option>
         <option value="most_comments" <%= params[:sort] == "most_comments" ? "selected" : "" %>>댓글순</option>

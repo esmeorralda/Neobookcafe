@@ -6,116 +6,122 @@
   <p class="text-sm text-gray-400 mb-4">검색 결과에 대한 설명을 여기에 넣어보세요</p>
 
   <div class="mb-6">
-  <form method="get" action="">
-    <input type="hidden" name="q" value="<%= h @query %>" />
+    <form method="get" action="">
+      <input type="hidden" name="q" value="<%= h @query %>" />
 
-    <label for="category">카테고리:</label>
-    <select name="category" id="category" onchange="this.form.submit()" class="border border-gray-300 rounded px-2 py-1 mr-2">
-      <option value="">전체</option>
-      <% Post.category_korean.each do |key, value| %>
-        <option value="<%= key %>" <%= params[:category] == key.to_s ? "selected" : "" %>><%= value %></option>
-      <% end %>
-    </select>
+      <label for="category">카테고리:</label>
+      <select name="category" id="category" onchange="this.form.submit()" class="border border-gray-300 rounded px-2 py-1 mr-2">
+        <option value="">전체</option>
+        <% Post.category_korean.each do |key, value| %>
+          <option value="<%= key %>" <%= params[:category] == key.to_s ? "selected" : "" %>><%= value %></option>
+        <% end %>
+      </select>
 
-    <label for="genre">장르:</label>
-    <select name="genre" id="genre" onchange="this.form.submit()" class="border border-gray-300 rounded px-2 py-1 mr-2">
-      <option value="">전체</option>
-      <% Post.book_genre_korean.each do |key, value| %>
-        <option value="<%= key %>" <%= params[:genre] == key.to_s ? "selected" : "" %>><%= value %></option>
-      <% end %>
-    </select>
+      <label for="genre">장르:</label>
+      <select name="genre" id="genre" onchange="this.form.submit()" class="border border-gray-300 rounded px-2 py-1 mr-2">
+        <option value="">전체</option>
+        <% Post.book_genre_korean.each do |key, value| %>
+          <option value="<%= key %>" <%= params[:genre] == key.to_s ? "selected" : "" %>><%= value %></option>
+        <% end %>
+      </select>
 
-    <label for="sort">정렬:</label>
-    <select name="sort" id="sort" onchange="this.form.submit()" class="border border-gray-300 rounded px-2 py-1">
-      <option value="relevance" <%= params[:sort] == "relevance" || params[:sort].blank? ? "selected" : "" %>>관련도순</option>
-      <option value="newest" <%= params[:sort] == "newest" ? "selected" : "" %>>최신순</option>
-      <option value="most_comments" <%= params[:sort] == "most_comments" ? "selected" : "" %>>댓글순</option>
-      <option value="most_views" <%= params[:sort] == "most_views" ? "selected" : "" %>>조회순</option>
-      <option value="most_likes" <%= params[:sort] == "most_likes" ? "selected" : "" %>>좋아요순</option>
-    </select>
-  </form>
-</div>
-
+      <label for="sort">정렬:</label>
+      <select name="sort" id="sort" onchange="this.form.submit()" class="border border-gray-300 rounded px-2 py-1">
+        <option value="relevance" <%= params[:sort] == "relevance" || params[:sort].blank? ? "selected" : "" %>>관련도순</option>
+        <option value="newest" <%= params[:sort] == "newest" ? "selected" : "" %>>최신순</option>
+        <option value="most_comments" <%= params[:sort] == "most_comments" ? "selected" : "" %>>댓글순</option>
+        <option value="most_views" <%= params[:sort] == "most_views" ? "selected" : "" %>>조회순</option>
+        <option value="most_likes" <%= params[:sort] == "most_likes" ? "selected" : "" %>>좋아요순</option>
+      </select>
+    </form>
+  </div>
 
   <% if @posts.any? %>
     <div class="space-y-6">
       <% @posts.each do |post| %>
-        <div class="p-6 border-b border-[#ddd6ce]">
-          <div class="flex justify-between items-start">
-            <div>
-              <h3 class="text-lg font-semibold font-serif text-[#3a2d20] mb-1">
+        <div class="p-6 border-b border-[#ddd6ce] flex justify-between">
+          <!-- 왼쪽: 제목 및 내용 -->
+          <div class="flex-1 min-w-0 pr-4">
+            <div class="flex justify-between">
+              <h3 class="text-lg font-semibold text-[#3a2d20] mb-1" style="font-family: 'Noto Serif KR', serif; font-weight: 700;">
                 <%= link_to truncate(post.title, length: 40), post_path(post), class: "hover:underline" %>
-                <span class="text-sm text-[#b67c4a] ml-2">책 제목<%= post.id.to_s.rjust(8, "0") %></span>
+                <span class="text-sm text-[#b67c4a] ml-2" style="font-family: 'Inter', sans-serif;">
+                  책 제목<%= post.id.to_s.rjust(8, "0") %>
+                </span>
               </h3>
-              <p class="text-sm text-[#5e5147] font-serif leading-snug mb-2">
-                <%= truncate(post.post_blocks.first&.content || "", length: 120) %>
-              </p>
-              <div class="text-xs text-[#999] space-x-3 flex items-center">
-              <span><%= time_ago_in_korean(post.created_at) %>, <%= post.user&.name || post.user&.email || "익명" %> 씀</span>
-                <span class="flex items-center space-x-1">
-    <%= image_tag("icon/post/brownviews.svg", alt: "views icon", class: "w-4 h-4") %>
-    <span><%= post.view_count || 0 %></span>
-  </span>
 
-  <span class="flex items-center space-x-1">
-    <%= image_tag("icon/post/brownoutlinedhear.svg", alt: "likes icon", class: "w-4 h-4") %>
-    <span><%= post.like_count || 0 %></span>
-  </span>
+              <!-- 작성자 및 통계 정보 (제목 오른쪽 상단) -->
+              <div class="flex flex-col items-end text-xs text-[#999]" style="font-family: 'Inter', sans-serif; min-width: 160px;">
+                <span class="mb-1 break-words text-right">
+                  <%= time_ago_in_korean(post.created_at) %>, <%= post.user&.name || post.user&.email || "익명" %> 씀
+                </span>
 
-  <span class="flex items-center space-x-1">
-    <%= image_tag("icon/post/browncomments.svg", alt: "comments icon", class: "w-4 h-4") %>
-    <span><%= total_comments_count(post)  %></span>
-  </span>
+                <% unless post.draft? %>
+                  <div class="flex items-center space-x-3">
+                    <span class="flex items-center space-x-1">
+                      <%= image_tag("icon/post/brownviews.svg", alt: "views icon", class: "w-4 h-4") %>
+                      <span><%= post.view_count || 0 %></span>
+                    </span>
+
+                    <span class="flex items-center space-x-1">
+                      <%= image_tag("icon/post/brownoutlinedhear.svg", alt: "likes icon", class: "w-4 h-4") %>
+                      <span><%= post.like_count || 0 %></span>
+                    </span>
+
+                    <span class="flex items-center space-x-1">
+                      <%= image_tag("icon/post/browncomments.svg", alt: "comments icon", class: "w-4 h-4") %>
+                      <span><%= total_comments_count(post) %></span>
+                    </span>
+                  </div>
+                <% else %>
+                  <span class="italic text-[#aa0000]">작성중인 게시물입니다.</span>
+                <% end %>
+              </div>
             </div>
-            </div>
-            <div>
-              <%= link_to "#", class: "text-gray-400 hover:text-gray-600" do %>
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
-                </svg>
-              <% end %>
-            </div>
+
+            <p class="text-xs text-[#7c6243] mb-1" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+              <%= Post.book_genre_korean[post.book_genre.to_sym] || "정보 없음" %> |
+              <%= post.category.present? ? Post.category_korean[post.category.to_sym] : "정보 없음" %>
+            </p>
+
+            <p class="text-sm text-[#5e5147] font-serif leading-snug mb-2" style="font-family: 'Noto Serif KR', serif; overflow: hidden; text-overflow: ellipsis;">
+              <%= truncate(post.post_blocks.first&.content || "", length: 170) %>
+            </p>
           </div>
         </div>
       <% end %>
     </div>
 
-<% current_page = @posts.current_page.to_i %>
-<% total_pages = @total_pages.to_i %>
-<% max_visible = 4 %>
+    <% current_page = @posts.current_page.to_i %>
+    <% total_pages = @total_pages.to_i %>
+    <% max_visible = 4 %>
 
-<%# 페이지 범위 계산 %>
-<% start_page = [current_page - 1, 1].max %>
-<% end_page = [start_page + max_visible - 1, total_pages].min %>
+    <%# 페이지 범위 계산 %>
+    <% start_page = [current_page - 1, 1].max %>
+    <% end_page = [start_page + max_visible - 1, total_pages].min %>
 
-<%# 보정: 최대 개수 유지 보장 %>
-<% if (end_page - start_page + 1) < max_visible && start_page > 1 %>
-  <% start_page = [end_page - max_visible + 1, 1].max %>
-<% end %>
-
-<div class="pagination flex items-center justify-center space-x-2 mt-4 text-sm">
-
-  <%# 왼쪽 화살표 (<<) %>
-  <% if start_page > 1 %>
-    <%= link_to "&laquo;".html_safe, search_posts_path(q: @query, page: start_page - 1, sort: params[:sort]), class: "px-2 py-1 rounded hover:bg-gray-100" %>
-  <% end %>
-
-  <%# 페이지 숫자들 %>
-  <% (start_page..end_page).each do |page| %>
-    <% if page == current_page %>
-      <span class="px-3 py-1 font-bold"><%= page %></span>
-    <% else %>
-      <%= link_to page, search_posts_path(q: @query, page: page, sort: params[:sort]), class: "px-3 py-1 rounded hover:bg-gray-100 font-light" %>
+    <%# 보정: 최대 개수 유지 보장 %>
+    <% if (end_page - start_page + 1) < max_visible && start_page > 1 %>
+      <% start_page = [end_page - max_visible + 1, 1].max %>
     <% end %>
-  <% end %>
 
-  <%# 오른쪽 화살표 (>>) %>
-  <% if end_page < total_pages %>
-    <%= link_to "&raquo;".html_safe, search_posts_path(q: @query, page: end_page + 1, sort: params[:sort]), class: "px-2 py-1  rounded hover:bg-gray-100" %>
-  <% end %>
+    <div class="pagination flex items-center justify-center space-x-2 mt-4 text-sm">
+      <% if start_page > 1 %>
+        <%= link_to "&laquo;".html_safe, search_posts_path(q: @query, page: start_page - 1, sort: params[:sort]), class: "px-2 py-1 rounded hover:bg-gray-100" %>
+      <% end %>
 
-</div>
+      <% (start_page..end_page).each do |page| %>
+        <% if page == current_page %>
+          <span class="px-3 py-1 font-bold"><%= page %></span>
+        <% else %>
+          <%= link_to page, search_posts_path(q: @query, page: page, sort: params[:sort]), class: "px-3 py-1 rounded hover:bg-gray-100 font-light" %>
+        <% end %>
+      <% end %>
 
+      <% if end_page < total_pages %>
+        <%= link_to "&raquo;".html_safe, search_posts_path(q: @query, page: end_page + 1, sort: params[:sort]), class: "px-2 py-1 rounded hover:bg-gray-100" %>
+      <% end %>
+    </div>
   <% else %>
     <p class="text-gray-500 mt-4">검색 결과가 없습니다.</p>
   <% end %>

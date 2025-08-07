@@ -32,4 +32,9 @@ class HomeController < ApplicationController
     # Apply pagination
     @posts = @posts.limit(per_page).offset((page_no - 1) * per_page)
   end
+  
+  private
+  def total_comments_count(post)
+    Comment.where(post_id: post.id).count
+  end
 end

@@ -1,4 +1,5 @@
 Rails.application.routes.draw do
+  get "filters/check"
   get "notifications/index"
   get "reports/create"
   get "feedbacks/new"
@@ -9,6 +10,9 @@ Rails.application.routes.draw do
 
   root "home#index"
   get "home/index"
+
+  get 'filters/check', to: 'filters#check', as: 'check_filters'
+
 
   resources :thoughts
   resources :discussions

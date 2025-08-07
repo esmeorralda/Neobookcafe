@@ -4,33 +4,60 @@ class PostsController < ApplicationController
 
     def new
       @post = Post.new
-      3.times { @post.post_blocks.build } # 기본 3개 블록 생성
+
     end
-  
   def create
-    @post = current_user.posts.new(post_params)
+  @post = current_user.posts.new(post_params)
 
-    if params[:commit] == "draft"
-      @post.draft = true
-      if @post.save
-       respond_to do |format|
-  format.any { redirect_to root_path, notice: "임시 저장 완료" }
-
-end
-
-      else
-        render :new, status: :unprocessable_entity
-      end
+  if params[:commit] == "draft"
+    @post.draft = true
+    if @post.save
+      redirect_to root_path, notice: "임시 저장 완료"
     else
-      @post.draft = false
-      if @post.save
-        redirect_to @post, notice: "게시글이 등록되었습니다."
-      else
-        render :new, status: :unprocessable_entity
-      end
+      render :new, status: :unprocessable_entity
     end
+    return
   end
 
+  @post.draft = false
+  full_text = @post.title.to_s + " " + @post.post_blocks.map(&:content).join(" ")
+  flagged_results = KorcenFilterService.analyze_text(full_text)
+
+  if flagged_results.any?
+     @post.contains_profanity = true  # ✅ 반드시 명시적으로 설정!
+
+    alert_messages = flagged_results.map do |result|
+      sentence = clean_sentence(result[:sentence])
+      categories = result[:categories]
+                      .select { |_, v| v }      
+                      .keys
+                      .map { |cat| korean_reason_map(cat.to_s) } 
+                      .join(", ")
+      "문장: #{sentence}\n\n감지된 비속어 유형: #{categories}"
+    end.join("\n\n")
+
+    @alert_messages = "비속어가 포함된 문장이 감지되었습니다:\n\n" + alert_messages + "\n\n이는 청소년 보호 정책의 일환으로 제한됩니다. 문장을 수정하여 다시 업로드해 주세요."
+
+render :new, status: :unprocessable_entity, locals: { post: @post }
+
+    return
+  else
+
+  @post.contains_profanity = false
+end
+
+ if @post.contains_profanity == false && @post.save
+  Rails.logger.debug "✅ 저장 성공: contains_profanity == false && post.save 성공"
+  Rails.logger.debug "post 상태: #{@post.inspect}"
+  redirect_to @post, notice: "게시글이 등록되었습니다."
+else
+  Rails.logger.debug "❌ 저장 실패 or contains_profanity != false"
+  Rails.logger.debug "post 상태: #{@post.inspect}"
+  @alert_messages ||= "저장에 실패했습니다. 비속어가 포함되어 있거나 유효성 검증에 실패했습니다."
+  render :new, status: :unprocessable_entity
+end
+
+end
 
   def show
 
@@ -197,6 +224,29 @@ end
 
 private
 
+def korean_reason_map(category)
+  case category
+  when "general" then "일반 비속어"
+  when "minor" then "경미한 비속어"
+  when "sexual" then "성적 비속어"
+  when "belittle" then "모욕적 표현"
+  when "race" then "인종차별적 표현"
+  when "parents" then "가족 비하"
+  when "foreign" then "외국인 비하"
+  when "special" then "특수 비속어"
+  when "politics" then "정치적 비속어"
+  else category
+  end
+end
+
+def clean_sentence(text)
+  text.gsub(/[\r\n\t]+/, " ")  # 줄바꿈과 탭을 공백으로 변환
+      .gsub(/[\d,]+/, "")      # 숫자와 쉼표 제거
+      .strip                   # 앞뒤 공백 제거
+end
+
+
+
 def apply_sorting(scope)
   case params[:sort]
 when "most_comments"
@@ -212,6 +262,9 @@ when "most_comments"
   end
 end
 
+ def total_comments_count(post)
+    Comment.where(post_id: post.id).count
+  end
 
 def calculate_relevance(post)
   score = 0
@@ -244,7 +297,7 @@ def fetch_cached_posts
     def post_params
       params.require(:post).permit(
         :title, :author, :book_title, :book_author, :book_genre, :category,
-        :save_count, :like_count, :view_count,
+        :save_count, :like_count, :view_count, genres: [], 
         post_blocks_attributes: [:id, :block_type, :content, :position, :_destroy]
       )
     end

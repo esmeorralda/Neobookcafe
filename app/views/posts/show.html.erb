@@ -272,16 +272,21 @@
           <div class="relative flex items-start" id="post-block-wrapper-<%= block.id %>">
             <div class="flex-1">
               <% case block.block_type %>
-              <% when 'paragraph' %>
-                <p id="post-block-<%= block.id %>" data-block-id="<%= block.id %>"><%= raw(block.content.gsub(/\r?\n/, '<br>')) %></p>
-              <% when 'subtitle' %>
-                <h2 id="post-block-<%= block.id %>" data-block-id="<%= block.id %>" class="text-lg font-semibold text-[#2c1a0d]">
-                  <%= block.content %>
-                </h2>
-              <% when 'quote' %>
-                <blockquote id="post-block-<%= block.id %>" data-block-id="<%= block.id %>" class="pl-4 border-l-4 border-[#2c1a0d] italic text-[#2c1a0d]">
-                  “<%= block.content %>”
-                </blockquote>
+             <% when 'paragraph' %>
+  <p id="post-block-<%= block.id %>" data-block-id="<%= block.id %>" class="post-block mt-0 leading-relaxed">
+    <%= raw(block.content.gsub(/\r?\n/, '<br>')) %>
+  </p>
+
+<% when 'subtitle' %>
+  <h2 id="post-block-<%= block.id %>" data-block-id="<%= block.id %>" class="post-block text-lg font-semibold text-[#2c1a0d] mt-4 ">
+    <%= block.content %>
+  </h2>
+
+<% when 'quote' %>
+  <blockquote id="post-block-<%= block.id %>" data-block-id="<%= block.id %>" class="post-block pl-4 border-l-4 border-[#2c1a0d] italic text-[#2c1a0d] mt-1">
+    “<%= block.content %>”
+  </blockquote>
+
               <% else %>
                 <p id="post-block-<%= block.id %>" data-block-id="<%= block.id %>"><%= simple_format(block.content) %></p>
               <% end %>
@@ -351,7 +356,7 @@
 
 
 
-  <% if @post.draft != true %>
+ <% if @post.draft != true && @post.comments.any? %>
 <div id="root-comment-list" class="mt-6 max-h-[600px] overflow-y-auto bg-[#f9f6f2] p-4 rounded-lg shadow-inner">
 
   <!-- 댓글 정렬 드롭다운 -->

@@ -169,22 +169,34 @@
   </div>
 </div>
 <% if @show_sidebar %>
-  <div class="bg-[#f3ede3] pt-1 text-sm text-[#7c6243] flex justify-center space-x-8 relative">
-    <% if params[:category] == "creation" %>
-      <%= link_to "전체", posts_path(category: :creation), class: "pb-1 border-b-2 border-transparent hover:border-[#7c6243]" %>
-      <%= link_to "시", posts_path(category: :creation, book_genre: :poetry), class: "pb-1 border-b-2 border-transparent hover:border-[#7c6243]" %>
-      <%= link_to "에세이", posts_path(category: :creation, book_genre: :essay), class: "pb-1 border-b-2 border-transparent hover:border-[#7c6243]" %>
-      <%= link_to "소설", posts_path(category: :creation, book_genre: :novel), class: "pb-1 border-b-2 border-transparent hover:border-[#7c6243]" %>
-    <% else %>
-      <%= link_to "전체", posts_path(category: params[:category]), class: "pb-1 border-b-2 border-transparent hover:border-[#7c6243]" %>
-      <%= link_to "철학", posts_path(category: params[:category], book_genre: :philosophy), class: "pb-1 border-b-2 border-transparent hover:border-[#7c6243]" %>
-      <%= link_to "문학", posts_path(category: params[:category], book_genre: :literature), class: "pb-1 border-b-2 border-transparent hover:border-[#7c6243]" %>
-      <%= link_to "역사", posts_path(category: params[:category], book_genre: :history), class: "pb-1 border-b-2 border-transparent hover:border-[#7c6243]" %>
-      <%= link_to "사회", posts_path(category: params[:category], book_genre: :society), class: "pb-1 border-b-2 border-transparent hover:border-[#7c6243]" %>
-      <%= link_to "경제", posts_path(category: params[:category], book_genre: :economy), class: "pb-1 border-b-2 border-transparent hover:border-[#7c6243]" %>
-      <%= link_to "과학/기술", posts_path(category: params[:category], book_genre: :science_technology), class: "pb-1 border-b-2 border-transparent hover:border-[#7c6243]" %>
-    <% end %>
-  </div>
+<div class="bg-[#f3ede3] pt-1 text-sm text-[#7c6243] flex justify-center space-x-8 relative">
+  <% if params[:category] == "creation" %>
+    <%= link_to "전체", posts_path(category: :creation),
+        class: "pb-1 border-b-2 hover:border-[#7c6243] #{params[:book_genre].blank? ? 'border-[#7c6243]' : 'border-transparent'}" %>
+    <%= link_to "시", posts_path(category: :creation, book_genre: :poetry),
+        class: "pb-1 border-b-2 hover:border-[#7c6243] #{params[:book_genre] == 'poetry' ? 'border-[#7c6243]' : 'border-transparent'}" %>
+    <%= link_to "에세이", posts_path(category: :creation, book_genre: :essay),
+        class: "pb-1 border-b-2 hover:border-[#7c6243] #{params[:book_genre] == 'essay' ? 'border-[#7c6243]' : 'border-transparent'}" %>
+    <%= link_to "소설", posts_path(category: :creation, book_genre: :novel),
+        class: "pb-1 border-b-2 hover:border-[#7c6243] #{params[:book_genre] == 'novel' ? 'border-[#7c6243]' : 'border-transparent'}" %>
+  <% else %>
+    <%= link_to "전체", posts_path(category: params[:category]),
+        class: "pb-1 border-b-2 hover:border-[#7c6243] #{params[:book_genre].blank? ? 'border-[#7c6243]' : 'border-transparent'}" %>
+    <%= link_to "철학", posts_path(category: params[:category], book_genre: :philosophy),
+        class: "pb-1 border-b-2 hover:border-[#7c6243] #{params[:book_genre] == 'philosophy' ? 'border-[#7c6243]' : 'border-transparent'}" %>
+    <%= link_to "문학", posts_path(category: params[:category], book_genre: :literature),
+        class: "pb-1 border-b-2 hover:border-[#7c6243] #{params[:book_genre] == 'literature' ? 'border-[#7c6243]' : 'border-transparent'}" %>
+    <%= link_to "역사", posts_path(category: params[:category], book_genre: :history),
+        class: "pb-1 border-b-2 hover:border-[#7c6243] #{params[:book_genre] == 'history' ? 'border-[#7c6243]' : 'border-transparent'}" %>
+    <%= link_to "사회", posts_path(category: params[:category], book_genre: :society),
+        class: "pb-1 border-b-2 hover:border-[#7c6243] #{params[:book_genre] == 'society' ? 'border-[#7c6243]' : 'border-transparent'}" %>
+    <%= link_to "경제", posts_path(category: params[:category], book_genre: :economy),
+        class: "pb-1 border-b-2 hover:border-[#7c6243] #{params[:book_genre] == 'economy' ? 'border-[#7c6243]' : 'border-transparent'}" %>
+    <%= link_to "과학/기술", posts_path(category: params[:category], book_genre: :science_technology),
+        class: "pb-1 border-b-2 hover:border-[#7c6243] #{params[:book_genre] == 'science_technology' ? 'border-[#7c6243]' : 'border-transparent'}" %>
+  <% end %>
+</div>
+
 <% end %>
 
 <% if user_signed_in? %>
@@ -247,6 +259,13 @@
 
      <%= render 'layouts/right_sidebar' %>
 
+     <% if flash[:alert] %>
+    <div class="alert alert-danger">
+      <pre><%= flash[:alert] %></pre>
+    </div>
+  <% end %>
+
+  <%= yield %>
 
 </div>
 
@@ -260,34 +279,42 @@
 
 <% if user_signed_in? %>
 <script>
- document.addEventListener("DOMContentLoaded", function () {
-    const toggleBtn = document.getElementById("toggle-notification");
-    const panel = document.getElementById("notification-panel");
-
-    toggleBtn.addEventListener("click", function () {
-      panel.classList.toggle("hidden");
-    });
-
-    // 바깥 클릭 시 알림 패널 닫기 (선택 사항)
-    document.addEventListener("click", function (e) {
-      if (!panel.contains(e.target) && !toggleBtn.contains(e.target)) {
-        panel.classList.add("hidden");
-      }
-    });
-  });
 document.addEventListener("DOMContentLoaded", () => {
+  initNotificationPanel();
+  initPasswordValidation();
+  initSettingsModal();
+  initFontSizeSlider();
+});
 
+function initNotificationPanel() {
+  const toggleBtn = document.getElementById("toggle-notification");
+  const panel = document.getElementById("notification-panel");
+  if (!toggleBtn || !panel) return;
 
+  toggleBtn.addEventListener("click", () => {
+    panel.classList.toggle("hidden");
+  });
 
-  const form = document.querySelector("form"); // 실제 form 선택자 맞게 수정 필요
+  document.addEventListener("click", (e) => {
+    if (!panel.contains(e.target) && !toggleBtn.contains(e.target)) {
+      panel.classList.add("hidden");
+    }
+  });
+}
+
+function initPasswordValidation() {
+  const form = document.querySelector("form");
+  if (!form) return;
+
   const currentPasswordInput = form.querySelector("[name='user[current_password]']");
   const newPasswordInput = form.querySelector("[name='user[password]']");
   const confirmPasswordInput = form.querySelector("[name='user[password_confirmation]']");
   const submitBtn = document.getElementById("password-submit");
 
+  if (!currentPasswordInput || !newPasswordInput || !confirmPasswordInput || !submitBtn) return;
+
   form.addEventListener("submit", (e) => {
     e.preventDefault();
-
     const currentPassword = currentPasswordInput.value.trim();
     const newPassword = newPasswordInput.value.trim();
     const confirmPassword = confirmPasswordInput.value.trim();
@@ -299,19 +326,16 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     if (newPassword || confirmPassword) {
-      // 새 비밀번호를 입력했다면 검증
-      if (newPassword.length < 6) {  // 최소길이 예시
+      if (newPassword.length < 6) {
         alert("새 비밀번호는 최소 6자 이상이어야 합니다.");
         newPasswordInput.focus();
         return;
       }
-
       if (newPassword !== confirmPassword) {
         alert("새 비밀번호와 확인용 비밀번호가 일치하지 않습니다.");
         confirmPasswordInput.focus();
         return;
       }
-
       if (newPassword === currentPassword) {
         alert("새 비밀번호는 현재 비밀번호와 달라야 합니다.");
         newPasswordInput.focus();
@@ -319,100 +343,81 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     }
 
-    // 여기에 서버에 비밀번호 변경 요청 로직 수행 (AJAX 등)
-    // 또는 폼 submit 진행
     form.submit();
   });
 
-  // 닫기 버튼
-  document.getElementById("close-modal-btn-4").addEventListener("click", () => {
-    document.getElementById("test-modal").classList.add("hidden");
+  document.getElementById("close-modal-btn-4")?.addEventListener("click", () => {
+    document.getElementById("test-modal")?.classList.add("hidden");
   });
-});
+}
 
-document.addEventListener("DOMContentLoaded", () => {
+function initSettingsModal() {
   const modal = document.getElementById("test-modal");
+  if (!modal) return;
+
   const openBtns = document.querySelectorAll(".open-settings-modal");
   const closeBtns = modal.querySelectorAll("button[id^='close-modal-btn']");
   const tabs = modal.querySelectorAll(".tab-btn");
   const tabContents = modal.querySelectorAll(".tab-content");
 
-  // 모달 열기
   openBtns.forEach(btn => {
     btn.addEventListener("click", e => {
       e.preventDefault();
       modal.classList.remove("hidden");
-      showTab(0); // 첫 탭 기본 표시
+      showTab(0);
     });
   });
 
-  // 모달 닫기
   closeBtns.forEach(btn => {
     btn.addEventListener("click", () => {
       modal.classList.add("hidden");
     });
   });
 
-  // 탭 클릭 이벤트
   tabs.forEach((tab, i) => {
     tab.addEventListener("click", () => {
       showTab(i);
     });
   });
 
-  // 탭 표시 함수
   function showTab(index) {
     tabs.forEach((tab, i) => {
-      if(i === index){
-        tab.classList.remove("border-transparent");
-        tab.classList.add("border-[#3e2f23]", "font-semibold");
-      } else {
-        tab.classList.add("border-transparent");
-        tab.classList.remove("border-[#3e2f23]", "font-semibold");
-      }
+      tab.classList.toggle("border-[#3e2f23]", i === index);
+      tab.classList.toggle("font-semibold", i === index);
+      tab.classList.toggle("border-transparent", i !== index);
     });
 
     tabContents.forEach((content, i) => {
       content.classList.toggle("hidden", i !== index);
     });
   }
-});
+}
 
-document.addEventListener("DOMContentLoaded", () => {
+function initFontSizeSlider() {
   const slider = document.getElementById("font-size-slider");
   const applyBtn = document.getElementById("apply-font-size");
+  if (!slider) return;
 
-  // 적용 버튼 클릭 시, <html> 폰트 크기 변경
-  applyBtn.addEventListener("click", () => {
-    const fontSize = slider.value + "px";
-    document.documentElement.style.fontSize = fontSize;
-  });
-
-  slider.addEventListener("input", () => {
-    const fontSize = slider.value + "px";
-    document.documentElement.style.fontSize = fontSize;  // 실시간 적용
-  });
-
-});
-document.addEventListener("DOMContentLoaded", () => {
-  const slider = document.getElementById("font-size-slider");
-
-  // 저장된 값이 있으면 적용
   const savedFontSize = localStorage.getItem("fontSize");
   if (savedFontSize) {
     document.documentElement.style.fontSize = savedFontSize;
     slider.value = parseInt(savedFontSize);
   }
 
-  // 슬라이더 이동할 때마다 실시간 적용 + 저장
   slider.addEventListener("input", () => {
     const fontSize = slider.value + "px";
     document.documentElement.style.fontSize = fontSize;
     localStorage.setItem("fontSize", fontSize);
   });
-});
 
+  applyBtn?.addEventListener("click", () => {
+    const fontSize = slider.value + "px";
+    document.documentElement.style.fontSize = fontSize;
+    localStorage.setItem("fontSize", fontSize);
+  });
+}
 </script>
+
 
 <% if notice.present? %>
   <script>
