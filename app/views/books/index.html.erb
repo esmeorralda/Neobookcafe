@@ -27,12 +27,22 @@
 <span class="ml-4 text-sm flex items-center" style="color: #815e4e; font-weight: 350;">
   <%= current_page %>쪽 · 
   <%= total_pages > 0 ? number_to_percentage((current_page.to_f / total_pages) * 100, precision: 0) : "0%" %> ·
-
+<% progress_percent = total_pages > 0 ? (current_page.to_f / total_pages * 100) : 0 %>
   <!-- div 대신 span 으로 변경 -->
   <span id="progress1" class="ml-1 inline-block" style="width: 20px; height: 20px;" 
         data-current-page="<%= current_page %>" 
         data-total-pages="<%= total_pages %>">
   </span>
+
+  <% if progress_percent >= 85 %>
+   <!-- app/views/books/show.html.erb (혹은 index.html.erb 등) -->
+<button class="export-btn ml-3 px-2 py-1 text-black text-xs bg-white rounded hover:bg-[#6b4f3f] border border-gray" 
+        data-book-id="<%= book.id %>" 
+        data-book-title="<%= j book.title %>">
+  노트 내보내기
+</button>
+
+  <% end %>
 </span>
 
     </div>
@@ -100,9 +110,22 @@
       trailColor: '#fff',
       trailWidth: 1,
       easing: 'easeInOut',
-      duration: 1400,
+      duration: 1000,
     });
 
     bar.animate(progress);
   });
+
+  document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('.export-btn').forEach(button => {
+    button.addEventListener('click', () => {
+      const bookId = button.dataset.bookId;
+      if (bookId) {
+        const url = `/books/${bookId}/export_notes`;
+        window.location.href = url; // 다운로드 트리거
+      }
+    });
+  });
+});
+
 </script>

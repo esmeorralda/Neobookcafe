@@ -12,6 +12,7 @@ Rails.application.routes.draw do
   get "home/index"
 
   get 'filters/check', to: 'filters#check', as: 'check_filters'
+get 'books/:id/export_notes', to: 'books#export_notes', as: :export_book_notes
 
 
   resources :thoughts

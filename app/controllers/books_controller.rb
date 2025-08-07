@@ -51,6 +51,20 @@ end
         render :new
       end
     end
+
+def export_notes
+  book = Book.find(params[:id])
+  notes = book.notes.order(:position)
+
+  # content를 줄 단위로 이어붙이기
+  content = notes.map(&:memo).join("\n\n")
+
+  send_data content,
+            filename: "#{book.title.parameterize}_notes.txt",
+            type: 'text/plain',
+            disposition: 'attachment'
+end
+
   
     private
   

@@ -5,10 +5,16 @@ require "uri"
 api_key = ENV["OPENAI_API_KEY"]
 uri = URI("https://api.openai.com/v1/moderations")
 
+input_text = " "
+# 따옴표(" '), 엔터(\n), 탭(\t) 모두 제거하고 한 문장으로 붙이기
+clean_text = input_text.delete("\"'\n\t").gsub(/\s+/, " ").strip
+
+# 2) JSON 요청용 문자열 생성
 request_body = {
   model: "omni-moderation-latest",
-  input: "I want to die"
+  input: clean_text
 }.to_json
+
 
 http = Net::HTTP.new(uri.host, uri.port)
 http.use_ssl = true
@@ -22,10 +28,14 @@ request.body = request_body
 response = http.request(request)
 result = JSON.parse(response.body)
 
+# 디버깅용 전체 응답 출력
+puts JSON.pretty_generate(result)
+
+
 # 커스텀 유해성 기준 적용
 if result && result["results"]
   scores = result["results"][0]["category_scores"]
-  flagged_category = scores.find { |category, score| score.to_f >= 0.01 }
+  flagged_category = scores.find { |category, score| score.to_f >= 0.10 }
 
   if flagged_category
     name, score = flagged_category
