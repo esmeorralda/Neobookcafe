@@ -31,6 +31,11 @@ enum :book_genre, [
   accepts_nested_attributes_for :post_blocks, allow_destroy: true
   after_commit :clear_post_cache
   validates :title, presence: true, unless: :draft?
+    validates :title, presence: true, unless: :draft?
+  validates :book_title, presence: true, unless: :draft?
+  validates :book_author, presence: true, unless: :draft?
+  validates :category, presence: true, unless: :draft?
+  validates :book_genre, presence: true, unless: :draft?
 
   pg_search_scope :pg_search,
     against: [:title, :book_title, :book_author],

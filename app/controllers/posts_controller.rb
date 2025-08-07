@@ -43,17 +43,28 @@ render :new, status: :unprocessable_entity, locals: { post: @post }
     return
   else
 
-  @post.contains_profanity = false
 end
 
- if @post.contains_profanity == false && @post.save
+ if @post.save
   Rails.logger.debug "✅ 저장 성공: contains_profanity == false && post.save 성공"
   Rails.logger.debug "post 상태: #{@post.inspect}"
   redirect_to @post, notice: "게시글이 등록되었습니다."
 else
-  Rails.logger.debug "❌ 저장 실패 or contains_profanity != false"
-  Rails.logger.debug "post 상태: #{@post.inspect}"
-  @alert_messages ||= "저장에 실패했습니다. 비속어가 포함되어 있거나 유효성 검증에 실패했습니다."
+ error_map = {
+  "Title can't be blank" => "글 제목을 입력하세요.",
+  "Book title can't be blank" => "책 제목을 입력하세요.",
+  "Book author can't be blank" => "책 저자를 입력하세요.",
+  "Category can't be blank" => "카테고리를 선택하세요.",
+  "Book genre can't be blank" => "장르를 선택하세요."
+}
+
+    # 전체 에러 메시지 한글 변환
+    translated_messages = @post.errors.full_messages.map do |msg|
+      error_map[msg] || msg
+    end
+
+    @alert_messages = translated_messages.join("\n")
+
   render :new, status: :unprocessable_entity
 end
 

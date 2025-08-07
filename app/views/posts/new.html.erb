@@ -5,22 +5,15 @@
         <h1 class="text-xl font-bold text-gray-800">새 게시글 작성</h1>
       </div>
 <% if @alert_messages.present? %>
-  <div class="mb-6 text-left whitespace-pre-wrap break-words bg-white rounded-md p-4 shadow-md border border-yellow-400 text-yellow-800">
-    <%= @alert_messages %>
+  <div class="bg-white mb-6 flex items-start gap-3 text-left whitespace-pre-wrap break-words rounded-md p-6 shadow-md border border-yellow-400 text-yellow-900 font-semibold">
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 flex-shrink-0 text-yellow-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </svg>
+    <div class="px-4"><%= @alert_messages %></div>
   </div>
-  <% if @post.present? %>
-  <p>선택된 장르: <%= @post.book_genre %></p>
-
-  <h3>본문 블록 내용</h3>
-  <% @post.post_blocks.each_with_index do |block, index| %>
-    <div>
-      <strong>블록 <%= index + 1 %> (타입: <%= block.block_type %>):</strong>
-      <p><%= block.content %></p>
-    </div>
-  <% end %>
 <% end %>
 
-<% end %>
+
 
       <!-- 기본 정보 -->
       <div class="flex justify-between items-center gap-2 max-w-4xl mx-auto bg-[#f7f1ea]">
