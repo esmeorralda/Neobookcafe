@@ -71,6 +71,29 @@ def create
     end
     return
   end
+
+  if (flagged = ModerationChecker.check(full_text))
+    translations = moderation_category_translations
+    categories_with_scores = flagged.is_a?(Array) && flagged.first.is_a?(Array) ? flagged : [flagged]
+
+    messages = categories_with_scores.map do |category, score|
+      "#{translations[category]} (#{(score.to_f * 100).round(1)}%)"
+    end.compact
+
+    alert_message = "⚠️ 다음과 같은 유해 콘텐츠가 포함되어 있습니다: #{messages.join(', ')}. 수정 후 다시 시도해 주세요."
+
+    respond_to do |format|
+      format.html do
+        flash[:alert] = alert_message
+        redirect_back fallback_location: root_path
+      end
+      format.json do
+        render json: { errors: alert_message }, status: :unprocessable_entity
+      end
+    end
+    return
+  end
+
   respond_to do |format|
     if @comment.save
       format.html do
@@ -115,6 +138,23 @@ def korean_reason_map(category)
   else category
   end
 end
+
+def moderation_category_translations
+  {
+    "sexual" => "성적 내용",
+    "hate" => "증오 발언",
+    "harassment" => "괴롭힘",
+    "self-harm" => "자해",
+    "sexual/minors" => "아동 성적 내용",
+    "hate/threatening" => "위협적인 증오 발언",
+    "violence/graphic" => "노골적인 폭력",
+    "self-harm/intent" => "자해 의도",
+    "self-harm/instructions" => "자해 방법 안내",
+    "harassment/threatening" => "위협적인 괴롭힘",
+    "violence" => "폭력"
+  }
+end
+
 
 def clean_sentence(text)
   text.gsub(/[\r\n\t]+/, " ")  # 줄바꿈과 탭을 공백으로 변환
