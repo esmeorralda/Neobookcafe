@@ -26,7 +26,7 @@ class PostsController < ApplicationController
   if flagged_results.any?
      @post.contains_profanity = true  # ✅ 반드시 명시적으로 설정!
 
-    alert_messages = flagged_results.map do |result|
+    messages = flagged_results.map do |result|
       sentence = clean_sentence(result[:sentence])
       categories = result[:categories]
                       .select { |_, v| v }      
@@ -36,13 +36,26 @@ class PostsController < ApplicationController
       "문장: #{sentence}\n\n감지된 비속어 유형: #{categories}"
     end.join("\n\n")
 
-    @alert_messages = "비속어가 포함된 문장이 감지되었습니다:\n\n" + alert_messages + "\n\n이는 청소년 보호 정책의 일환으로 제한됩니다. 문장을 수정하여 다시 업로드해 주세요."
+  final_messages = "비속어가 포함된 문장이 감지되었습니다:\n\n" + messages + "\n\n이는 청소년 보호 정책의 일환으로 제한됩니다. 문장을 수정하여 다시 업로드해 주세요."
+    flash.now[:alert] = final_messages
 
 render :new, status: :unprocessable_entity, locals: { post: @post }
 
     return
   else
 
+end
+if (flagged = ModerationChecker.check(full_text))
+  translations = moderation_category_translations
+  # flagged가 [["harassment", 0.12], ["violence", 0.15]] 같은 배열이라고 가정
+  categories_with_scores = flagged.is_a?(Array) && flagged.first.is_a?(Array) ? flagged : [flagged]
+
+  messages = categories_with_scores.map do |category, score|
+    "#{translations[category]} (#{(score.to_f * 100).round(1)}%)"
+  end.compact
+
+  flash.now[:alert] = "⚠️ 다음과 같은 유해 콘텐츠가 포함되어 있습니다: #{messages.join(', ')}. 수정 후 다시 시도해 주세요."
+  return render :new, status: :unprocessable_entity, locals: { post: @post }
 end
 
  if @post.save
@@ -182,28 +195,82 @@ def search
   @total_pages = @posts.total_pages
   render 'search'
 end
-
 def update
+
+
   @post = Post.find(params[:id])
 
-  Post.transaction do
-    # 기존 블럭들 삭제
-    @post.post_blocks.destroy_all
+  # 사용자가 입력한 값을 미리 @post에 반영 (렌더할 때 필요)
+  @post.assign_attributes(post_params)
 
+  # 블록들 내용 추출
+  title = @post.title.to_s
+  blocks = @post.post_blocks || []
+  block_contents = blocks.map(&:content).compact.join(" ")
+  full_text = title + " " + block_contents
+
+  # Korcen 모더레이션
+  flagged_results = KorcenFilterService.analyze_text(full_text)
+
+  if flagged_results.any?
+    messages = flagged_results.map do |result|
+      sentence = clean_sentence(result[:sentence])
+      categories = result[:categories]
+                      .select { |_, v| v }
+                      .keys
+                      .map { |cat| korean_reason_map(cat.to_s) }
+                      .join(", ")
+      "문장: #{sentence}\n\n감지된 비속어 유형: #{categories}"
+    end.join("\n\n")
+
+    final_messages = "비속어가 포함된 문장이 감지되었습니다:\n\n" + messages +
+                     "\n\n이는 청소년 보호 정책의 일환으로 제한됩니다. 문장을 수정하여 다시 업로드해 주세요."
+    flash.now[:alert] = final_messages
+        @suppress_post_blocks_rendering = true 
+         @edited_post_blocks = (post_params[:post_blocks_attributes]&.values || []).map do |block_params|
+  PostBlock.new(block_type: block_params[:block_type], content: block_params[:content])
+end
+
+         Rails.logger.debug "===== @edited_post_blocks 내용 ====="
+Rails.logger.debug @edited_post_blocks.inspect
+Rails.logger.debug "================================="
+    return render :edit, status: :unprocessable_entity, locals: { post: @post }
+  end
+
+  # Moderation API
+  if (flagged = ModerationChecker.check(full_text))
+    translations = moderation_category_translations
+    categories_with_scores = flagged.is_a?(Array) && flagged.first.is_a?(Array) ? flagged : [flagged]
+
+    messages = categories_with_scores.map do |category, score|
+      "#{translations[category]} (#{(score.to_f * 100).round(1)}%)"
+    end.compact
+
+    flash.now[:alert] = "⚠️ 다음과 같은 유해 콘텐츠가 포함되어 있습니다: #{messages.join(', ')}. 수정 후 다시 시도해 주세요."
+        @suppress_post_blocks_rendering = true 
+      @edited_post_blocks = (post_params[:post_blocks_attributes]&.values || []).map do |block_params|
+  PostBlock.new(block_type: block_params[:block_type], content: block_params[:content])
+end
+
+    return render :edit, status: :unprocessable_entity, locals: { post: @post }
+  end
+
+  # 정상 업데이트
+  Post.transaction do
+    @post.post_blocks.destroy_all
     if @post.update(post_params)
       redirect_to @post, notice: "게시글이 성공적으로 수정되었습니다."
     else
       raise ActiveRecord::Rollback
     end
   end
-
 rescue
   flash.now[:alert] = "수정에 실패했습니다."
-  render :edit
+  render :edit, locals: { post: @post }
 end
 
-
     def edit
+       @suppress_post_blocks_rendering = true 
   @post = Post.find(params[:id])
   # @post는 DB에 저장된 값들이 채워진 상태
 end
@@ -249,6 +316,23 @@ def korean_reason_map(category)
   else category
   end
 end
+
+def moderation_category_translations
+  {
+    "sexual" => "성적 내용",
+    "hate" => "증오 발언",
+    "harassment" => "괴롭힘",
+    "self-harm" => "자해",
+    "sexual/minors" => "아동 성적 내용",
+    "hate/threatening" => "위협적인 증오 발언",
+    "violence/graphic" => "노골적인 폭력",
+    "self-harm/intent" => "자해 의도",
+    "self-harm/instructions" => "자해 방법 안내",
+    "harassment/threatening" => "위협적인 괴롭힘",
+    "violence" => "폭력"
+  }
+end
+
 
 def clean_sentence(text)
   text.gsub(/[\r\n\t]+/, " ")  # 줄바꿈과 탭을 공백으로 변환

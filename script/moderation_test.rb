@@ -6,9 +6,7 @@ api_key = ENV["OPENAI_API_KEY"]
 uri = URI("https://api.openai.com/v1/moderations")
 
 input_text = " "
-# 따옴표(" '), 엔터(\n), 탭(\t) 모두 제거하고 한 문장으로 붙이기
-clean_text = input_text.delete("\"'\n\t").gsub(/\s+/, " ").strip
-
+  clean_text = text.delete("\"'\n\t").gsub(/\s+/, " ").strip
 # 2) JSON 요청용 문자열 생성
 request_body = {
   model: "omni-moderation-latest",

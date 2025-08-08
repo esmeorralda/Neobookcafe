@@ -73,65 +73,21 @@
 
   
       </div>
-
-      <!-- 본문 (종이 느낌 영역) -->
-      <!-- 자바스크립트에서 채우는 대신 서버에서 초기 블럭을 렌더링 -->
 <div id="blocks-container" class="bg-white p-6 shadow mt-4 rounded"
      style="min-height: 800px; max-height: 1200px; overflow-y: auto; font-family: 'Noto Sans KR', sans-serif; line-height: 1.4;">
-
-  <% if @post.post_blocks.present? %>
-    <% @post.post_blocks.each_with_index do |block, i| %>
-      <% 
-        # 초기 높이 계산
-        line_height = 22
-        max_chars_per_line = 50
-        content = block.content || ""
-        estimated_lines = [1, (content.length / max_chars_per_line.to_f).ceil].max
-        initial_height = estimated_lines * line_height
-      %>
-
-      <div class="block block-type-<%= block.block_type || 'paragraph' %>">
-        <select name="post[post_blocks_attributes][<%= i %>][block_type]"
-                class="block-type-selector block-controls-left"
-                style="padding: 0.2rem 0.5rem; border: 1px solid #ccc; border-radius: 0.25rem; background: white;">
-          <option value="paragraph" <%= "selected" if block.block_type == "paragraph" %>>문단</option>
-          <option value="quote" <%= "selected" if block.block_type == "quote" %>>인용</option>
-          <option value="subtitle" <%= "selected" if block.block_type == "subtitle" %>>소제목</option>
-        </select>
-
-        <textarea name="post[post_blocks_attributes][<%= i %>][content]"
-                  placeholder="내용을 입력하세요"
-                  oninput="this.style.height='auto';this.style.height=this.scrollHeight + 'px';"
-                  style="width: 100%; font-size: 1rem; resize: none; background: transparent; outline: none; min-height: 1.4em; line-height: 1.4; margin: 0; padding: 0.1em 0.25em; font-family: serif; overflow-y: hidden; border: none; box-sizing: border-box; height: <%= initial_height %>px;"><%= block.content %></textarea>
-
-        <% unless i == 0 %>
-          <button type="button" class="block-controls-right" title="블록 삭제">삭제</button>
-        <% end %>
-      </div>
-    <% end %>
-  <% else %>
-    <% # 아무 블럭도 없으면 빈 블럭 하나 기본 추가 %>
-    <% 
-      line_height = 22
-      content = ""
-      initial_height = line_height
-    %>
-    <div class="block block-type-paragraph">
-      <select name="post[post_blocks_attributes][0][block_type]"
-              class="block-type-selector block-controls-left"
-              style="padding: 0.2rem 0.5rem; border: 1px solid #ccc; border-radius: 0.25rem; background: white;">
-        <option value="paragraph" selected>문단</option>
-        <option value="quote">인용</option>
-        <option value="subtitle">소제목</option>
-      </select>
-
-      <textarea name="post[post_blocks_attributes][0][content]"
-                placeholder="내용을 입력하세요"
-                oninput="this.style.height='auto';this.style.height=this.scrollHeight + 'px';"
-                style="width: 100%; font-size: 1rem; resize: none; background: transparent; outline: none; min-height: 1.4em; line-height: 1.4; margin: 0; padding: 0.1em 0.25em; font-family: serif; overflow-y: hidden; border: none; box-sizing: border-box; height: <%= initial_height %>px;"></textarea>
-    </div>
+<% if @suppress_post_blocks_rendering && @edited_post_blocks.present? %>
+    <% @edited_post_blocks.each_with_index do |block, index| %>
+    <%= render partial: "post_blocks", locals: { block: block, index: index } %>
   <% end %>
+<% else %>
+  <% @post.post_blocks.order(:position).each_with_index do |block, index| %>
+    <%= render partial: "post_blocks", locals: { block: block, index: index } %>
+  <% end %>
+<% end %>
+
+
 </div>
+
 
     <% end %>
   </div>
@@ -261,6 +217,7 @@
     font-size: 1rem;
     color: #333;
     line-height: 1.4;
+    margin: 0.5rem 0 0 0;
   }
 
   /* 인용 스타일 */
@@ -269,6 +226,7 @@
     border-left: 4px solid #5d3b2e;
     padding-left: 0.5rem;
     color: #2c1a0d;
+    margin: 1rem 0 0 0;
   }
 
   /* 소제목 스타일 */
@@ -289,11 +247,7 @@
 document.addEventListener("DOMContentLoaded", () => {
   const container = document.getElementById("blocks-container");
 
-   document.addEventListener("DOMContentLoaded", () => {
-    setTimeout(() => {
-      location.reload();
-    }, 3000); // 3000ms = 3초
-  });
+   container.innerHTML = "";
 
 
   function autoResizeTextarea(textarea) {
@@ -403,6 +357,44 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     });
 
+    block.addEventListener("mouseleave", () => {
+  hideTimeout = setTimeout(() => block.classList.remove("focused"), 300);
+});
+
+block.addEventListener("mouseenter", () => {
+  clearTimeout(hideTimeout);
+  block.classList.add("focused");
+});
+
+// 추가: select와 textarea에 마우스 enter/leave 이벤트 등록
+[select, textarea].forEach(el => {
+  el.addEventListener("mouseenter", () => {
+    clearTimeout(hideTimeout);
+    block.classList.add("focused");
+  });
+  el.addEventListener("mouseleave", () => {
+    hideTimeout = setTimeout(() => {
+      if (!block.contains(document.activeElement)) {
+        block.classList.remove("focused");
+      }
+    }, 300);
+  });
+
+  el.addEventListener("focus", () => {
+    clearTimeout(hideTimeout);
+    block.classList.add("focused");
+  });
+
+  el.addEventListener("blur", () => {
+    hideTimeout = setTimeout(() => {
+      if (!block.contains(document.activeElement)) {
+        block.classList.remove("focused");
+      }
+    }, 300);
+  });
+});
+
+
     textarea.addEventListener("keydown", (e) => {
       if (e.key === "Enter" && !e.shiftKey) {
         e.preventDefault();
@@ -463,16 +455,17 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  const initialBlocks = <%= raw @post.post_blocks.map { |b| { content: b.content, block_type: b.block_type } }.to_json.html_safe %>;
+  // 초기 블록 JS 렌더링 제거 (서버 렌더링 사용 시)
+const initialBlocks = <%= raw @post.post_blocks.map { |b| { content: b.content, block_type: b.block_type } }.to_json.html_safe %>;
+if (initialBlocks.length > 0) {
+  container.innerHTML = "";  // 이 줄이 서버 렌더링 내용 다 지움
+  initialBlocks.forEach(blockData => {
+    createBlock(blockData.block_type || "paragraph", blockData.content || "");
+  });
+} else {
+  createBlock();
+}
 
-  if (initialBlocks.length > 0) {
-    container.innerHTML = "";
-    initialBlocks.forEach(blockData => {
-      createBlock(blockData.block_type || "paragraph", blockData.content || "");
-    });
-  } else {
-    createBlock();
-  }
 
   // 카테고리 선택 시 장르 토글
   const categorySelect = document.getElementById("category-select");

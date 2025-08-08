@@ -1,13 +1,31 @@
 <% 
-  # line-height: 1.4em × 16px 기본 폰트 = 22.4px 정도
   line_height = 22
   max_chars_per_line = 50
   content = block.content || ""
-  estimated_lines = [1, (content.length / max_chars_per_line.to_f).ceil].max
+
+  # 줄바꿈 기준으로 분리
+  lines = content.split("\n")
+
+  # 각 줄별 계산 (빈 줄도 1줄로 포함)
+  total_lines = lines.sum do |line|
+    if line.strip.empty?
+      1  # 빈 줄도 1줄로 계산
+    else
+      line_length = line.gsub("\t", "    ").length
+      (line_length / max_chars_per_line.to_f).ceil
+    end
+  end
+
+  # 최소 1줄 보장
+  estimated_lines = [1, total_lines].max
+
+  # 총 높이 계산
   initial_height = estimated_lines * line_height
 %>
 
+
 <div class="block block-type-<%= block.block_type %>" style="position: relative;">
+
 
 
   <button type="button" class="block-controls-right" onclick="deleteBlock(this)" title="블록 삭제">삭제</button>
@@ -21,52 +39,51 @@
 </div>
 
 <style>
-  .block textarea {
-    width: 100%;
-    border: none;
-    resize: none;
-    overflow: hidden;
-    outline: none;
-    font-family: inherit;
-    font-size: 1rem;
-    line-height: 1.4;
-  }
-  /* 문단 스타일 */
-  .block-type-paragraph textarea {
-    font-size: 1rem !important;
-    color: #333 !important;
-    line-height: 1.4 !important;
-    font-style: normal !important;
-    border-left: none !important;
-    padding-left: 0 !important;
-    background-color: transparent !important;
-    font-weight: normal !important;
-    margin: 0 !important;
-    padding-bottom: initial !important;
-  }
-  /* 인용 스타일 */
-  .block-type-quote textarea {
-    font-style: italic !important;
-    border-left: 4px solid #5d3b2e !important;
-    padding-left: 0.5rem !important;
-    color: #2c1a0d !important;
-    background-color: transparent !important;
-    font-weight: normal !important;
-    margin: 0 !important;
-    padding-bottom: initial !important;
-  }
-  /* 소제목 스타일 */
-  .block-type-subtitle textarea {
-    background-color: #fff !important;
-    font-weight: 600 !important;
-    font-size: 1.125rem !important;
-    color: #2c1a0d !important;
-    margin: 1rem 0 0.5rem 0 !important;
-    padding-bottom: 0.25rem !important;
-    border-left: none !important;
-    padding-left: 0 !important;
-    font-style: normal !important;
-  }
+ .block textarea {
+  width: 100%;
+  font-size: 1rem;
+  resize: none;
+  background: transparent;
+  outline: none;
+  min-height: 1.4em; /* 1줄 높이와 동일 */
+  line-height: 1.4;
+  margin: 0;
+  padding: 0.1em 0.25em; /* 텍스트와 경계 간 적당한 여백 */
+  font-family: serif;
+  overflow-y: hidden;
+  height: auto;
+  border: none;
+  box-sizing: border-box; /* 높이 계산 기준 통일 */
+}
+
+/* 문단 스타일 (기본) */
+.block-type-paragraph textarea {
+  font-size: 1rem;
+  color: #333;
+  line-height: 1.4;
+}
+
+/* 인용 스타일 */
+.block-type-quote textarea {
+  font-style: italic;
+  border-left: 4px solid #5d3b2e;
+  padding-left: 0.5rem;
+  color: #2c1a0d;
+}
+
+/* 소제목 스타일 */
+.block-type-subtitle textarea {
+  background-color: #fff;
+  font-weight: 600; /* font-semibold */
+  font-size: 1.125rem; /* text-lg */
+  color: #2c1a0d;
+  margin: 1rem 0 0.5rem 0;
+  padding-bottom: 0.25rem;
+}
+
+#blocks-container .block:first-child {
+  margin-top: 2rem; /* 원하는 간격으로 조절하세요 */
+}
 
   .block:hover .block-controls-left,
   .block:hover .block-controls-right,
@@ -160,14 +177,13 @@
       }
     }
   }
-
   function createHtmlBlock(type = "paragraph", content = "") {
     const index = document.querySelectorAll("#blocks-container .block").length;
-
+  
     const wrapper = document.createElement("div");
     wrapper.classList.add("block", `block-type-${type}`);
     wrapper.style.position = "relative";
-
+  
     wrapper.innerHTML = `
       <select name="post[post_blocks_attributes][${index}][block_type]"
               class="block-type-selector block-controls-left"
@@ -176,29 +192,33 @@
         <option value="quote" ${type === "quote" ? "selected" : ""}>인용</option>
         <option value="subtitle" ${type === "subtitle" ? "selected" : ""}>소제목</option>
       </select>
-
+  
       <button type="button" class="block-controls-right" onclick="deleteBlock(this)" title="블록 삭제">삭제</button>
-
+  
       <textarea name="post[post_blocks_attributes][${index}][content]"
                 placeholder="내용을 입력하세요"
                 oninput="autoResizeTextarea(this)"
                 onpaste="setTimeout(() => autoResizeTextarea(this), 0)"
                 onkeydown="handleKeyDown(event, this)">${content}</textarea>
     `;
-
-    // select 변경 시 클래스 변경과 높이 조절 이벤트 추가
+  
     const select = wrapper.querySelector("select");
-    const textarea = wrapper.querySelector("textarea");
-
+    console.log("select element:", select); // 반드시 로그 출력 확인
+  
     select.addEventListener("change", () => {
+      console.log("Changed class to:", `block-type-${select.value}`);
+      console.log("Current classes:", wrapper.className);
+  
       wrapper.classList.remove("block-type-paragraph", "block-type-quote", "block-type-subtitle");
       wrapper.classList.add(`block-type-${select.value}`);
-
-      autoResizeTextarea(textarea);
+  
+      autoResizeTextarea(wrapper.querySelector("textarea"));
     });
-
+  
     return wrapper;
   }
+  
+
 
   function updateTextareaNames() {
     const blocks = document.querySelectorAll("#blocks-container .block");

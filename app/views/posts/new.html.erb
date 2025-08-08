@@ -233,9 +233,9 @@
   resize: none;
   background: transparent;
   outline: none;
-  min-height: 1.4em; /* 1줄 높이와 동일 */
+  min-height: 1.5em; /* 1줄 높이와 동일 */
   line-height: 1.4;
-  margin: 0;
+  margin: 1 0 0 0;
   padding: 0.1em 0.25em; /* 텍스트와 경계 간 적당한 여백 */
   font-family: serif;
   overflow-y: hidden;
@@ -249,8 +249,8 @@
 .block-type-paragraph textarea {
   font-size: 1rem;
   color: #333;
-
-  line-height: 1.4;
+  margin: 0.5rem 0 0 0;
+  line-height: 1.5;
 }
 
 /* 인용 스타일 */
@@ -258,6 +258,7 @@
   font-style: italic;
   border-left: 4px solid #5d3b2e;
   padding-left: 0.5rem;
+  margin: 0.2rem 0 0 0;
   color: #2c1a0d;
 }
 
@@ -267,11 +268,11 @@
   font-weight: 600; /* font-semibold */
   font-size: 1.125rem; /* text-lg */
   color: #2c1a0d;
-  margin: 1rem 0 0.5rem 0;
+  margin: 1rem 0 0 0;
   padding-bottom: 0.25rem;
 }
 #blocks-container .block:first-child {
-  margin-top: 1.5rem; /* 원하는 간격으로 조절하세요 */
+  margin-top: 1rem; /* 원하는 간격으로 조절하세요 */
 }
 
 
@@ -407,29 +408,42 @@ document.addEventListener("DOMContentLoaded", () => {
     textarea.focus();
     autoResizeTextarea(textarea);
 
-    // 블럭 포커스/호버 효과
-    let hideTimeout;
     block.addEventListener("mouseleave", () => {
-      hideTimeout = setTimeout(() => block.classList.remove("focused"), 300);
-    });
-    block.addEventListener("mouseenter", () => {
-      clearTimeout(hideTimeout);
-      block.classList.add("focused");
-    });
-    [select, textarea].forEach(el => {
-      el.addEventListener("focus", () => {
-        clearTimeout(hideTimeout);
-        block.classList.add("focused");
-      });
-      el.addEventListener("blur", () => {
-        hideTimeout = setTimeout(() => {
-          if (!block.contains(document.activeElement)) {
-            block.classList.remove("focused");
-          }
-        }, 300);
-      });
-    });
+  hideTimeout = setTimeout(() => block.classList.remove("focused"), 500);
+});
 
+block.addEventListener("mouseenter", () => {
+  clearTimeout(hideTimeout);
+  block.classList.add("focused");
+});
+
+// 추가: select와 textarea에 마우스 enter/leave 이벤트 등록
+[select, textarea].forEach(el => {
+  el.addEventListener("mouseenter", () => {
+    clearTimeout(hideTimeout);
+    block.classList.add("focused");
+  });
+  el.addEventListener("mouseleave", () => {
+    hideTimeout = setTimeout(() => {
+      if (!block.contains(document.activeElement)) {
+        block.classList.remove("focused");
+      }
+    }, 400);
+  });
+
+  el.addEventListener("focus", () => {
+    clearTimeout(hideTimeout);
+    block.classList.add("focused");
+  });
+
+  el.addEventListener("blur", () => {
+    hideTimeout = setTimeout(() => {
+      if (!block.contains(document.activeElement)) {
+        block.classList.remove("focused");
+      }
+    }, 300);
+  });
+});
     // 키 이벤트 처리 (엔터, 위/아래 방향키)
     textarea.addEventListener("keydown", (e) => {
       if (e.key === "Enter" && !e.shiftKey) {
