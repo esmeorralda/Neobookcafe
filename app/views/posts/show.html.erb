@@ -233,10 +233,9 @@
     </p>
 
   <p class="text-sm text-gray-900 mb-2 text-right mb-2">
-    <%= @post.category.present? ? Post.category_korean[@post.category.to_sym] : "카테고리 없음" %>
-    <span class="mx-2">, </span>
-    <%= @post.book_genre.present? ? Post.book_genre_korean[@post.book_genre.to_sym] : "장르 없음" %>
-    <span class="mx-2"></span>
+    <%= @post.category.present? ? Post.category_korean[@post.category.to_sym] : "카테고리 없음 " %>,
+    <%= @post.book_genre.present? ? Post.book_genre_korean[@post.book_genre.to_sym]: "장르 없음" %>
+    <span ></span>
     </p>
 
 
