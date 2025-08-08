@@ -12,7 +12,7 @@
 
       <!-- 자기소개 -->
       <p class="mt-4 text-sm italic text-[#3e2f23]">
-        “<%= @user.self_intro.presence || '한 줄 자기소개' %>”
+        “<%= @user.self_intro.presence || '한줄 소개가 없습니다.' %>”
       </p>
     </div>
 
@@ -139,11 +139,11 @@
         fetchPosts(tab, page);
       }
     });
+    const userId = <%= current_user ? current_user.id : @user.id %>;
 
     function fetchPosts(tab, page) {
-      const userId = <%= current_user.id %>; // ERB 태그로 현재 유저 id 삽입 필요
       const url = `/users/${userId}/${tab}?page=${page}`;
-
+  
       fetch(url, {
         headers: { "X-Requested-With": "XMLHttpRequest" }
       })

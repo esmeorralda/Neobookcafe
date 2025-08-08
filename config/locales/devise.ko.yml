@@ -1,0 +1,63 @@
+ko:
+  devise:
+    confirmations:
+      confirmed: "이메일 주소가 성공적으로 확인되었습니다."
+      send_instructions: "이메일 주소를 확인하는 방법에 대한 안내 메일을 곧 받게 됩니다."
+      send_paranoid_instructions: "데이터베이스에 이메일 주소가 존재하면 확인 안내 메일을 받게 됩니다."
+    failure:
+      already_authenticated: "이미 로그인된 상태입니다."
+      inactive: "계정이 아직 활성화되지 않았습니다."
+      invalid: "유효하지 않은 %{authentication_keys} 또는 비밀번호입니다."
+      locked: "계정이 잠겨 있습니다."
+      last_attempt: "계정이 잠기기 전에 마지막 시도입니다."
+      not_found_in_database: "유효하지 않은 %{authentication_keys} 또는 비밀번호입니다."
+      timeout: "세션이 만료되었습니다. 계속하려면 다시 로그인하세요."
+      unauthenticated: "계속하려면 로그인하거나 회원가입해야 합니다."
+      unconfirmed: "계속하려면 이메일 주소를 확인해야 합니다."
+    mailer:
+      confirmation_instructions:
+        subject: "이메일 확인 안내"
+      reset_password_instructions:
+        subject: "비밀번호 재설정 안내"
+      unlock_instructions:
+        subject: "계정 잠금 해제 안내"
+      email_changed:
+        subject: "이메일 주소 변경 안내"
+      password_change:
+        subject: "비밀번호 변경 안내"
+    omniauth_callbacks:
+      failure: "%{kind} 인증에 실패했습니다: \"%{reason}\"."
+      success: "%{kind} 계정으로 성공적으로 인증되었습니다."
+    passwords:
+      no_token: "비밀번호 재설정 이메일을 통해서만 이 페이지에 접근할 수 있습니다. 이메일에서 제공된 전체 URL을 사용했는지 확인하세요."
+      send_instructions: "비밀번호 재설정 방법에 대한 이메일을 곧 받게 됩니다."
+      send_paranoid_instructions: "데이터베이스에 이메일 주소가 존재하면 비밀번호 복구 링크를 곧 이메일로 받게 됩니다."
+      updated: "비밀번호가 성공적으로 변경되었습니다. 이제 로그인되었습니다."
+      updated_not_active: "비밀번호가 성공적으로 변경되었습니다."
+    registrations:
+      destroyed: "안녕히 가세요! 계정이 성공적으로 삭제되었습니다. 다시 뵙길 바랍니다."
+      signed_up: "환영합니다! 회원가입이 성공적으로 완료되었습니다."
+      signed_up_but_inactive: "회원가입이 성공했지만, 계정이 아직 활성화되지 않아 로그인할 수 없습니다."
+      signed_up_but_locked: "회원가입이 성공했지만, 계정이 잠겨 있어 로그인할 수 없습니다."
+      signed_up_but_unconfirmed: "확인 링크가 포함된 메일을 발송했습니다. 이메일을 확인하여 계정을 활성화하세요."
+      update_needs_confirmation: "계정 정보가 성공적으로 변경되었지만, 새 이메일 주소 확인이 필요합니다. 이메일을 확인하세요."
+      updated: "계정이 성공적으로 업데이트되었습니다."
+      updated_but_not_signed_in: "계정이 업데이트되었으나 비밀번호가 변경되어 다시 로그인해야 합니다."
+    sessions:
+      signed_in: "성공적으로 로그인하였습니다."
+      signed_out: "성공적으로 로그아웃하였습니다."
+      already_signed_out: "성공적으로 로그아웃하였습니다."
+    unlocks:
+      send_instructions: "계정 잠금 해제 방법에 대한 이메일을 곧 받게 됩니다."
+      send_paranoid_instructions: "계정이 존재하면 잠금 해제 안내 이메일을 곧 받게 됩니다."
+      unlocked: "계정이 성공적으로 잠금 해제되었습니다. 계속하려면 로그인하세요."
+  errors:
+    messages:
+      already_confirmed: "이미 확인되었습니다. 로그인해 주세요."
+      confirmation_period_expired: "%{period} 이내에 확인해야 합니다. 새로 요청하세요."
+      expired: "만료되었습니다. 새로 요청하세요."
+      not_found: "찾을 수 없습니다."
+      not_locked: "잠기지 않은 상태입니다."
+      not_saved:
+        one: "1개의 오류로 인해 %{resource} 저장에 실패했습니다:"
+        other: "%{count}개의 오류로 인해 %{resource} 저장에 실패했습니다:"
