@@ -17,6 +17,7 @@ def chapters_and_current_page
 end
 
  def index
+      @show_sidebar = true
   @books = current_user.books.includes(:notes)
 end
     
@@ -35,6 +36,7 @@ end
     end
     
     def show
+    
       @book = current_user.books.find(params[:id])
       @notes = @book.notes
     end

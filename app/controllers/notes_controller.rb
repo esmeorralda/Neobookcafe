@@ -108,6 +108,7 @@ def update
   end
 
   if @note.update(note_params)
+    update_book_current_page(@note.book) # 책의 current_page 자동 갱신
    redirect_to note_path(@note), notice: "노트가 성공적으로 업데이트되었습니다."
 
   else

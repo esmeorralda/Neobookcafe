@@ -1,5 +1,6 @@
 class UsersController < ApplicationController
   def show
+  @show_sidebar = true
   @user = User.find(params[:id])
   per_page = 10
 

@@ -26,18 +26,6 @@
       </div>
     <% end %>
 
-    <div class="mb-6">
-      <%= f.label :password, "새 비밀번호 (변경하지 않으려면 비워두세요)", class: "block text-sm font-medium mb-1" %>
-      <%= f.password_field :password, autocomplete: "new-password", class: "w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-[#3e2f23]" %>
-      <% if @minimum_password_length %>
-        <p class="text-xs mt-1 text-gray-500">최소 <%= @minimum_password_length %>자 이상</p>
-      <% end %>
-    </div>
-
-    <div class="mb-6">
-      <%= f.label :password_confirmation, "새 비밀번호 확인", class: "block text-sm font-medium mb-1" %>
-      <%= f.password_field :password_confirmation, autocomplete: "new-password", class: "w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-[#3e2f23]" %>
-    </div>
 
     <div class="mb-8">
       <%= f.label :current_password, "현재 비밀번호 (변경 사항 확인용)", class: "block text-sm font-medium mb-1" %>
