@@ -1,0 +1,145 @@
+<style>
+  /* 모달 전체 배경 */
+  .modal {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100vw; height: 100vh;
+    background-color: rgba(230, 225, 215, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000;
+  }
+
+  /* 모달 콘텐츠 박스 */
+  .modal-content {
+    border-radius: 10px;
+    background-color: rgba(255, 255, 255); /* 연한 아이보리 반투명 */
+    padding: 30px 40px;
+    width: 350px;
+    box-shadow: 0 4px 10px rgba(124, 98, 67, 0.3);
+    font-family: 'Trebuchet MS', 'Verdana', sans-serif;
+    color: #5a4a2a; /* 진한 갈색 텍스트 */
+  }
+
+  /* 제목 */
+  .modal-content h2 {
+    margin-bottom: 20px;
+    font-weight: bold;
+    font-size: 20px;
+    text-align: center;
+    text-shadow: 1px 1px 0 #d7d2c1;
+  }
+
+  /* 폼 입력 필드 */
+  .modal-content input[type="email"],
+  .modal-content input[type="password"] {
+    width: 100%;
+    padding: 10px 12px;
+    margin-bottom: 15px;
+    border: 1.8px solid #a5947b; /* 연한 갈색 */
+    border-radius: 6px;
+    font-size: 15px;
+    box-sizing: border-box;
+    background-color: #faf7ef; /* 아이보리 느낌 배경 */
+    color: #5a4a2a;
+    transition: border-color 0.3s;
+  }
+
+  /* 입력 필드 포커스 */
+  .modal-content input[type="email"]:focus,
+  .modal-content input[type="password"]:focus {
+    border-color: #7c6243; /* 진한 갈색 */
+    outline: none;
+    background-color: #fff;
+  }
+
+  /* 로그인 버튼 */
+  .modal-content button[type="submit"] {
+    width: 100%;
+    background-color: #7c6243; /* 진한 갈색 */
+    border: none;
+    padding: 12px 0;
+    font-size: 17px;
+    color: #f7f3e9;
+    font-weight: 600;
+    border-radius: 6px;
+    cursor: pointer;
+    box-shadow: 0 3px 5px rgba(124, 98, 67, 0.6);
+    transition: background-color 0.3s;
+  }
+  .modal-content button[type="submit"]:hover {
+    background-color: #5a4a2a; /* 더 진한 갈색 */
+  }
+
+  /* 닫기 버튼 */
+  #closeLoginModal {
+    margin-top: 15px;
+    width: 100%;
+    background-color: #d7cfa6; /* 연한 회색-베이지 */
+    border: none;
+    padding: 10px 0;
+    font-size: 15px;
+    color: #7c6243;
+    border-radius: 6px;
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(124, 98, 67, 0.4);
+    transition: background-color 0.3s;
+  }
+  #closeLoginModal:hover {
+    background-color: #c4baa2;
+  }
+</style>
+
+<div id="loginModal" class="modal hidden">
+  <div class="modal-content">
+    <h2>로그인</h2>
+    <form id="loginForm" action="/users/sign_in" method="post">
+      <input type="hidden" name="authenticity_token" value="<%= form_authenticity_token %>">
+      <input type="email" name="user[email]" placeholder="이메일" required>
+      <input type="password" name="user[password]" placeholder="비밀번호" required>
+      <button type="submit">로그인</button>
+    </form>
+    <button id="closeLoginModal">닫기</button>
+  </div>
+</div>
+
+<script>
+document.getElementById('loginButton').addEventListener('click', () => {
+  document.getElementById('loginModal').classList.remove('hidden');
+});
+
+document.getElementById('closeLoginModal').addEventListener('click', () => {
+  document.getElementById('loginModal').classList.add('hidden');
+});
+
+document.getElementById('loginForm').addEventListener('submit', function(e) {
+  e.preventDefault();
+
+  const formData = new FormData(this);
+
+  fetch(this.action, {
+    method: 'POST',
+    body: formData,
+    headers: {
+      'Accept': 'application/json',
+    },
+    credentials: 'same-origin' // CSRF 보호
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      // 로그인 성공
+      document.getElementById('loginModal').classList.add('hidden');
+      // UI 업데이트 등 추가 동작
+    } else {
+      // 실패 메시지 표시
+      alert(data.error);
+    }
+  })
+  .catch(err => {
+    console.error(err);
+  });
+});
+
+</script>
