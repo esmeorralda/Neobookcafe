@@ -17,12 +17,87 @@ class CommentsController < ApplicationController
     # 편집 폼을 보여주기 위한 액션
   end
   def update
-    if @comment.update(comment_params)
-      flash[:notice] = "댓글이 성공적으로 수정되었습니다."
-      redirect_to post_path(@comment.post)
-    else
-      flash.now[:alert] = @comment.errors.full_messages.join(", ")
-      render :edit, status: :unprocessable_entity
+    # 업데이트 전 우선 파라미터를 적용해 현재 내용으로 검사
+    @comment.assign_attributes(comment_params)
+    full_text = @comment.content.to_s
+  
+    # 1) Korcen 필터
+    flagged_results = KorcenFilterService.analyze_text(full_text)
+    if flagged_results.any?
+      @comment.contains_profanity = true if @comment.respond_to?(:contains_profanity)
+  
+      alert_messages = flagged_results.map do |result|
+        sentence = clean_sentence(result[:sentence])
+        categories = result[:categories]
+                      .select { |_, v| v }
+                      .keys
+                      .map { |cat| korean_reason_map(cat.to_s) }
+                      .join(", ")
+        "문장: #{sentence}\n\n감지된 비속어 유형: #{categories}"
+      end.join("\n\n")
+  
+      alert_msg = "비속어가 포함된 문장이 감지되었습니다:\n\n" + alert_messages +
+                  "\n\n이는 청소년 보호 정책의 일환으로 제한됩니다. 문장을 수정하여 다시 시도해 주세요."
+  
+      respond_to do |format|
+        format.html do
+          flash[:alert] = alert_msg
+          redirect_back fallback_location: post_path(@comment.post)
+        end
+        format.json do
+          render json: { errors: alert_msg, redirect_url: post_path(@comment.post) }, status: :unprocessable_entity
+        end
+      end
+      return
+    end
+  
+    # 2) OpenAI Moderation (기존 헬퍼 사용)
+    if (flagged = ModerationChecker.check(full_text))
+      translations = moderation_category_translations
+      categories_with_scores = flagged.is_a?(Array) && flagged.first.is_a?(Array) ? flagged : [flagged]
+      messages = categories_with_scores.map { |category, score| "#{translations[category]} (#{(score.to_f * 100).round(1)}%)" }.compact
+      alert_msg = "⚠️ 다음과 같은 유해 콘텐츠가 포함되어 있습니다: #{messages.join(', ')}. 수정 후 다시 시도해 주세요."
+  
+      respond_to do |format|
+        format.html do
+          flash[:alert] = alert_msg
+          redirect_back fallback_location: post_path(@comment.post)
+        end
+        format.json do
+          render json: { errors: alert_msg, redirect_url: post_path(@comment.post) }, status: :unprocessable_entity
+        end
+      end
+      return
+    end
+  
+    # 3) 실제 저장
+    respond_to do |format|
+      if @comment.save
+        format.html do
+          flash[:notice] = "댓글이 성공적으로 수정되었습니다."
+          redirect_back fallback_location: post_path(@comment.post), status: :see_other
+        end
+        format.json do
+          # 인라인 편집(JS)용: 갱신된 내용과 redirect_url 함께 내려줌
+          flash[:notice] = "댓글이 성공적으로 수정되었습니다."
+          render json: {
+            id: @comment.id,
+            content: @comment.content,
+            redirect_url: post_path(@comment.post)
+          }, status: :ok
+        end
+      else
+        format.html do
+          flash.now[:alert] = @comment.errors.full_messages.join(", ")
+          render :edit, status: :unprocessable_entity
+        end
+        format.json do
+          render json: {
+            errors: @comment.errors.full_messages,
+            redirect_url: post_path(@comment.post)
+          }, status: :unprocessable_entity
+        end
+      end
     end
   end
   

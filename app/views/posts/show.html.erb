@@ -1,6 +1,13 @@
 <head>
   <meta name="csrf-token" content="<%= form_authenticity_token %>" />
   <style>
+
+  .block-focus {
+    outline: 2px solid #e5e7eb;      /* 하이라이트 색 */
+    outline-offset: 4px;              /* 본문과 여백 */
+    border-radius: 8px;               /* 살짝 둥글게 */
+    transition: outline-color .2s ease, outline-offset .2s ease;
+  }
     #post-container.grid-active {
       display: flex;
       gap: 2rem;
@@ -625,6 +632,40 @@
   }
 
   function init() {
+    document.querySelectorAll('.comment-view-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const blockId = btn.getAttribute('data-block-id');
+    
+        // 기존 보더 제거
+        document.querySelectorAll('.post-block').forEach(el => {
+          el.style.border = ''; 
+          el.style.borderRadius = '';
+          el.style.padding = '';
+          el.style.transition = 'border-color 0.5s ease'; // 부드러운 전환
+        });
+    
+        // 선택된 블럭 보더 추가
+        const target = document.getElementById(`post-block-${blockId}`);
+        if (target) {
+          target.style.border = '1px solid #e3d5c6';
+          target.style.borderRadius = '3px';
+          target.style.padding = '0.5rem';
+         
+    
+          // 10초 후에 보더 색상 투명 → 완전 제거
+          setTimeout(() => {
+            target.style.borderColor = 'transparent'; // 서서히 사라짐
+            setTimeout(() => {
+              target.style.border = ''; // 완전 제거
+            }, 1000); // transition 시간과 맞춤
+          }, 10000); // 10초 뒤 시작
+        }
+      });
+    });
+    
+
+
+  
     const postContainer = document.getElementById('post-container');
     const commentSidebar = document.getElementById('comment-sidebar');
     const commentSidebarContent = document.getElementById('comment-sidebar-content');
@@ -773,6 +814,8 @@
       if (ta.offsetParent !== null) autoResize(ta);
     });
   }
+
+  
 
   // Ensure init on first load + Turbo navigations/cached renders
   document.addEventListener('DOMContentLoaded', init);
