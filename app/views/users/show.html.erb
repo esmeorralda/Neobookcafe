@@ -86,93 +86,212 @@
   </div>
 </div>
 
-
 <script>
-  document.addEventListener("DOMContentLoaded", () => {
-    // 슬라이더 관련 코드 (생략 가능)
+(function () {
+  // ================= Skeletons =================
+  const POSTS_SKELETON_HTML = `
+    <div class="space-y-3 animate-pulse p-2">
+      <div class="h-5 bg-gray-200 rounded w-1/3"></div>
+      <div class="h-4 bg-gray-100 rounded w-full"></div>
+      <div class="h-4 bg-gray-100 rounded w-5/6"></div>
+      <div class="h-4 bg-gray-100 rounded w-4/6"></div>
+      <div class="h-5 bg-gray-200 rounded w-1/4 mt-3"></div>
+      <div class="h-4 bg-gray-100 rounded w-11/12"></div>
+      <div class="h-4 bg-gray-100 rounded w-3/4"></div>
+    </div>
+  `;
+  function showSkeleton(el) {
+    if (!el) return;
+    el.innerHTML = POSTS_SKELETON_HTML;
+  }
+
+  // ================= Slider =================
+  function initSlider() {
     const track = document.getElementById("intro-track");
-    const slides = track ? track.children : [];
-    const totalSlides = slides.length;
+    if (!track) return; // 슬라이더가 없는 페이지
+
+    // 중복 바인딩/타이머 방지
+    if (track.dataset.bound === "1") return;
+    track.dataset.bound = "1";
+
+    const slides = track.children || [];
+    const totalSlides = slides.length || 0;
     let currentIndex = 0;
 
-    const updateSlidePosition = () => {
-      if(track) track.style.transform = `translateX(-${currentIndex * 100}%)`;
-    };
+    function updateSlidePosition() {
+      track.style.transform = `translateX(-${currentIndex * 100}%)`;
+    }
 
-    if(document.getElementById("prev-btn")) {
-      document.getElementById("prev-btn").addEventListener("click", () => {
+    // Prev/Next 버튼
+    const prevBtn = document.getElementById("prev-btn");
+    const nextBtn = document.getElementById("next-btn");
+
+    if (prevBtn && !prevBtn.dataset.bound) {
+      prevBtn.dataset.bound = "1";
+      prevBtn.addEventListener("click", () => {
+        if (!totalSlides) return;
         currentIndex = (currentIndex - 1 + totalSlides) % totalSlides;
         updateSlidePosition();
       });
     }
-
-    if(document.getElementById("next-btn")) {
-      document.getElementById("next-btn").addEventListener("click", () => {
+    if (nextBtn && !nextBtn.dataset.bound) {
+      nextBtn.dataset.bound = "1";
+      nextBtn.addEventListener("click", () => {
+        if (!totalSlides) return;
         currentIndex = (currentIndex + 1) % totalSlides;
         updateSlidePosition();
       });
     }
 
-    setInterval(() => {
-      currentIndex = (currentIndex + 1) % totalSlides;
-      updateSlidePosition();
-    }, 5000);
+    // 자동 넘김 (기존 타이머 정리 후 재설정)
+    if (window.__introSliderTimer) {
+      clearInterval(window.__introSliderTimer);
+      window.__introSliderTimer = null;
+    }
+    if (totalSlides > 1) {
+      window.__introSliderTimer = setInterval(() => {
+        currentIndex = (currentIndex + 1) % totalSlides;
+        updateSlidePosition();
+      }, 5000);
+    }
 
-    // 탭 버튼 클릭 이벤트: 탭 컨텐츠 보이기/숨기기 & 스타일 토글 + AJAX 로드
+    // 첫 렌더 보정
+    requestAnimationFrame(updateSlidePosition);
+  }
+
+  // ================= Tabs & Pagination =================
+  const fetchControllers = {}; // tab -> AbortController
+
+  function initTabs() {
+    // 탭 버튼/컨테이너
     const tabButtons = document.querySelectorAll(".tab-button");
-    const postsContainer = document.getElementById("posts-container");
+    const postsContainer = document.getElementById("posts-container"); // 탭 컨텐츠 래퍼(위임용)
+    if (!tabButtons.length || !postsContainer) return;
 
+    // 중복 바인딩 방지
+    if (!postsContainer.dataset.bound) {
+      postsContainer.dataset.bound = "1";
+
+      // 페이지네이션 위임
+      postsContainer.addEventListener("click", (e) => {
+        const link = e.target.closest(".pagination-link");
+        if (!link) return;
+        e.preventDefault();
+        const page = link.dataset.page;
+        const tab  = link.dataset.tab;
+        if (!tab || !page) return;
+        fetchPosts(tab, page);
+        setActiveTabStyles(tabButtons, tab);
+      });
+    }
+
+    // 탭 클릭 바인딩 (중복 방지)
     tabButtons.forEach((btn) => {
+      if (btn.dataset.bound === "1") return;
+      btn.dataset.bound = "1";
       btn.addEventListener("click", () => {
         const targetTab = btn.dataset.tab;
+        if (!targetTab) return;
         fetchPosts(targetTab, 1);
-        updateTabStyles(targetTab);
+        setActiveTabStyles(tabButtons, targetTab);
       });
     });
 
-    // 페이지네이션 클릭 이벤트 위임
-    postsContainer.addEventListener("click", (e) => {
-      if(e.target.classList.contains("pagination-link")) {
-        e.preventDefault();
-        const page = e.target.dataset.page;
-        const tab = e.target.dataset.tab;
-        fetchPosts(tab, page);
+    // 초기 탭 결정: data-default="1"가 있으면 그 탭, 없으면 my_posts, 그것도 없으면 첫 탭
+    let initial = (document.querySelector('.tab-button[data-default="1"]') || null);
+    let initialTab = initial ? initial.dataset.tab : "my_posts";
+    if (!document.getElementById(initialTab)) {
+      const firstBtn = tabButtons[0];
+      initialTab = firstBtn ? firstBtn.dataset.tab : null;
+    }
+    if (initialTab) {
+      setActiveTabStyles(tabButtons, initialTab);
+      // 초기 로딩(이미 서버에서 렌더된 경우 생략해도 OK)
+      const initialDiv = document.getElementById(initialTab);
+      if (initialDiv && !initialDiv.dataset.loadedOnce) {
+        initialDiv.dataset.loadedOnce = "1";
+        fetchPosts(initialTab, 1); // 필요 시 주석 처리 가능
+      }
+    }
+  }
+
+  function setActiveTabStyles(tabButtons, activeTab) {
+    tabButtons.forEach((b) => {
+      if (b.dataset.tab === activeTab) {
+        b.classList.add("border-b-2", "border-[#3e2f23]", "font-medium");
+        b.classList.remove("text-[#a09388]");
+      } else {
+        b.classList.remove("border-b-2", "border-[#3e2f23]", "font-medium");
+        b.classList.add("text-[#a09388]");
       }
     });
-    const userId = <%= current_user ? current_user.id : @user.id %>;
+    // 탭 컨텐츠 show/hide
+    document.querySelectorAll(".posts-tab").forEach((tabDiv) => {
+      tabDiv.classList.toggle("hidden", tabDiv.id !== activeTab);
+    });
+  }
 
-    function fetchPosts(tab, page) {
-      const url = `/users/${userId}/${tab}?page=${page}`;
-  
-      fetch(url, {
-        headers: { "X-Requested-With": "XMLHttpRequest" }
-      })
-      .then(response => response.text())
-      .then(html => {
-        const targetDiv = document.getElementById(tab);
-        if(targetDiv) {
-          targetDiv.innerHTML = html;
-        }
-      })
-      .catch(console.error);
+  function abortOngoing(tab) {
+    const c = fetchControllers[tab];
+    if (c) {
+      try { c.abort(); } catch (_) {}
+      delete fetchControllers[tab];
     }
+  }
 
-    function updateTabStyles(activeTab) {
-      tabButtons.forEach(b => {
-        if(b.dataset.tab === activeTab) {
-          b.classList.add("border-b-2", "border-[#3e2f23]", "font-medium");
-          b.classList.remove("text-[#a09388]");
-          document.querySelectorAll(".posts-tab").forEach(tabDiv => {
-            tabDiv.classList.toggle("hidden", tabDiv.id !== activeTab);
-          });
-        } else {
-          b.classList.remove("border-b-2", "border-[#3e2f23]", "font-medium");
-          b.classList.add("text-[#a09388]");
+  function fetchPosts(tab, page = 1) {
+    const targetDiv = document.getElementById(tab);
+    if (!targetDiv) return;
+
+    // userId (ERB)
+    const userId = <%= (current_user&.id || @user&.id).to_i %>;
+    const url = `/users/${userId}/${tab}?page=${encodeURIComponent(page)}`;
+
+    // 스켈레톤 표시
+    showSkeleton(targetDiv);
+
+    // 중복 요청 취소
+    abortOngoing(tab);
+    const controller = new AbortController();
+    fetchControllers[tab] = controller;
+
+    fetch(url, {
+      headers: { "X-Requested-With": "XMLHttpRequest" },
+      signal: controller.signal
+    })
+      .then((res) => {
+        if (!res.ok) throw new Error("Failed to fetch");
+        return res.text();
+      })
+      .then((html) => {
+        // 취소된 후 도착한 응답 무시
+        if (fetchControllers[tab] !== controller) return;
+        targetDiv.innerHTML = html;
+      })
+      .catch((err) => {
+        if (err.name === "AbortError") return;
+        console.error(err);
+        targetDiv.innerHTML = `
+          <div class="p-4 text-sm text-red-600">
+            목록을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.
+          </div>
+        `;
+      })
+      .finally(() => {
+        if (fetchControllers[tab] === controller) {
+          delete fetchControllers[tab];
         }
       });
-    }
+  }
 
-    // 초기 탭 스타일 세팅 (기본 my_posts)
-    updateTabStyles('my_posts');
-  });
+  // ================= Auto init (Turbo-safe) =================
+  function initAll() {
+    initSlider();
+    initTabs();
+  }
+
+  document.addEventListener("DOMContentLoaded", initAll);
+  document.addEventListener("turbo:load", initAll);
+  document.addEventListener("turbo:render", initAll);
+})();
 </script>

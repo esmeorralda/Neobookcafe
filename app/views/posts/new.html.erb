@@ -276,255 +276,324 @@
 }
 
 
-</style>
-<script>
+</style><script>
+(function () {
+  // ===================== 공통: 페이지 이탈 경고(한 번만 바인딩) =====================
+  if (!window.__post_form_dirty_guard_bound) {
+    window.__post_form_dirty_guard_bound = true;
 
-  let isFormDirty = false;
-
-  // 사용자가 내용을 입력했는지 감지
-  document.addEventListener("input", (e) => {
-    if (e.target.closest("#blocks-container")) {
-      isFormDirty = true;
-    }
-  });
-
-  // 페이지 이탈 또는 새로고침 시 경고
-  window.addEventListener("beforeunload", function (e) {
-    if (isFormDirty) {
-      const message = "작성 중인 내용이 사라집니다. 페이지를 떠나시겠습니다?";
-      e.preventDefault();
-      e.returnValue = message; 
-      return message;
-    }
-  });
-
-  
- const serverPostBlocks = <%= raw @post.post_blocks.present? ? @post.post_blocks.map.with_index { |block, idx| 
-    { block_type: block.block_type, content: block.content, index: idx } 
-  }.to_json : '[]' %>;
-document.addEventListener("DOMContentLoaded", () => {
-
-  const container = document.getElementById("blocks-container");
-
-  function autoResizeTextarea(textarea) {
-  textarea.style.height = "auto";
-
-  const value = textarea.value;
-
-  // 기본 1줄 높이 고정 (CSS line-height 기준)
-  const lineHeightEm = 1.4; // 이미 CSS에 line-height:1.4; 지정되어 있음
-  const fontSizePx = parseFloat(getComputedStyle(textarea).fontSize) || 16; // 기본 16px fallback
-  const lineHeightPx = lineHeightEm * fontSizePx;
-
-  // 한 줄에 대략 들어갈 글자 수(임의 설정, 폰트에 따라 다름)
-  const maxCharsPerLine = 50; 
-
-  if (
-    value.trim() === "" ||                  // 빈문자면
-    (!value.includes("\n") && value.length <= maxCharsPerLine) // 줄바꿈 없고 길이도 한 줄 이하면
-  ) {
-    // 1줄 높이 유지
-    textarea.style.height = lineHeightPx + "px";
-  } else {
-    // 여러 줄일 경우 내용에 맞게 자동 조절
-    textarea.style.height = textarea.scrollHeight + "px";
-  }
-}
-
-
-
-  // 블럭 생성 함수 - index 대신 현재 블럭 개수 기준으로 name 할당
-  function createBlock(type = "paragraph", content = "") {
-    const block = document.createElement("div");
-    block.classList.add("block");
-    block.classList.add(`block-type-${type}`);
-
-    const blocksCount = container.querySelectorAll(".block").length;
-
-    // textarea 생성
-    const textarea = document.createElement("textarea");
-    textarea.name = `post[post_blocks_attributes][${blocksCount}][content]`;
-    textarea.value = content;
-    textarea.placeholder = "내용을 입력하세요";
-    // rows 속성 제거 - 자동 높이 조절에 방해됨
-    // textarea.setAttribute("rows", 1);
-
-    // 타이핑 시 자동 리사이즈
-    textarea.addEventListener("input", () => autoResizeTextarea(textarea));
-    // 붙여넣기 후 자동 리사이즈
-    textarea.addEventListener("paste", () => {
-      setTimeout(() => autoResizeTextarea(textarea), 0);
+    let isFormDirty = false;
+    document.addEventListener("input", (e) => {
+      if (e.target.closest("form")) isFormDirty = true;
     });
 
-    autoResizeTextarea(textarea); // 생성 즉시 높이 맞춤
-
-    // 타입 선택 셀렉트 생성
-    const select = document.createElement("select");
-    select.name = `post[post_blocks_attributes][${blocksCount}][block_type]`;
-    select.className = "block-type-selector block-controls-left";
-    select.style.padding = "0.2rem 0.5rem";
-    select.style.border = "1px solid #ccc";
-    select.style.borderRadius = "0.25rem";
-    select.style.background = "white";
-
-    const options = [
-      { val: "paragraph", label: "문단" },
-      { val: "quote", label: "인용" },
-      { val: "subtitle", label: "소제목" }
-    ];
-    options.forEach(opt => {
-      const option = document.createElement("option");
-      option.value = opt.val;
-      option.textContent = opt.label;
-      if (opt.val === type) option.selected = true;
-      select.appendChild(option);
-    });
-
-    select.addEventListener("change", () => {
-      block.classList.remove("block-type-paragraph", "block-type-quote", "block-type-subtitle");
-      block.classList.add(`block-type-${select.value}`);
-    });
-
-    // 삭제 버튼 (첫 블럭 제외)
-    if (blocksCount > 0) {
-      const removeBtn = document.createElement("button");
-      removeBtn.type = "button";
-      removeBtn.textContent = "삭제";
-      removeBtn.className = "block-controls-right";
-      removeBtn.title = "블록 삭제";
-      removeBtn.addEventListener("click", () => {
-        container.removeChild(block);
-        updateBlockNames();
-      });
-      block.appendChild(removeBtn);
-    }
-
-    block.appendChild(select);
-    block.appendChild(textarea);
-    container.appendChild(block);
-
-    updateBlockNames();
-
-    textarea.focus();
-    autoResizeTextarea(textarea);
-
-    block.addEventListener("mouseleave", () => {
-  hideTimeout = setTimeout(() => block.classList.remove("focused"), 500);
-});
-
-block.addEventListener("mouseenter", () => {
-  clearTimeout(hideTimeout);
-  block.classList.add("focused");
-});
-
-// 추가: select와 textarea에 마우스 enter/leave 이벤트 등록
-[select, textarea].forEach(el => {
-  el.addEventListener("mouseenter", () => {
-    clearTimeout(hideTimeout);
-    block.classList.add("focused");
-  });
-  el.addEventListener("mouseleave", () => {
-    hideTimeout = setTimeout(() => {
-      if (!block.contains(document.activeElement)) {
-        block.classList.remove("focused");
-      }
-    }, 400);
-  });
-
-  el.addEventListener("focus", () => {
-    clearTimeout(hideTimeout);
-    block.classList.add("focused");
-  });
-
-  el.addEventListener("blur", () => {
-    hideTimeout = setTimeout(() => {
-      if (!block.contains(document.activeElement)) {
-        block.classList.remove("focused");
-      }
-    }, 300);
-  });
-});
-    // 키 이벤트 처리 (엔터, 위/아래 방향키)
-    textarea.addEventListener("keydown", (e) => {
-      if (e.key === "Enter" && !e.shiftKey) {
+    window.addEventListener("beforeunload", function (e) {
+      if (isFormDirty) {
+        const message = "작성 중인 내용이 사라집니다. 페이지를 떠나시겠습니까?";
         e.preventDefault();
-
-        const blocks = Array.from(container.querySelectorAll(".block textarea"));
-        const currentIndex = blocks.indexOf(textarea);
-        const hasNextBlock = currentIndex < blocks.length - 1;
-
-        if (hasNextBlock) {
-          blocks[currentIndex + 1].focus();
-          blocks[currentIndex + 1].setSelectionRange(0, 0);
-        } else {
-          const cursorPos = textarea.selectionStart;
-          const value = textarea.value;
-          const before = value.slice(0, cursorPos);
-          const after = value.slice(cursorPos);
-
-          textarea.value = before;
-          autoResizeTextarea(textarea);
-
-          createBlock("paragraph", after);
-        }
-      }
-
-      if (e.key === "ArrowUp") {
-        const blocks = Array.from(container.querySelectorAll(".block textarea"));
-        const currentIndex = blocks.indexOf(textarea);
-        if (currentIndex > 0 && textarea.selectionStart === 0) {
-          e.preventDefault();
-          const prev = blocks[currentIndex - 1];
-          prev.focus();
-          prev.setSelectionRange(prev.value.length, prev.value.length);
-        }
-      }
-      if (e.key === "ArrowDown") {
-        const blocks = Array.from(container.querySelectorAll(".block textarea"));
-        const currentIndex = blocks.indexOf(textarea);
-        if (currentIndex < blocks.length - 1 && textarea.selectionStart === textarea.value.length) {
-          e.preventDefault();
-          const next = blocks[currentIndex + 1];
-          next.focus();
-          next.setSelectionRange(0, 0);
-        }
-      }
-    });
-
-    return textarea;
-  }
-
-  // 블럭 이름(name) 재설정 함수 - 중요!
-  function updateBlockNames() {
-    const blocks = container.querySelectorAll(".block");
-    blocks.forEach((block, idx) => {
-      const textarea = block.querySelector("textarea");
-      const select = block.querySelector("select");
-      if (textarea) {
-        textarea.name = `post[post_blocks_attributes][${idx}][content]`;
-      }
-      if (select) {
-        select.name = `post[post_blocks_attributes][${idx}][block_type]`;
+        e.returnValue = message;
+        return message;
       }
     });
   }
 
-
-  // 카테고리 선택 시 장르 토글 (기존 로직)
-  const categorySelect = document.getElementById("category-select");
-  function toggleGenres() {
-    const selected = categorySelect.value;
-    document.querySelectorAll(".genre-default").forEach(el => el.classList.toggle("hidden", selected !== "thought" && selected !== "discussion"));
-    document.querySelectorAll(".genre-creation").forEach(el => el.classList.toggle("hidden", selected !== "creation"));
-    document.querySelectorAll(".genre-board").forEach(el => el.classList.toggle("hidden", selected !== "board"));
+  // ===================== 장르 스켈레톤 =====================
+  const GENRE_SKELETON_HTML = `
+    <div id="genre-skeleton" class="animate-pulse" style="display:flex; gap:.5rem; margin:.25rem 0;">
+      <div style="height:22px; width:80px; background:#eee; border-radius:6px;"></div>
+      <div style="height:22px; width:72px; background:#eee; border-radius:6px;"></div>
+      <div style="height:22px; width:96px; background:#eee; border-radius:6px;"></div>
+    </div>
+  `;
+  function showGenreSkeleton(container) {
+    if (!container || container.querySelector("#genre-skeleton")) return;
+    const wrap = document.createElement("div");
+    wrap.innerHTML = GENRE_SKELETON_HTML;
+    container.prepend(wrap.firstElementChild);
   }
-  categorySelect.addEventListener("change", toggleGenres);
-  toggleGenres();
-});
+  function hideGenreSkeleton(container) {
+    const sk = container && container.querySelector("#genre-skeleton");
+    if (sk) sk.remove();
+  }
 
-  </script>
+  // ===================== 블록 스켈레톤 =====================
+  const BLOCKS_SKELETON_HTML = `
+    <div id="blocks-skeleton" style="padding:.5rem">
+      <div style="height:14px;background:#eee;border-radius:6px;width:30%;margin-bottom:8px;"></div>
+      <div style="height:10px;background:#f0f0f0;border-radius:6px;width:70%;margin-bottom:8px;"></div>
+      <div style="height:90px;background:#f7f7f7;border-radius:8px;margin-bottom:10px;"></div>
+    </div>
+  `;
+  function showBlocksSkeleton(container) {
+    if (!container || container.querySelector("#blocks-skeleton")) return;
+    const wrap = document.createElement("div");
+    wrap.innerHTML = BLOCKS_SKELETON_HTML;
+    container.prepend(wrap.firstElementChild);
+  }
+  function hideBlocksSkeleton(container) {
+    const sk = container && container.querySelector("#blocks-skeleton");
+    if (sk) sk.remove();
+  }
 
-  <!-- 항상 최소 하나의 블럭을 보장 -->
-<script>
+  // ===================== 카테고리 ⇄ 장르 토글 =====================
+  function bindCategoryGenre() {
+    const genreContainer = document.getElementById("genre-container");
+    const categorySelect = document.getElementById("category-select");
+    if (!genreContainer || !categorySelect) return;
+    if (genreContainer.dataset.genreInited === "1") return;
+    genreContainer.dataset.genreInited = "1";
 
+    showGenreSkeleton(genreContainer);
+
+    function toggleGenres() {
+      const selected = categorySelect.value; // "discussion" | "thought" | "creation" | "board"
+
+      const showDefault = (selected === "thought" || selected === "discussion");
+      document.querySelectorAll(".genre-default")
+        .forEach(el => el.classList.toggle("hidden", !showDefault));
+      document.querySelectorAll(".genre-creation")
+        .forEach(el => el.classList.toggle("hidden", selected !== "creation"));
+      document.querySelectorAll(".genre-board")
+        .forEach(el => el.classList.toggle("hidden", selected !== "board"));
+
+      // 현재 체크된 라디오가 숨겨졌다면, 보이는 첫 라디오를 자동 선택
+      const allRadios = Array.from(document.querySelectorAll('input[type="radio"][name="post[book_genre]"]'));
+      const checked = allRadios.find(r => r.checked);
+      const isCheckedHidden = checked ? checked.closest(".hidden") : null;
+      if (!checked || isCheckedHidden) {
+        const firstVisible = allRadios.find(r => !r.closest(".hidden"));
+        if (firstVisible) firstVisible.checked = true;
+      }
+    }
+
+    categorySelect.addEventListener("change", toggleGenres);
+    requestAnimationFrame(() => {
+      toggleGenres();
+      hideGenreSkeleton(genreContainer);
+    });
+  }
+
+  // ===================== 블록 에디터 (window.* 노출: 서버 마크업에서 사용) =====================
+  function bindBlock(block) {
+    if (!block || block.dataset.bound === '1') return;
+    block.dataset.bound = '1';
+
+    const select = block.querySelector('select.block-type-selector');
+    const textarea = block.querySelector('textarea');
+
+    if (select) {
+      select.addEventListener('change', () => {
+        block.classList.remove('block-type-paragraph', 'block-type-quote', 'block-type-subtitle');
+        block.classList.add(`block-type-${select.value}`);
+        if (textarea) window.autoResizeTextarea(textarea);
+      });
+    }
+
+    // 컨트롤 show/hide
+    let hideTimeout;
+    block.addEventListener('focusin', () => {
+      clearTimeout(hideTimeout);
+      const left  = block.querySelector('.block-type-selector');
+      const right = block.querySelector('.block-controls-right');
+      if (left)  { left.style.opacity = '1';  left.style.pointerEvents = 'auto'; }
+      if (right) { right.style.opacity = '1'; right.style.pointerEvents = 'auto'; }
+    });
+    block.addEventListener('focusout', () => {
+      hideTimeout = setTimeout(() => {
+        const left  = block.querySelector('.block-type-selector');
+        const right = block.querySelector('.block-controls-right');
+        if (left)  { left.style.opacity = '0';  left.style.pointerEvents = 'none'; }
+        if (right) { right.style.opacity = '0'; right.style.pointerEvents = 'none'; }
+      }, 700);
+    });
+  }
+
+  function bindExistingBlocks() {
+    document.querySelectorAll('#blocks-container .block').forEach(bindBlock);
+  }
+
+  function updateTextareaNames() {
+    const blocks = document.querySelectorAll('#blocks-container .block');
+    blocks.forEach((block, i) => {
+      const select = block.querySelector('select');
+      const textarea = block.querySelector('textarea');
+      if (select)  select.name  = `post[post_blocks_attributes][${i}][block_type]`;
+      if (textarea) textarea.name = `post[post_blocks_attributes][${i}][content]`;
+    });
+  }
+
+  // ===== window.* 공개 함수들 (ERB에 oninput/onkeydown 등으로 이미 연결됨) =====
+  window.autoResizeTextarea = function (textarea) {
+    if (!textarea) return;
+    textarea.style.height = 'auto';
+    const value = textarea.value;
+    const lineHeightEm = 1.4;
+    const fontSizePx = parseFloat(getComputedStyle(textarea).fontSize) || 16;
+    const lineHeightPx = lineHeightEm * fontSizePx;
+    const maxCharsPerLine = 50;
+
+    if (value.trim() === '' || (!value.includes('\n') && value.length <= maxCharsPerLine)) {
+      textarea.style.height = lineHeightPx + 'px';
+    } else {
+      textarea.style.height = textarea.scrollHeight + 'px';
+    }
+  };
+
+  window.handleKeyDown = function (e, textarea) {
+    const container = document.getElementById('blocks-container');
+    if (!container) return;
+    const blocks = Array.from(container.querySelectorAll('.block textarea'));
+    const currentIndex = blocks.indexOf(textarea);
+
+    // Enter로 블록 분할 (Shift+Enter 제외)
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+
+      const cursorPos = textarea.selectionStart;
+      const value = textarea.value;
+      const before = value.slice(0, cursorPos);
+      const after  = value.slice(cursorPos);
+
+      textarea.value = before;
+      window.autoResizeTextarea(textarea);
+
+      const currentBlock = textarea.closest('.block');
+      const nextBlock = currentBlock.nextElementSibling;
+
+      if (nextBlock && nextBlock.classList.contains('block')) {
+        const nextTextarea = nextBlock.querySelector('textarea');
+        nextTextarea.focus();
+        nextTextarea.setSelectionRange(0, 0);
+      } else {
+        const newBlock = window.createHtmlBlock('paragraph', after);
+        currentBlock.insertAdjacentElement('afterend', newBlock);
+        updateTextareaNames();
+        const newTextarea = newBlock.querySelector('textarea');
+        newTextarea.focus();
+        window.autoResizeTextarea(newTextarea);
+      }
+    }
+
+    // 위/아래 이동
+    if (e.key === 'ArrowUp' && textarea.selectionStart === 0) {
+      e.preventDefault();
+      if (currentIndex > 0) {
+        const prev = blocks[currentIndex - 1];
+        prev.focus();
+        prev.setSelectionRange(prev.value.length, prev.value.length);
+      }
+    }
+    if (e.key === 'ArrowDown' && textarea.selectionStart === textarea.value.length) {
+      e.preventDefault();
+      if (currentIndex < blocks.length - 1) {
+        const next = blocks[currentIndex + 1];
+        next.focus();
+        next.setSelectionRange(0, 0);
+      }
+    }
+  };
+
+  window.createHtmlBlock = function (type = 'paragraph', content = '') {
+    const container = document.getElementById('blocks-container');
+    if (!container) return document.createElement('div');
+    const index = container.querySelectorAll('.block').length;
+
+    const wrapper = document.createElement('div');
+    wrapper.classList.add('block', `block-type-${type}`);
+    wrapper.style.position = 'relative';
+
+    // select
+    const select = document.createElement('select');
+    select.name = `post[post_blocks_attributes][${index}][block_type]`;
+    select.className = 'block-type-selector block-controls-left';
+    select.style.padding = '0.2rem 0.5rem';
+    select.style.border = '1px solid #ccc';
+    select.style.borderRadius = '0.25rem';
+    select.style.background = 'white';
+
+    [
+      { val: 'paragraph', label: '문단' },
+      { val: 'quote',     label: '인용' },
+      { val: 'subtitle',  label: '소제목' }
+    ].forEach(o => {
+      const op = document.createElement('option');
+      op.value = o.val;
+      op.textContent = o.label;
+      if (o.val === type) op.selected = true;
+      select.appendChild(op);
+    });
+
+    // delete button
+    const delBtn = document.createElement('button');
+    delBtn.type = 'button';
+    delBtn.className = 'block-controls-right';
+    delBtn.title = '블록 삭제';
+    delBtn.textContent = '삭제';
+    delBtn.addEventListener('click', () => window.deleteBlock(delBtn));
+
+    // textarea
+    const ta = document.createElement('textarea');
+    ta.name = `post[post_blocks_attributes][${index}][content]`;
+    ta.placeholder = '내용을 입력하세요';
+    ta.value = content || '';
+    ta.addEventListener('input', () => window.autoResizeTextarea(ta));
+    ta.addEventListener('paste', () => setTimeout(() => window.autoResizeTextarea(ta), 0));
+    ta.addEventListener('keydown', (ev) => window.handleKeyDown(ev, ta));
+
+    // assemble
+    wrapper.appendChild(select);
+    wrapper.appendChild(delBtn);
+    wrapper.appendChild(ta);
+
+    // behavior
+    select.addEventListener('change', () => {
+      wrapper.classList.remove('block-type-paragraph', 'block-type-quote', 'block-type-subtitle');
+      wrapper.classList.add(`block-type-${select.value}`);
+      window.autoResizeTextarea(ta);
+    });
+
+    bindBlock(wrapper);
+    return wrapper;
+  };
+
+  window.deleteBlock = function (button) {
+    const block = button.closest('.block');
+    if (!block) return;
+    block.remove();
+    updateTextareaNames();
+  };
+
+  // ===================== 블록 초기화 =====================
+  function initBlocks() {
+    const container = document.getElementById('blocks-container');
+    if (!container) return;
+    if (container.dataset.blocksInited === '1') {
+      // 이미 초기화되어도 높이만 보정
+      requestAnimationFrame(() => {
+        container.querySelectorAll('textarea').forEach(window.autoResizeTextarea);
+      });
+      return;
+    }
+    container.dataset.blocksInited = '1';
+
+    showBlocksSkeleton(container);
+
+    requestAnimationFrame(() => {
+      bindExistingBlocks();                           // 기존 블록 바인딩
+      container.querySelectorAll('textarea').forEach(window.autoResizeTextarea); // 높이 보정
+      updateTextareaNames();                          // name 재정렬 보정
+      hideBlocksSkeleton(container);
+    });
+  }
+
+  // ===================== Init (Turbo-safe) =====================
+  function initAll() {
+    bindCategoryGenre();
+    initBlocks();
+  }
+
+  document.addEventListener('DOMContentLoaded', initAll);
+  document.addEventListener('turbo:load', initAll);
+  document.addEventListener('turbo:render', initAll);
+})();
 </script>

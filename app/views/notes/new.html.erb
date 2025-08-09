@@ -110,179 +110,229 @@
 </div>
 <!-- ✅ JS: 책 선택 → 새 입력란 표시 + 목차 로딩 및 새로운 목차 입력란 토글 -->
 <script>
-document.addEventListener("DOMContentLoaded", function () {
-  // DOM 요소들
-  const bookSelect = document.getElementById("book_select");
-  const bookWrapper = document.getElementById("book_select_wrapper");
-  const newBookField = document.getElementById("new_book_title_field");
-
-  const chapterSelect = document.getElementById("chapter_select");
-  const chapterWrapper = document.getElementById("chapter_select_wrapper");
-  const newChapterField = document.getElementById("new_chapter_title_field");
-
-  const chapterLabel = document.getElementById("chapter_select_label");
-
-  // 책 선택 상태에 따라 새 책 입력 필드 및 목차 입력 필드 토글
-  function toggleBookField() {
-    const isNewBook = bookSelect.value === "new_book";
-
-    newBookField.classList.toggle("hidden", !isNewBook);
-    bookWrapper.classList.toggle("hidden", isNewBook);
-
-    if (isNewBook) {
-      chapterWrapper.classList.add("hidden");
-      chapterLabel.classList.add("hidden");
-      newChapterField.classList.remove("hidden");
-    } else {
-      chapterWrapper.classList.remove("hidden");
-      chapterLabel.classList.remove("hidden");
-      newChapterField.classList.add("hidden");
-    }
+(function () {
+  // ===== 작은 스켈레톤 (챕터 영역/로딩) =====
+  const CHAPTER_SKELETON_HTML = `
+    <div id="chapter-skeleton" class="animate-pulse" style="display:flex; gap:.5rem; margin:.25rem 0;">
+      <div style="height:22px; width:140px; background:#eee; border-radius:6px;"></div>
+      <div style="height:22px; width:90px; background:#eee; border-radius:6px;"></div>
+    </div>
+  `;
+  function showChapterSkeleton(wrapper) {
+    if (!wrapper || wrapper.querySelector("#chapter-skeleton")) return;
+    const wrap = document.createElement("div");
+    wrap.innerHTML = CHAPTER_SKELETON_HTML;
+    wrapper.prepend(wrap.firstElementChild);
+  }
+  function hideChapterSkeleton(wrapper) {
+    const sk = wrapper && wrapper.querySelector("#chapter-skeleton");
+    if (sk) sk.remove();
   }
 
-  // 목차 드롭박스 or 입력 필드 토글
-  function toggleChapterField() {
-    const isNewChapter = chapterSelect.value === "new_chapter";
-
-    chapterSelect.classList.toggle("hidden", isNewChapter);
-    newChapterField.classList.toggle("hidden", !isNewChapter);
-
-    if (chapterLabel) {
-      chapterLabel.classList.toggle("hidden", isNewChapter);
-    }
+  // ===== 유틸: 보이기/숨기기 토글 =====
+  function toggle(el, show) {
+    if (!el) return;
+    el.classList.toggle("hidden", !show);
   }
 
-  // 📘 책 선택 시 목차와 current_page 가져오는 Ajax
-  async function loadChapters(bookId) {
-    if (!bookId || bookId === "new_book") return;
+  // ===== 핵심 바인딩 (한 페이지 내 중복 바인딩 방지) =====
+  function initNoteForm() {
+    // DOM 재조회 (Turbo 전환 대비)
+    const bookSelect      = document.getElementById("book_select");
+    const bookWrapper     = document.getElementById("book_select_wrapper");
+    const newBookField    = document.getElementById("new_book_title_field");
 
-    try {
-      const response = await fetch(`/books/${bookId}/chapters_and_current_page`);
-      if (!response.ok) throw new Error("Failed to fetch chapters");
+    const chapterSelect   = document.getElementById("chapter_select");
+    const chapterWrapper  = document.getElementById("chapter_select_wrapper");
+    const newChapterField = document.getElementById("new_chapter_title_field");
 
-      const data = await response.json();
-      const chapters = data.chapters;
+    const chapterLabel    = document.getElementById("chapter_select_label");
 
-      // 목차 드롭다운 채우기
-      chapterSelect.innerHTML = "";
-      chapters.forEach(ch => {
-        const option = document.createElement("option");
-        option.value = ch.id;
-        option.text = ch.title;
-        chapterSelect.appendChild(option);
+    const pageFromField   = document.getElementById("page_from_field");
+
+    // 요소가 없으면 스킵
+    if (!bookSelect) return;
+
+    // 중복 바인딩 방지 플래그
+    if (bookSelect.dataset.bound === "1") {
+      // 바인딩은 되어있더라도, 첫 렌더/복귀 시 상태 보정은 해준다
+      applyInitialState();
+      return;
+    }
+    bookSelect.dataset.bound = "1";
+
+    // --- 상태 토글 함수들 ---
+    function toggleBookField() {
+      const isNewBook = (bookSelect.value === "new_book");
+
+      toggle(newBookField, isNewBook);
+      toggle(bookWrapper, !isNewBook);
+
+      if (isNewBook) {
+        // 새 책 입력이면 챕터 드롭다운은 숨기고, 새 챕터 입력 필드만 보여줌
+        toggle(chapterWrapper, false);
+        toggle(chapterLabel, false);
+        toggle(newChapterField, true);
+      } else {
+        // 기존 책이면 챕터 드롭/라벨을 보여주고, 새 챕터 입력 필드는 숨김
+        toggle(chapterWrapper, true);
+        toggle(chapterLabel, true);
+        toggle(newChapterField, false);
+      }
+    }
+
+    function toggleChapterField() {
+      if (!chapterSelect) return;
+      const isNewChapter = (chapterSelect.value === "new_chapter");
+      toggle(chapterSelect, !isNewChapter);
+      toggle(newChapterField, isNewChapter);
+      if (chapterLabel) chapterLabel.classList.toggle("hidden", isNewChapter);
+    }
+
+    // --- Ajax 로 챕터/현재 페이지 가져오기 ---
+    async function loadChapters(bookId) {
+      if (!bookId || bookId === "new_book") return;
+
+      try {
+        // 로딩 스켈레톤
+        showChapterSkeleton(chapterWrapper);
+
+        const response = await fetch(`/books/${bookId}/chapters_and_current_page`, {
+          headers: { "Accept": "application/json" }
+        });
+        if (!response.ok) throw new Error("Failed to fetch chapters");
+
+        const data = await response.json();
+        const chapters = Array.isArray(data.chapters) ? data.chapters : [];
+
+        if (chapterSelect) {
+          // 기존 옵션 제거
+          chapterSelect.innerHTML = "";
+          // 챕터 채우기
+          chapters.forEach(ch => {
+            const option = document.createElement("option");
+            option.value = ch.id;
+            option.text  = ch.title;
+            chapterSelect.appendChild(option);
+          });
+          // 새 챕터 옵션
+          const newOption = document.createElement("option");
+          newOption.value = "new_chapter";
+          newOption.text  = "➕ 새로운 목차 입력";
+          chapterSelect.appendChild(newOption);
+
+          // 드롭다운/라벨 표시, 새 챕터 입력 숨김
+          toggle(chapterWrapper, true);
+          chapterSelect.classList.remove("hidden");
+          toggle(newChapterField, false);
+          if (chapterLabel) chapterLabel.classList.remove("hidden");
+        }
+
+        // current_page + 1 → page_from 자동 입력
+        if (pageFromField) {
+          const currentPage = parseInt(data.current_page, 10);
+          pageFromField.value = isNaN(currentPage) ? "" : (currentPage + 1);
+        }
+      } catch (err) {
+        console.error("Ajax error:", err);
+        if (chapterSelect) chapterSelect.innerHTML = "";
+      } finally {
+        hideChapterSkeleton(chapterWrapper);
+      }
+    }
+
+    // --- 이벤트 바인딩 ---
+    bookSelect.addEventListener("change", () => {
+      toggleBookField();
+      if (bookSelect.value && bookSelect.value !== "new_book") {
+        loadChapters(bookSelect.value);
+      }
+    });
+
+    if (chapterSelect && !chapterSelect.dataset.bound) {
+      chapterSelect.dataset.bound = "1";
+      chapterSelect.addEventListener("change", toggleChapterField);
+    }
+
+    // --- 초기 상태 적용 ---
+    function applyInitialState() {
+      toggleBookField();
+
+      // 기존 책이 선택된 상태라면 챕터/페이지 즉시 로드
+      if (bookSelect.value && bookSelect.value !== "new_book") {
+        loadChapters(bookSelect.value);
+      }
+
+      // chapterSelect가 이미 렌더되어 있을 수 있으므로 상태 보정
+      toggleChapterField();
+    }
+    // 다음 프레임에 초기 상태 적용(레이아웃 안정 후)
+    requestAnimationFrame(applyInitialState);
+
+    // --- 폼 유효성 검사 (해당 폼 1개에만 바인딩) ---
+    const form = bookSelect.closest("form") || document.querySelector("form");
+    if (form && !form.dataset.bound) {
+      form.dataset.bound = "1";
+      form.addEventListener("submit", function (e) {
+        const bookId   = bookSelect.value;
+        const bookTitleInput = document.querySelector("input[name='note[book_title]']");
+        const bookTitle = bookTitleInput ? bookTitleInput.value.trim() : "";
+
+        const chapterId = chapterSelect ? chapterSelect.value : "";
+        const chapterTitleInput = document.querySelector("input[name='note[chapter_title]']");
+        const chapterTitle = chapterTitleInput ? chapterTitleInput.value.trim() : "";
+
+        const memoEl = document.querySelector("textarea[name='note[memo]']");
+        const memo   = memoEl ? memoEl.value.trim() : "";
+        const pageTo   = (document.querySelector("input[name='note[page_to]']")   || {}).value;
+        const pageFrom = (document.querySelector("input[name='note[page_from]']") || {}).value;
+
+        if (bookId === "new_book" && bookTitle === "") {
+          alert("새 책 제목을 입력해주세요.");
+          e.preventDefault(); return;
+        }
+        if (!bookId) {
+          alert("책을 선택하거나 새로 입력해주세요.");
+          e.preventDefault(); return;
+        }
+        if ((bookId !== "new_book") && (!chapterId || (chapterId === "new_chapter" && chapterTitle === ""))) {
+          alert("목차를 선택하거나 새로 입력해주세요.");
+          e.preventDefault(); return;
+        }
+        if (memo === "") {
+          alert("메모 내용을 입력해주세요.");
+          e.preventDefault(); return;
+        }
+        if (!pageTo || isNaN(parseInt(pageTo, 10))) {
+          alert("마지막 쪽 수(page_to)를 입력해주세요.");
+          e.preventDefault(); return;
+        }
+        if (pageFrom && pageTo && parseInt(pageFrom, 10) > parseInt(pageTo, 10)) {
+          alert("시작 쪽은 끝 쪽보다 작거나 같아야 합니다.");
+          e.preventDefault(); return;
+        }
       });
+    }
 
-      const newOption = document.createElement("option");
-      newOption.value = "new_chapter";
-      newOption.text = "➕ 새로운 목차 입력";
-      chapterSelect.appendChild(newOption);
-
-      chapterWrapper.classList.remove("hidden");
-      chapterSelect.classList.remove("hidden");
-      newChapterField.classList.add("hidden");
-
-      if (chapterLabel) {
-        chapterLabel.classList.remove("hidden");
-      }
-
-      // current_page + 1 → page_from 필드에 자동 입력
-      const pageFromField = document.getElementById("page_from_field");
-      if (pageFromField) {
-        const currentPage = parseInt(data.current_page, 10);
-        pageFromField.value = isNaN(currentPage) ? 0 : currentPage + 1;
-      }
-    } catch (error) {
-      console.error("Ajax error:", error);
-      chapterSelect.innerHTML = "";
-
-
+    // --- 텍스트에어리어 자동 리사이즈 (#auto-resize-textarea) ---
+    const noteTextarea = document.getElementById("auto-resize-textarea");
+    if (noteTextarea && !noteTextarea.dataset.bound) {
+      noteTextarea.dataset.bound = "1";
+      const resizeTextarea = () => {
+        noteTextarea.style.height = "auto";
+        noteTextarea.style.height = noteTextarea.scrollHeight + "px";
+      };
+      noteTextarea.addEventListener("input", resizeTextarea);
+      requestAnimationFrame(resizeTextarea);
     }
   }
 
-  // 📌 이벤트 바인딩
-  bookSelect.addEventListener("change", () => {
-    toggleBookField();
-
-    if (bookSelect.value && bookSelect.value !== "new_book") {
-      loadChapters(bookSelect.value);
-    }
-  });
-
-  if (chapterSelect) {
-    chapterSelect.addEventListener("change", toggleChapterField);
+  // ===== Turbo 대응: 모든 네비게이션에서 보장 =====
+  function initAll() {
+    initNoteForm();
   }
-
-  // 초기 로딩 시 상태 반영
-  toggleBookField();
-  if (bookSelect.value && bookSelect.value !== "new_book") {
-    loadChapters(bookSelect.value);
-  }
-  toggleChapterField();
-
-  // 📋 폼 유효성 검사
-  const form = document.querySelector("form");
-
-  form.addEventListener("submit", function (e) {
-    const bookId = bookSelect.value;
-    const bookTitle = document.querySelector("input[name='note[book_title]']").value.trim();
-
-    const chapterId = chapterSelect ? chapterSelect.value : "";
-    const chapterTitleInput = document.querySelector("input[name='note[chapter_title]']");
-    const chapterTitle = chapterTitleInput ? chapterTitleInput.value.trim() : "";
-
-    const memo = document.querySelector("textarea[name='note[memo]']").value.trim();
-    const pageTo = document.querySelector("input[name='note[page_to]']").value;
-    const pageFrom = document.querySelector("input[name='note[page_from]']").value;
-
-    if (bookId === "new_book" && bookTitle === "") {
-      alert("새 책 제목을 입력해주세요.");
-      e.preventDefault();
-      return;
-    }
-
-    if (!bookId) {
-      alert("책을 선택하거나 새로 입력해주세요.");
-      e.preventDefault();
-      return;
-    }
-
-    if ((bookId !== "new_book") && (!chapterId || (chapterId === "new_chapter" && chapterTitle === ""))) {
-      alert("목차를 선택하거나 새로 입력해주세요.");
-      e.preventDefault();
-      return;
-    }
-
-    if (memo === "") {
-      alert("메모 내용을 입력해주세요.");
-      e.preventDefault();
-      return;
-    }
-
-    if (!pageTo || isNaN(parseInt(pageTo))) {
-      alert("마지막 쪽 수(page_to)를 입력해주세요.");
-      e.preventDefault();
-      return;
-    }
-
-    if (pageFrom && pageTo && parseInt(pageFrom) > parseInt(pageTo)) {
-      alert("시작 쪽은 끝 쪽보다 작거나 같아야 합니다.");
-      e.preventDefault();
-      return;
-    }
-  });
-});
-
-document.addEventListener("DOMContentLoaded", function () {
-    const textarea = document.getElementById("auto-resize-textarea");
-
-    function resizeTextarea() {
-      textarea.style.height = "auto";  // 초기화
-      textarea.style.height = (textarea.scrollHeight) + "px";  // 콘텐츠 높이만큼 설정
-    }
-
-    if (textarea) {
-      textarea.addEventListener("input", resizeTextarea);
-      resizeTextarea();  // 초기 로딩 시에도 조절
-    }
-  });
+  document.addEventListener("DOMContentLoaded", initAll);
+  document.addEventListener("turbo:load", initAll);
+  document.addEventListener("turbo:render", initAll);
+})();
 </script>

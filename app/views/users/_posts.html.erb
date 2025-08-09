@@ -1,53 +1,62 @@
-<% if posts.present? %>
-  <% posts.each do |post| %>
-    <div class="mt-10 border-b pb-8">
-      <h2 class="text-xl font-semibold text-[#3a2d20] mb-1" style="font-family: 'Noto Serif KR', serif; font-weight: 700;">
-        <%= link_to post.title, post_path(post), class: "hover:underline" %>
-      </h2>
+<div class="space-y-5">
+  <% if posts.present? %>
+    <% posts.each do |post| %>
+      <div class="p-3 border-b border-[#ddd6ce] flex justify-between items-start mt-3">
+        <!-- 왼쪽: 제목/메타/요약 -->
+        <div style="flex:1; min-width: 0;">
+          <h3 class="text-lg font-semibold text-[#3a2d20] mb-1" style="font-family: 'Noto Serif KR', serif; font-weight: 700;">
+            <%= link_to truncate(post.title.to_s, length: 40), post_path(post), class: "hover:underline" %>
+            <% if post.book_title.present? %>
+              <span class="text-sm text-[#b67c4a] ml-2" style="font-family: 'Inter', sans-serif;">
+                <%= post.book_title %>
+              </span>
+            <% end %>
+          </h3>
 
-      <p class="text-sm leading-relaxed text-[#5b5045] mb-2" style="font-family: 'Noto Serif KR', serif;">
-        <%= truncate(post.top_content.to_s, length: 150) %>
-      </p>
+          <p class="text-xs text-[#7c6243] mb-1" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+            <%= post.book_genre.present? ? (Post.book_genre_korean[post.book_genre.to_sym] rescue "정보 없음") : "정보 없음" %> |
+            <%= post.category.present? ? (Post.category_korean[post.category.to_sym] rescue "정보 없음") : "정보 없음" %>
+          </p>
 
-      <p class="text-xs text-[#7c6243] mb-1" style="font-family: 'Inter', sans-serif;">
-        <%= Post.book_genre_korean[post.book_genre.to_sym] || "정보 없음" %> |
-        <%= post.category.present? ? Post.category_korean[post.category.to_sym] : "정보 없음" %>
-      </p>
+          <p class="text-sm text-[#5e5147] font-serif leading-snug mb-2"
+             style="font-family: 'Noto Serif KR', serif; overflow: hidden; text-overflow: ellipsis;">
+            <%= truncate((post.top_content.presence || post.post_blocks.first&.content).to_s, length: 170) %>
+          </p>
+        </div>
 
-      <div class="text-xs text-[#999] space-x-3 flex items-center" style="font-family: 'Inter', sans-serif;">
-        <% unless post.draft %>
-        <span>
-          <%= time_ago_in_korean(post.created_at) %>,
-          <%= post.user&.name || post.user&.email || "익명" %> 씀
-        </span>
+        <!-- 오른쪽: 작성자/시간 + 통계 -->
+        <div class="flex flex-col justify-end items-end text-xs text-[#999]"
+             style="font-family: 'Inter', sans-serif; min-width: 160px;">
+          <% unless post.draft %>
+            <span class="mb-1 break-words text-right">
+              <%= time_ago_in_korean(post.created_at) %>, <%= post.user&.name || post.user&.email || "익명" %> 씀
+            </span>
+
+            <div class="flex items-center space-x-3">
+              <span class="flex items-center space-x-1">
+                <%= image_tag("icon/post/brownviews.svg", alt: "views icon", class: "w-4 h-4") %>
+                <span><%= post.view_count || 0 %></span>
+              </span>
+
+              <span class="flex items-center space-x-1">
+                <%= image_tag("icon/post/brownoutlinedhear.svg", alt: "likes icon", class: "w-4 h-4") %>
+                <span><%= post.like_count || 0 %></span>
+              </span>
+
+              <span class="flex items-center space-x-1">
+                <%= image_tag("icon/post/browncomments.svg", alt: "comments icon", class: "w-4 h-4") %>
+                <span><%= total_comments_count(post) %></span>
+              </span>
+            </div>
+          <% else %>
+            <span class="italic text-[#aa0000]">작성중인 게시물입니다.</span>
           <% end %>
-
-
-        <% if post.draft %>
-          <span class=" text-[#aa0000] ">작성중인 게시물입니다.</span>
-        <% end %>
-
-        <% unless post.draft %>
-          <span class="flex items-center space-x-1 ml-3">
-            <%= image_tag("icon/post/brownviews.svg", alt: "views icon", class: "w-4 h-4") %>
-            <span><%= post.view_count || 0 %></span>
-          </span>
-
-          <span class="flex items-center space-x-1">
-            <%= image_tag("icon/post/brownoutlinedhear.svg", alt: "likes icon", class: "w-4 h-4") %>
-            <span><%= post.like_count || 0 %></span>
-          </span>
-
-          <span class="flex items-center space-x-1">
-            <%= image_tag("icon/post/browncomments.svg", alt: "comments icon", class: "w-4 h-4") %>
-            <span><%= total_comments_count(post) %></span>
-          </span>
-        <% end %>
+        </div>
       </div>
+    <% end %>
+  <% else %>
+    <div class="mt-10 text-center text-sm text-[#a09388] italic">
+      아직 게시물이 없습니다.
     </div>
   <% end %>
-<% else %>
-  <div class="mt-10 text-center text-sm text-[#a09388] italic">
-    아직 게시물이 없습니다.
-  </div>
-<% end %>
+</div>

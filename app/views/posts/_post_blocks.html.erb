@@ -31,13 +31,16 @@
 
   <button type="button" class="block-controls-right" onclick="deleteBlock(this)" title="블록 삭제">삭제</button>
 
+  <% placeholder_text =
+     (index.to_i == 0 ? "프리뷰에 표시될 내용을 입력하세요" : "내용을 입력하세요") %>
+
   <textarea
-    name="post[post_blocks_attributes][<%= index %>][content]"
-    placeholder="내용을 입력하세요"
-    oninput="autoResizeTextarea(this)"
-    onpaste="setTimeout(() => autoResizeTextarea(this), 0)"
-    onkeydown="handleKeyDown(event, this)"
-    style="height: <%= initial_height %>px;"><%= block.content %></textarea>
+  name="post[post_blocks_attributes][<%= index %>][content]"
+  placeholder="<%= placeholder_text %>"
+  oninput="autoResizeTextarea(this)"
+  onpaste="setTimeout(() => autoResizeTextarea(this), 0)"
+  onkeydown="handleKeyDown(event, this)"
+  style="height: <%= initial_height %>px;"><%= block.content %></textarea>
 </div>
 
 <style>
