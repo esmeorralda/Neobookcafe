@@ -17,87 +17,31 @@ class CommentsController < ApplicationController
     # 편집 폼을 보여주기 위한 액션
   end
   def update
-    # 업데이트 전 우선 파라미터를 적용해 현재 내용으로 검사
     @comment.assign_attributes(comment_params)
     full_text = @comment.content.to_s
   
-    # 1) Korcen 필터
-    flagged_results = KorcenFilterService.analyze_text(full_text)
-    if flagged_results.any?
-      @comment.contains_profanity = true if @comment.respond_to?(:contains_profanity)
-  
-      alert_messages = flagged_results.map do |result|
-        sentence = clean_sentence(result[:sentence])
-        categories = result[:categories]
-                      .select { |_, v| v }
-                      .keys
-                      .map { |cat| korean_reason_map(cat.to_s) }
-                      .join(", ")
-        "문장: #{sentence}\n\n감지된 비속어 유형: #{categories}"
-      end.join("\n\n")
-  
-      alert_msg = "비속어가 포함된 문장이 감지되었습니다:\n\n" + alert_messages +
-                  "\n\n이는 청소년 보호 정책의 일환으로 제한됩니다. 문장을 수정하여 다시 시도해 주세요."
-  
-      respond_to do |format|
-        format.html do
-          flash[:alert] = alert_msg
-          redirect_back fallback_location: post_path(@comment.post)
-        end
-        format.json do
-          render json: { errors: alert_msg, redirect_url: post_path(@comment.post) }, status: :unprocessable_entity
-        end
-      end
-      return
+    # --- profanity (Korcen) ---
+    if (results = KorcenFilterService.analyze_text(full_text)).any?
+      flash[:alert] = build_korcen_alert(results)
+      # ✅ tell show page to open this comment's edit form and preload text
+      flash[:edit_comment_id]     = @comment.id
+      flash[:edit_comment_draft]  = full_text
+      return redirect_to post_path(@comment.post)
     end
   
-    # 2) OpenAI Moderation (기존 헬퍼 사용)
+    # --- moderation (OpenAI wrapper) ---
     if (flagged = ModerationChecker.check(full_text))
-      translations = moderation_category_translations
-      categories_with_scores = flagged.is_a?(Array) && flagged.first.is_a?(Array) ? flagged : [flagged]
-      messages = categories_with_scores.map { |category, score| "#{translations[category]} (#{(score.to_f * 100).round(1)}%)" }.compact
-      alert_msg = "⚠️ 다음과 같은 유해 콘텐츠가 포함되어 있습니다: #{messages.join(', ')}. 수정 후 다시 시도해 주세요."
-  
-      respond_to do |format|
-        format.html do
-          flash[:alert] = alert_msg
-          redirect_back fallback_location: post_path(@comment.post)
-        end
-        format.json do
-          render json: { errors: alert_msg, redirect_url: post_path(@comment.post) }, status: :unprocessable_entity
-        end
-      end
-      return
+      flash[:alert] = build_moderation_alert(flagged)
+      flash[:edit_comment_id]    = @comment.id
+      flash[:edit_comment_draft] = full_text
+      return redirect_to post_path(@comment.post)
     end
   
-    # 3) 실제 저장
-    respond_to do |format|
-      if @comment.save
-        format.html do
-          flash[:notice] = "댓글이 성공적으로 수정되었습니다."
-          redirect_back fallback_location: post_path(@comment.post), status: :see_other
-        end
-        format.json do
-          # 인라인 편집(JS)용: 갱신된 내용과 redirect_url 함께 내려줌
-          flash[:notice] = "댓글이 성공적으로 수정되었습니다."
-          render json: {
-            id: @comment.id,
-            content: @comment.content,
-            redirect_url: post_path(@comment.post)
-          }, status: :ok
-        end
-      else
-        format.html do
-          flash.now[:alert] = @comment.errors.full_messages.join(", ")
-          render :edit, status: :unprocessable_entity
-        end
-        format.json do
-          render json: {
-            errors: @comment.errors.full_messages,
-            redirect_url: post_path(@comment.post)
-          }, status: :unprocessable_entity
-        end
-      end
+    if @comment.save
+      redirect_to post_path(@comment.post), notice: "댓글이 성공적으로 수정되었습니다."
+    else
+      flash[:alert] = @comment.errors.full_messages.join(", ")
+      redirect_to post_path(@comment.post)
     end
   end
   
@@ -113,85 +57,58 @@ def destroy
   
 end
 
-
 def create
   @comment = Comment.new(comment_params)
   @comment.user = current_user
 
-
   full_text = @comment.content.to_s
-  flagged_results = KorcenFilterService.analyze_text(full_text)
 
-  if flagged_results.any?
-    @comment.contains_profanity = true if @comment.respond_to?(:contains_profanity)
-
-    alert_messages = flagged_results.map do |result|
-      sentence = clean_sentence(result[:sentence])
-      categories = result[:categories]
-                      .select { |_, v| v }
-                      .keys
-                      .map { |cat| korean_reason_map(cat.to_s) }
-                      .join(", ")
-      "문장: #{sentence}\n\n감지된 비속어 유형: #{categories}"
-    end.join("\n\n")
-
-    @alert_messages = "비속어가 포함된 문장이 감지되었습니다:\n\n" + alert_messages +
-                      "\n\n이는 청소년 보호 정책의 일환으로 제한됩니다. 문장을 수정하여 다시 시도해 주세요."
-
-    respond_to do |format|
-      format.html do
-        flash[:alert] = @alert_messages
-        redirect_back fallback_location: root_path
-      end
-      format.json do
-        render json: { errors: @alert_messages }, status: :unprocessable_entity
-      end
-    end
-    return
+  # --- profanity check (Korcen) ---
+  if (results = KorcenFilterService.analyze_text(full_text)).any?
+    alert_msg = build_korcen_alert(results)
+    flash[:alert] = alert_msg
+    # ✅ keep what user typed + context for where to restore
+    flash[:new_comment_draft]   = full_text
+    flash[:draft_parent_id]     = comment_params[:parent_id]
+    flash[:draft_post_block_id] = comment_params[:post_block_id]
+    return redirect_to post_path(@comment.post)
   end
 
+  # --- moderation check (OpenAI wrapper) ---
   if (flagged = ModerationChecker.check(full_text))
-    translations = moderation_category_translations
-    categories_with_scores = flagged.is_a?(Array) && flagged.first.is_a?(Array) ? flagged : [flagged]
-
-    messages = categories_with_scores.map do |category, score|
-      "#{translations[category]} (#{(score.to_f * 100).round(1)}%)"
-    end.compact
-
-    alert_message = "⚠️ 다음과 같은 유해 콘텐츠가 포함되어 있습니다: #{messages.join(', ')}. 수정 후 다시 시도해 주세요."
-
-    respond_to do |format|
-      format.html do
-        flash[:alert] = alert_message
-        redirect_back fallback_location: root_path
-      end
-      format.json do
-        render json: { errors: alert_message }, status: :unprocessable_entity
-      end
-    end
-    return
+    flash[:alert] = build_moderation_alert(flagged)
+    flash[:new_comment_draft]   = full_text
+    flash[:draft_parent_id]     = comment_params[:parent_id]
+    flash[:draft_post_block_id] = comment_params[:post_block_id]
+    return redirect_to post_path(@comment.post)
   end
 
-  respond_to do |format|
-    if @comment.save
-      format.html do
-        flash[:notice] = "댓글이 등록되었습니다."
-        redirect_back fallback_location: root_path
-      end
-      format.json { render json: { message: "댓글이 등록되었습니다." }, status: :created }
-    else
-      format.html do
-        flash[:alert] = "댓글 등록에 실패했습니다."
-        redirect_back fallback_location: root_path
-      end
-      format.json { render json: { errors: @comment.errors.full_messages }, status: :unprocessable_entity }
-    end
+  if @comment.save
+    redirect_to post_path(@comment.post), notice: "댓글이 등록되었습니다."
+  else
+    flash[:alert] = @comment.errors.full_messages.join(", ")
+    redirect_to post_path(@comment.post)
   end
 end
 
-    
-    
     private
+
+
+    def build_korcen_alert(results)
+      details = results.map do |r|
+        sentence = clean_sentence(r[:sentence])
+        cats = r[:categories].select { |_, v| v }.keys.map { |c| korean_reason_map(c.to_s) }.join(", ")
+        "문장: #{sentence}\n감지된 비속어 유형: #{cats}"
+      end.join("\n\n")
+      "비속어가 포함된 문장이 감지되었습니다:\n\n#{details}\n\n이는 청소년 보호 정책의 일환으로 제한됩니다. 문장을 수정하여 다시 시도해 주세요."
+    end
+    
+    def build_moderation_alert(flagged)
+      translations = moderation_category_translations
+      list = (flagged.is_a?(Array) && flagged.first.is_a?(Array) ? flagged : [flagged])
+      cats = list.map { |cat, score| "#{translations[cat]} (#{(score.to_f * 100).round(1)}%)" }.compact
+      "⚠️ 다음과 같은 유해 콘텐츠가 포함되어 있습니다: #{cats.join(', ')}. 수정 후 다시 시도해 주세요."
+    end
 
     def set_post
     @post = Post.find(params[:post_id])

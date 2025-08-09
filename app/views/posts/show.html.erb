@@ -306,21 +306,25 @@
       <hr class="border-t border-[#e3d5c6]" />
 
       <!-- ✅ 전체 댓글 작성 폼 (루트 댓글) 본문 바로 아래 -->
-      <%= form_with model: Comment.new, url: post_comments_path(@post), local: true, html: { id: "root-comment-form" } do |f| %>
-        <%= f.hidden_field :post_block_id, value: nil %>
+      <%= form_with model: Comment.new, url: post_comments_path(@post), local: true do |f| %>
         <%= f.hidden_field :post_id, value: @post.id %>
-
-        <% if @post.draft != true %>
-          <div class="flex flex-col space-y-1">
-            <%= f.text_area :content, placeholder: "답글을 작성해주세요", rows: 4, class: "auto-resize-textarea w-full p-2 border border-[#d1c4b2] rounded text-sm resize-none focus:outline-none focus:ring-1 focus:ring-[#b88b65]" %>
-            <div class="flex justify-end mt-2">
-              <button type="submit" class="bg-[#5d3b2e] text-white px-4 py-1 rounded text-sm cursor-pointer" style="font-family: 'Inter', sans-serif;">
-                댓글 등록
-              </button>
-            </div>
-          </div>
-        <% end %>
+        <%= f.hidden_field :post_block_id, value: nil %>
+        <%= f.hidden_field :parent_id, value: nil %>
+      
+        <% root_draft = (flash[:new_comment_draft] if flash[:draft_parent_id].blank? && flash[:draft_post_block_id].blank?) %>
+        <%= f.text_area :content,
+            value: root_draft,
+            placeholder: "답글을 작성해주세요",
+            rows: 4,
+            class: "auto-resize-textarea w-full p-2 border border-[#d1c4b2] rounded text-sm resize-none focus:outline-none focus:ring-1 focus:ring-[#b88b65]" %>
+      
+        <div class="flex justify-end mt-2">
+          <button type="submit" class="bg-[#5d3b2e] text-white px-4 py-1 rounded text-sm cursor-pointer">
+            댓글 등록
+          </button>
+        </div>
       <% end %>
+      
 
       <% if @post.draft != true && @post.comments.any? %>
         <div id="root-comment-list" class="mt-6 max-h-[600px] overflow-y-auto bg-[#f9f6f2] p-4 rounded-lg shadow-inner">
@@ -426,6 +430,7 @@
               </button>
               
                 <!-- 대댓글 컨테이너 -->
+                <% reply_draft = (flash[:new_comment_draft] if flash[:draft_parent_id].to_i == comment.id) %>
                 <div class="ml-4 mt-3 space-y-2 hidden reply-container"
                 id="reply-container-<%= comment.id %>">
              <% comment.children.order(created_at: :asc).each do |reply| %>
@@ -462,7 +467,7 @@
                  <div id="comment-edit-form-<%= reply.id %>" class="comment-edit-form hidden mt-2">
                    <%= form_with model: reply, url: comment_path(reply), method: :patch do |f| %>
                      <%= f.text_area :content,
-                         value: reply.content,
+                         value: reply_draft,
                          class: "auto-resize-textarea w-full p-2 border border-[#d1c4b2] rounded text-sm focus:outline-none focus:ring-1 focus:ring-[#b88b65] mb-2",
                          style: "min-height: 44px; resize: vertical;" %>
            
@@ -582,7 +587,9 @@
           <%= f.hidden_field :post_block_id, value: block.id %>
           <%= f.hidden_field :post_id, value: @post.id %>
           <div class="mb-1 comment-content">
-            <%= f.text_area :content, placeholder: "댓글을 작성해주세요", rows: 3, style: "min-height: 6rem;", class: "auto-resize-textarea w-full p-2 border border-[#d1c4b2] rounded text-sm focus:outline-none focus:ring-1 focus:ring-[#b88b65]" %>
+          <% block_new_draft =
+       (flash[:new_comment_draft] if flash[:draft_post_block_id].to_i == block.id && flash[:draft_parent_id].blank?) %>
+            <%= f.text_area :content,  value: block_new_draft, placeholder: "댓글을 작성해주세요", rows: 3, style: "min-height: 6rem;", class: "auto-resize-textarea w-full p-2 border border-[#d1c4b2] rounded text-sm focus:outline-none focus:ring-1 focus:ring-[#b88b65]" %>
           </div>
           <div class="flex justify-end mt-0">
             <button type="submit" class="px-4 py-2 bg-[#5d3b2e] text-white rounded text-sm" style="font-family: 'Inter', sans-serif;">
@@ -593,6 +600,17 @@
       </div>
     <% end %>
   </div>
+</div>
+
+<div id="rehydrate-sidebar-draft"
+     data-block-id="<%= flash[:draft_post_block_id].to_s %>"
+     data-draft="<%= j(flash[:new_comment_draft].to_s) %>">
+</div>
+
+<div id="rehydrate-edit-draft"
+     data-edit-id="<%= flash[:edit_comment_id].to_s %>"
+     data-edit-draft="<%= j(flash[:edit_comment_draft].to_s) %>"
+     data-block-id="<%= @comments&.find_by(id: flash[:edit_comment_id])&.post_block_id.to_s rescue '' %>">
 </div>
 
 <script>
@@ -822,6 +840,84 @@
   document.addEventListener('turbo:load', init);
   document.addEventListener('turbo:render', init);
 })();
+(function() {
+  function autoResize(el){ if(!el) return; el.style.overflow='hidden'; el.style.height='auto'; el.style.height=el.scrollHeight+'px'; }
+
+  function openSidebarForBlockAndPrefill(blockId, draft){
+    const btn = document.querySelector(`.comment-view-btn[data-block-id="${blockId}"]`);
+    if (!btn) return;
+    btn.click();
+
+    const sidebar = document.getElementById('comment-sidebar-content');
+    let tries = 0;
+    (function waitForTextarea(){
+      // ✅ target the NEW block comment form only
+      const form = sidebar?.querySelector(`form[data-role="block-new-comment"][data-block-id="${blockId}"]`);
+      const ta = form?.querySelector('textarea.auto-resize-textarea');
+      if (ta) {
+        // Always set the draft for create-failure (safe to overwrite)
+        if (typeof draft === 'string') ta.value = draft;
+        ta.focus();
+        autoResize(ta);
+        return;
+      }
+      if (tries++ < 60) requestAnimationFrame(waitForTextarea);
+    })();
+  }
+
+  function openEditAndPrefill(commentId, draft, blockId){
+    if (blockId) {
+      openSidebarForBlockAndPrefill(blockId, null);
+      let tries = 0;
+      (function waitAndOpen(){
+        const content = document.getElementById(`comment-content-${commentId}`);
+        const form    = document.getElementById(`comment-edit-form-${commentId}`);
+        if (form || content) {
+          content?.classList.add('hidden');
+          if (form) {
+            form.classList.remove('hidden');
+            const ta = form.querySelector('textarea.auto-resize-textarea');
+            if (ta && typeof draft === 'string') ta.value = draft; // overwrite for update-failure
+            autoResize(ta);
+            ta?.focus();
+          }
+          return;
+        }
+        if (tries++ < 60) requestAnimationFrame(waitAndOpen);
+      })();
+      return;
+    }
+    // non-block edit
+    const content = document.getElementById(`comment-content-${commentId}`);
+    const form    = document.getElementById(`comment-edit-form-${commentId}`);
+    content?.classList.add('hidden');
+    if (form) {
+      form.classList.remove('hidden');
+      const ta = form.querySelector('textarea.auto-resize-textarea');
+      if (ta && typeof draft === 'string') ta.value = draft;
+      autoResize(ta);
+      ta?.focus();
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', bootstrapDraft);
+  document.addEventListener('turbo:load', bootstrapDraft);
+  document.addEventListener('turbo:render', bootstrapDraft);
+
+  function bootstrapDraft(){
+    const side = document.getElementById('rehydrate-sidebar-draft');
+    const blockId = side?.dataset.blockId;
+    const draft   = side?.dataset.draft;
+    if (blockId) openSidebarForBlockAndPrefill(blockId, draft);
+
+    const edit = document.getElementById('rehydrate-edit-draft');
+    const editId   = edit?.dataset.editId;
+    const editText = edit?.dataset.editDraft;
+    const editBlockId = edit?.dataset.blockId;
+    if (editId) openEditAndPrefill(editId, editText, editBlockId);
+  }
+})();
+
 </script>
 
 </body>
