@@ -16,13 +16,16 @@ class CommentsController < ApplicationController
     def edit
     # 편집 폼을 보여주기 위한 액션
   end
-def update
-  if @comment.update(comment_params)
-    render json: @comment
-  else
-    render json: { errors: @comment.errors.full_messages }, status: :unprocessable_entity
+  def update
+    if @comment.update(comment_params)
+      flash[:notice] = "댓글이 성공적으로 수정되었습니다."
+      redirect_to post_path(@comment.post)
+    else
+      flash.now[:alert] = @comment.errors.full_messages.join(", ")
+      render :edit, status: :unprocessable_entity
+    end
   end
-end
+  
 
 
 def destroy

@@ -408,7 +408,11 @@
           <%= render partial: 'comment_like', locals: { likeable: comment }  %>
 
           <% if user_signed_in? && comment.user_id == current_user.id %>
-            <button class="edit-comment-button text-xs text-black hover:underline" data-comment-id="<%= comment.id %>",  style="font-family: 'Inter', sans-serif;">편집</button>
+          <%= button_tag '편집',
+      type: 'button',
+      class: 'edit-comment-button text-xs hover:underline',
+      data: { comment_id: comment.id },
+      style: "font-family: 'Inter', sans-serif;" %>
        <%= link_to '삭제', comment_path(comment),
   method: :delete,
   data: { confirm: '정말 삭제하시겠습니까?' },
@@ -418,20 +422,58 @@
           <% end %>
         </div>
       </div>
+<!-- 댓글 본문 -->
+<div id="comment-content-<%= comment.id %>" class="comment-content">
+  <%= comment.content %>
+</div>
+<%
+  line_height = 22
+  max_chars_per_line = 50
+  content_text = (comment.content || "").to_s
 
-      <!-- 댓글 본문 -->
-      <div class="comment-content text-sm text-gray-700 mt-1">
-        <%= comment.content %>
-      </div>
+  lines = content_text.split("\n")
+  total_lines = lines.inject(0) do |acc, line|
+    if line.strip.empty?
+      acc + 1
+    else
+      line_length = line.gsub("\t", "    ").length
+      acc + (line_length / max_chars_per_line.to_f).ceil
+    end
+  end
 
-      <!-- 답글 토글 -->
-      <button class="mt-2 text-xs text-[#b88b65] hover:text-[#a5774e] reply-toggle" data-comment-id="<%= comment.id %>", style="font-family: 'Inter', sans-serif;">
-        <% if comment.children.any? %>
-          💬 <%= comment.children.count %>개의 답글 보기
-        <% else %>
-          답글 달기
-        <% end %>
-      </button>
+  estimated_lines = [2, total_lines].max   # ✅ 최소 2줄
+  initial_height = estimated_lines * line_height
+%>
+
+<div id="comment-edit-form-<%= comment.id %>" class="comment-edit-form hidden">
+  <%= form_with model: comment, url: comment_path(comment),
+                method: :patch do |f| %>
+    <%= f.text_area :content,
+        value: content_text,
+        style: "height: #{initial_height}px; min-height: #{line_height}px;",
+        class: "auto-resize-textarea w-full p-2 border border-[#d1c4b2] rounded text-sm focus:outline-none focus:ring-1 focus:ring-[#b88b65] mb-2" %>
+   <div class="w-full flex justify-end space-x-2">
+    <%= f.submit '저장',
+          class: "px-2 py-1 bg-[#5d3b2e] text-white rounded text-xs cursor-pointer" %>
+    <button type="button"
+        class="cancel-edit-btn px-2 py-1 bg-gray-300 rounded text-xs cursor-pointer">취소</button>
+  </div>
+  <% end %>
+</div>
+
+
+<!-- 답글 토글 -->
+<button
+  class="mt-2 text-xs text-[#b88b65] hover:text-[#a5774e] reply-toggle"
+  data-comment-id="<%= comment.id %>"
+  style="font-family: 'Inter', sans-serif;">
+  <% if comment.children.any? %>
+    💬 <%= comment.children.count %>개의 답글 보기
+  <% else %>
+    답글 달기
+  <% end %>
+</button>
+
 
       <!-- 대댓글 컨테이너 -->
       <div class="ml-4 mt-3 space-y-2 hidden reply-container" id="reply-container-<%= comment.id %>">
@@ -449,7 +491,11 @@
                 <%= render partial: 'comment_like', locals: { likeable: reply }  %>
                 
                 <% if user_signed_in? && reply.user_id == current_user.id %>
-                  <button class="edit-comment-button text-xs text-black hover:underline" data-comment-id="<%= reply.id %>", ,  style="font-family: 'Inter', sans-serif;">편집</button>
+                  <%= button_tag '편집',
+      type: 'button',
+      class: 'edit-comment-button text-xs hover:underline',
+      data: { comment_id: comment.id },
+      style: "font-family: 'Inter', sans-serif;" %>
                   <%= link_to '삭제', comment_path(reply), method: :delete, data: { confirm: '정말 삭제하시겠습니까?' }, class: 'text-xs text-red-500 hover:underline',  style: 'font-family: Inter, sans-serif;'  %>
                 <% end %>
               </div>
@@ -517,11 +563,10 @@
 
   <div class="flex items-center space-x-2" style="line-height: 1.25; font-size: 0.75rem;", ,  style="font-family: 'Inter', sans-serif;">
   <%= button_tag '편집',
-    type: 'button',
-    class: 'edit-comment-button text-xs hover:underline',
-    data: { comment_id: comment.id },
-      style: 'font-family: Inter, sans-serif;'  %>
-
+      type: 'button',
+      class: 'edit-comment-button text-xs hover:underline',
+      data: { comment_id: comment.id },
+      style: "font-family: 'Inter', sans-serif;" %>
    <%= link_to '삭제', comment_path(comment), method: :delete, data: { confirm: '정말 삭제하시겠습니까?' }, class: 'text-xs text-red-500 hover:underline' %>
 </div>
 
@@ -529,8 +574,46 @@
       </div>
 
       <!-- 본문 -->
-    <p class="comment-content text-sm mt-2 text-gray-700 "><%= comment.content %></p>
-
+      <p id="comment-content-<%= comment.id %>" class="comment-content text-sm mt-2 text-gray-700">
+      <%= comment.content %>
+    </p>
+    
+    <%
+      # textarea 초기 높이 계산 (줄바꿈/탭 포함)
+      line_height = 22
+      max_chars_per_line = 50
+      content_text = (comment.content || "").to_s
+      lines = content_text.split("\n")
+      total_lines = lines.inject(0) do |acc, line|
+        if line.strip.empty?
+          acc + 1
+        else
+          line_len = line.gsub("\t", "    ").length
+          acc + (line_len / max_chars_per_line.to_f).ceil
+        end
+      end
+      estimated_lines = [2, total_lines].max
+      initial_height = estimated_lines * line_height
+    %>
+    
+    <div id="comment-edit-form-<%= comment.id %>" class="comment-edit-form hidden mt-2">
+      <%= form_with model: comment, url: comment_path(comment), method: :patch do |f| %>
+        <%= f.text_area :content,
+            value: content_text,
+            style: "height: #{initial_height}px; min-height: #{2*line_height}px; resize: vertical;",
+            class: "w-full p-2 border border-[#d1c4b2] rounded text-sm focus:outline-none focus:ring-1 focus:ring-[#b88b65] mb-2" %>
+    
+        <div class="w-full flex justify-end space-x-2">
+          <%= f.submit '저장',
+                class: "px-2 py-1 bg-[#5d3b2e] text-white rounded text-xs cursor-pointer" %>
+          <button type="button"
+                  class="cancel-edit-btn px-2 py-1 bg-gray-300 rounded text-xs cursor-pointer">
+            취소
+          </button>
+        </div>
+      <% end %>
+    </div>
+    
     </div>
   <% end %>
 </div>
@@ -563,6 +646,8 @@
 
 <script>
   document.addEventListener('DOMContentLoaded', () => {
+
+  
     const postContainer = document.getElementById('post-container');
     const commentSidebar = document.getElementById('comment-sidebar');
     const commentSidebarContent = document.getElementById('comment-sidebar-content');
@@ -675,7 +760,7 @@ document.querySelectorAll('.reply-toggle').forEach(button => {
       if (replyCount === 0) {
         button.textContent = '답글 달기';
       } else {
-        button.textContent = `💬 ${replyCount}개의 답글 보기`;
+        button.textContent = `${replyCount}개의 답글 보기`;
       }
     }
   });
@@ -693,6 +778,63 @@ document.addEventListener('input', function(event) {
     textarea.style.height = 'auto';
     textarea.style.height = textarea.scrollHeight + 'px';
   });
+ document.addEventListener('DOMContentLoaded', () => {
+    // 편집 버튼 클릭 시 편집 폼 표시
+    document.querySelectorAll('.auto-resize-textarea').forEach((ta) => {
+      if (!isHidden(ta)) autoResize(ta);
+    });
 
+    // ✅ 편집 버튼: 보이게 만든 '다음 프레임'에서 리사이즈 (스크롤 높이 정확)
+    document.querySelectorAll('.edit-comment-button').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const id = btn.dataset.commentId;
+        const formWrap = document.getElementById(`comment-edit-form-${id}`);
+        const contentWrap = document.getElementById(`comment-content-${id}`);
+        if (contentWrap) contentWrap.classList.add('hidden');
+        formWrap.classList.remove('hidden');
+
+        requestAnimationFrame(() => {
+          autoResize(formWrap.querySelector('.auto-resize-textarea'));
+        });
+      });
+    });
+
+    // 취소 버튼: 원복만 하면 됨 (리사이즈 필요 없음)
+    document.querySelectorAll('.cancel-edit-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const formWrap = btn.closest('.comment-edit-form');
+        const id = formWrap.id.replace('comment-edit-form-', '');
+        formWrap.classList.add('hidden');
+        const contentWrap = document.getElementById(`comment-content-${id}`);
+        if (contentWrap) contentWrap.classList.remove('hidden');
+      });
+    });
+    // AJAX 성공 시 댓글 내용 업데이트
+    document.addEventListener('ajax:success', (event) => {
+      const data = event.detail[0];
+      if (data && data.id) {
+        const id = data.id;
+        const contentDiv = document.getElementById(`comment-content-${id}`);
+        if (contentDiv) {
+          contentDiv.textContent = data.content;
+          contentDiv.classList.remove('hidden');
+        }
+
+        const formDiv = document.getElementById(`comment-edit-form-${id}`);
+        if (formDiv) formDiv.classList.add('hidden');
+
+      }
+    });
+  });
+
+  function isHidden(el) {
+    return !el || el.offsetParent === null; // display:none 포함
+  }
+
+  function autoResize(el) {
+    if (!el) return;
+    el.style.height = 'auto';
+    el.style.height = el.scrollHeight + 'px';
+  }
 </script>
 </body>
