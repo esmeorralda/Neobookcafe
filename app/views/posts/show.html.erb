@@ -407,64 +407,82 @@
 
                 <!-- 답글 토글 -->
                 <button
-                  class="mt-2 text-xs text-[#b88b65] hover:text-[#a5774e] reply-toggle interactive"
-                  data-comment-id="<%= comment.id %>"
-                  style="font-family: 'Inter', sans-serif;">
-                  <% if comment.children.any? %>
-                    💬 <%= comment.children.count %>개의 답글 보기
-                  <% else %>
-                    답글 달기
-                  <% end %>
-                </button>
-
+                class="mt-2 text-xs text-[#b88b65] hover:text-[#a5774e] reply-toggle interactive"
+                data-comment-id="<%= comment.id %>"
+                aria-controls="reply-container-<%= comment.id %>"
+                style="font-family: 'Inter', sans-serif;">
+                <% if comment.children.any? %>
+                  <%= comment.children.count %>개의 답글 보기
+                <% else %>
+                  답글 달기
+                <% end %>
+              </button>
+              
                 <!-- 대댓글 컨테이너 -->
-                <div class="ml-4 mt-3 space-y-2 hidden reply-container" id="reply-container-<%= comment.id %>">
-                  <% comment.children.order(created_at: :asc).each do |reply| %>
-                    <div class="comment rounded-md p-4 bg-[#f9f6f2] shadow-sm" data-comment-id="<%= reply.id %>">
-                      <!-- 유저 이름 + 날짜 + 좋아요 + 버튼 -->
-                      <div class="flex justify-between items-start">
-                        <div>
-                          <p class="text-sm font-semibold text-gray-800" style="font-family: 'Noto Serif KR', serif;"><%= reply.user.name %></p>
-                        </div>
-                        <div class="flex items-center space-x-2">
-                          <p class="text-xs text-gray-400"><%= reply.created_at.strftime('%Y년 %-m월 %-d일 %H:%M') %></p>
-                          <%= render partial: 'comment_like', locals: { likeable: reply } %>
-                          <% if user_signed_in? && reply.user_id == current_user.id %>
-                            <%= button_tag '편집',
-                                type: 'button',
-                                class: 'edit-comment-button text-xs hover:underline interactive',
-                                data: { comment_id: reply.id }, 
-                                style: "font-family: 'Inter', sans-serif;" %>
-                            <%= link_to '삭제', comment_path(reply),
-                                method: :delete,
-                                data: { confirm: '정말 삭제하시겠습니까?' },
-                                class: 'text-xs text-red-500 hover:underline',
-                                style: 'font-family: Inter, sans-serif;' %>
-                          <% end %>
-                        </div>
-                      </div>
-
-                      <!-- 본문 -->
-                      <div class="comment-content text-sm text-gray-700 mt-1" id="comment-content-<%= reply.id %>">
-                        <%= reply.content %>
-                      </div>
-
-                      <%# reply 편집폼도 필요하면 동일 패턴으로 추가 가능 %>
-                    </div>
-                  <% end %>
-
-                  <!-- 대댓글 작성 폼 -->
-                  <% if user_signed_in? %>
-                    <%= form_with model: Comment.new, url: post_comments_path(@post), local: false, html: { class: "reply-form interactive" } do |f| %>
-                      <%= f.hidden_field :parent_id, value: comment.id %>
-                      <%= f.hidden_field :post_id, value: @post.id %>
-                      <%= f.text_area :content, rows: 1, placeholder: "대댓글을 작성해주세요", class: "auto-resize-textarea w-full p-2 border border-[#d1c4b2] rounded text-sm focus:outline-none focus:ring-1 focus:ring-[#b88b65]" %>
-                      <div class="flex justify-end mt-1" style="font-family: 'Inter', sans-serif;">
-                        <%= f.submit "답글 등록", class: "px-3 py-1 bg-[#5d3b2e] text-white rounded text-xs cursor-pointer" %>
-                      </div>
-                    <% end %>
-                  <% end %>
-                </div>
+                <div class="ml-4 mt-3 space-y-2 hidden reply-container"
+                id="reply-container-<%= comment.id %>">
+             <% comment.children.order(created_at: :asc).each do |reply| %>
+               <div class="comment rounded-md p-4 bg-[#f9f6f2] shadow-sm" data-comment-id="<%= reply.id %>">
+                 <!-- 유저 이름 + 날짜 + 좋아요 + 버튼 -->
+                 <div class="flex justify-between items-start">
+                   <div>
+                     <p class="text-sm font-semibold text-gray-800" style="font-family: 'Noto Serif KR', serif;"><%= reply.user.name %></p>
+                   </div>
+                   <div class="flex items-center space-x-2">
+                     <p class="text-xs text-gray-400"><%= reply.created_at.strftime('%Y년 %-m월 %-d일 %H:%M') %></p>
+                     <%= render partial: 'comment_like', locals: { likeable: reply } %>
+                     <% if user_signed_in? && reply.user_id == current_user.id %>
+                       <%= button_tag '편집',
+                           type: 'button',
+                           class: 'edit-comment-button text-xs hover:underline interactive',
+                           data: { comment_id: reply.id },
+                           style: "font-family: 'Inter', sans-serif;" %>
+                       <%= link_to '삭제', comment_path(reply),
+                           method: :delete,
+                           data: { confirm: '정말 삭제하시겠습니까?' },
+                           class: 'text-xs text-red-500 hover:underline',
+                           style: 'font-family: Inter, sans-serif;' %>
+                     <% end %>
+                   </div>
+                 </div>
+           
+                 <!-- 본문 (표시용) -->
+                 <div class="comment-content text-sm text-gray-700 mt-1" id="comment-content-<%= reply.id %>">
+                   <%= reply.content %>
+                 </div>
+           
+                 <!-- ✅ 대댓글 편집 폼 (숨김) -->
+                 <div id="comment-edit-form-<%= reply.id %>" class="comment-edit-form hidden mt-2">
+                   <%= form_with model: reply, url: comment_path(reply), method: :patch do |f| %>
+                     <%= f.text_area :content,
+                         value: reply.content,
+                         class: "auto-resize-textarea w-full p-2 border border-[#d1c4b2] rounded text-sm focus:outline-none focus:ring-1 focus:ring-[#b88b65] mb-2",
+                         style: "min-height: 44px; resize: vertical;" %>
+           
+                     <div class="w-full flex justify-end space-x-2">
+                       <%= f.submit '저장', class: "px-2 py-1 bg-[#5d3b2e] text-white rounded text-xs cursor-pointer" %>
+                       <button type="button" class="cancel-edit-btn px-2 py-1 bg-gray-300 rounded text-xs cursor-pointer">취소</button>
+                     </div>
+                   <% end %>
+                 </div>
+                 <!-- /대댓글 편집 폼 -->
+               </div>
+             <% end %>
+           
+             <!-- 대댓글 작성 폼 -->
+             <% if user_signed_in? %>
+               <%= form_with model: Comment.new, url: post_comments_path(@post), local: true, html: { class: "reply-form" } do |f| %>
+                 <%= f.hidden_field :parent_id, value: comment.id %>
+                 <%= f.hidden_field :post_id, value: @post.id %>
+                 <%= f.text_area :content, rows: 1, placeholder: "대댓글을 작성해주세요",
+                       class: "auto-resize-textarea w-full p-2 border border-[#d1c4b2] rounded text-sm focus:outline-none focus:ring-1 focus:ring-[#b88b65]" %>
+                 <div class="flex justify-end mt-1" style="font-family: 'Inter', sans-serif;">
+                   <%= f.submit "답글 등록", class: "px-3 py-1 bg-[#5d3b2e] text-white rounded text-xs cursor-pointer" %>
+                 </div>
+               <% end %>
+             <% end %>
+           </div>
+           
               </div>
             <% end %>
           </div>
@@ -571,141 +589,196 @@
 </div>
 
 <script>
-document.addEventListener('DOMContentLoaded', () => {
-  const postContainer = document.getElementById('post-container');
-  const commentSidebar = document.getElementById('comment-sidebar');
-  const commentSidebarContent = document.getElementById('comment-sidebar-content');
-  const closeBtn = document.getElementById('close-comment-sidebar');
+(function () {
+  // --- Skeleton shown immediately in sidebar while loading ---
+  const SKELETON_HTML = `
+    <div class="space-y-3 animate-pulse">
+      <div class="h-4 bg-gray-200 rounded w-1/3"></div>
+      <div class="h-3 bg-gray-200 rounded w-2/3"></div>
+      <div class="h-24 bg-gray-100 rounded"></div>
+      <div class="h-3 bg-gray-200 rounded w-1/2"></div>
+      <div class="h-16 bg-gray-100 rounded"></div>
+    </div>
+  `;
 
-  function isHidden(el) { return !el || el.offsetParent === null; }
   function autoResize(el) {
     if (!el) return;
+    el.style.overflow = 'hidden';
     el.style.height = 'auto';
     el.style.height = el.scrollHeight + 'px';
   }
 
-  document.addEventListener('input', (e) => {
-    const ta = e.target.closest('textarea.auto-resize-textarea');
-    if (ta) autoResize(ta);
-  });
+  // Bind a single global input handler for all .auto-resize-textarea (even dynamically added)
+  function bindGlobalAutoResize() {
+    if (document.body.dataset.arBound === '1') return;
+    document.body.dataset.arBound = '1';
 
-  
-  // JS 준비됨 표시 → .interactive 보이기
-  document.documentElement.setAttribute('data-js-ready', '1');
-
-  // ===== 블록별 댓글 보기: 사이드바 열고, 숨김 템플릿 복제 =====
-  document.querySelectorAll('.comment-view-btn').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      const blockId = btn.getAttribute('data-block-id');
-      const commentForm = document.getElementById(`comment-form-${blockId}`);
-
-      commentSidebar.classList.remove('hidden');
-      postContainer.classList.add('grid-active');
-
-      commentSidebarContent.innerHTML = '';
-      if (!commentForm) {
-        commentSidebarContent.innerHTML = '<p>댓글이 없습니다.</p>';
-        return;
-      }
-      const clone = commentForm.cloneNode(true);
-      clone.classList.remove('hidden');
-      commentSidebarContent.appendChild(clone);
-
-      // 보이는 textarea 자동 리사이즈
-      commentSidebarContent.querySelectorAll('textarea').forEach((ta) => autoResize(ta));
-
-      // 클론된 폼 AJAX 제출
-      const form = commentSidebarContent.querySelector('form');
-      if (form) {
-        form.addEventListener('submit', async (e) => {
-          e.preventDefault();
-          const formData = new FormData(form);
-          const token = document.querySelector('meta[name="csrf-token"]').content;
-          try {
-            const res = await fetch(form.action, {
-              method: form.method.toUpperCase(),
-              headers: { 'Accept': 'application/json', 'X-CSRF-Token': token },
-              body: formData
-            });
-            if (!res.ok) {
-              const err = await res.json().catch(() => ({}));
-              const msg = (err.errors && err.errors.join(', ')) || '댓글 등록 실패';
-              throw new Error(msg);
-            }
-            alert('댓글이 성공적으로 등록되었습니다.');
-            window.location.reload();
-          } catch (e2) {
-            alert(e2.message || '댓글 등록 실패');
-          }
-        });
-      }
+    document.addEventListener('input', (e) => {
+      const ta = e.target.closest('textarea.auto-resize-textarea');
+      if (ta) autoResize(ta);
     });
-  });
 
-  // 사이드바 닫기
-  if (closeBtn) {
-    closeBtn.addEventListener('click', () => {
-      commentSidebar.classList.add('hidden');
-      postContainer.classList.remove('grid-active');
-      commentSidebarContent.innerHTML = '';
+    // Initial fit for currently visible ones
+    document.querySelectorAll('textarea.auto-resize-textarea').forEach((ta) => {
+      if (ta.offsetParent !== null) autoResize(ta);
     });
   }
 
-  // ===== 이벤트 위임: 편집/취소/답글 토글 =====
-  document.addEventListener('click', (e) => {
-    // 편집 시작
-    const editBtn = e.target.closest('.edit-comment-button');
-    if (editBtn) {
-      const id = editBtn.dataset.commentId;
-      const formWrap = document.getElementById(`comment-edit-form-${id}`);
-      const contentWrap = document.getElementById(`comment-content-${id}`);
-      if (contentWrap) contentWrap.classList.add('hidden');
-      if (formWrap) {
-        formWrap.classList.remove('hidden');
-        requestAnimationFrame(() => {
-          autoResize(formWrap.querySelector('textarea'));
-        });
-      }
-      return;
+  function init() {
+    const postContainer = document.getElementById('post-container');
+    const commentSidebar = document.getElementById('comment-sidebar');
+    const commentSidebarContent = document.getElementById('comment-sidebar-content');
+    const closeBtn = document.getElementById('close-comment-sidebar');
+    if (!postContainer || !commentSidebar || !commentSidebarContent) return;
+
+    document.documentElement.setAttribute('data-js-ready', '1');
+    bindGlobalAutoResize();
+
+    // 1) Block "댓글 보기" → open sidebar immediately with skeleton, then clone hidden template
+    document.querySelectorAll('.comment-view-btn').forEach((btn) => {
+      if (btn.dataset.bound === '1') return;
+      btn.dataset.bound = '1';
+
+      btn.addEventListener('click', () => {
+        const blockId = btn.getAttribute('data-block-id');
+
+        commentSidebar.classList.remove('hidden');
+        postContainer.classList.add('grid-active');
+        commentSidebarContent.innerHTML = SKELETON_HTML;
+
+        const tpl = document.getElementById(`comment-form-${blockId}`);
+        if (tpl) {
+          const clone = tpl.cloneNode(true);
+          clone.classList.remove('hidden');
+
+          requestAnimationFrame(() => {
+            commentSidebarContent.innerHTML = '';
+            commentSidebarContent.appendChild(clone);
+
+            // Fit any visible textareas
+            commentSidebarContent
+              .querySelectorAll('textarea.auto-resize-textarea')
+              .forEach(autoResize);
+
+            // Optional: keep AJAX submit; if server returns {redirect_url}, follow it to show flash
+            const form = commentSidebarContent.querySelector('form');
+            if (form && !form.dataset.bound) {
+              form.dataset.bound = '1';
+              form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const token = document.querySelector('meta[name="csrf-token"]').content;
+                const res = await fetch(form.action, {
+                  method: form.method.toUpperCase(),
+                  headers: { 'Accept': 'application/json', 'X-CSRF-Token': token },
+                  body: new FormData(form)
+                });
+                const data = await res.json().catch(() => ({}));
+                if (res.ok && data.redirect_url) {
+                  window.location.href = data.redirect_url; // let server flash render
+                } else if (res.ok) {
+                  window.location.reload();
+                } else {
+                  if (data.redirect_url) {
+                    window.location.href = data.redirect_url;
+                  } else {
+                    alert((data.errors && data.errors.join(', ')) || '댓글 등록 실패');
+                  }
+                }
+              });
+            }
+          });
+        } else {
+          // (Optional) Fallback: fetch partial from server if template isn't present
+          // fetch(`<%= post_path(@post) %>?block_id=${encodeURIComponent(blockId)}&only=comments`, { headers: { 'Accept': 'text/html' } })
+          //   .then(r => r.text())
+          //   .then(html => {
+          //     commentSidebarContent.innerHTML = html;
+          //     commentSidebarContent.querySelectorAll('textarea.auto-resize-textarea').forEach(autoResize);
+          //   })
+          //   .catch(() => { commentSidebarContent.innerHTML = '<p class="text-sm text-gray-500">댓글을 불러오지 못했습니다.</p>'; });
+        }
+      });
+    });
+
+    // 2) Close sidebar
+    if (closeBtn && closeBtn.dataset.bound !== '1') {
+      closeBtn.dataset.bound = '1';
+      closeBtn.addEventListener('click', () => {
+        commentSidebar.classList.add('hidden');
+        postContainer.classList.remove('grid-active');
+        commentSidebarContent.innerHTML = '';
+      });
     }
 
-    // 취소
-    const cancelBtn = e.target.closest('.cancel-edit-btn');
-    if (cancelBtn) {
-      const formWrap = cancelBtn.closest('.comment-edit-form');
-      if (formWrap) {
-        const id = formWrap.id.replace('comment-edit-form-', '');
-        formWrap.classList.add('hidden');
-        const contentWrap = document.getElementById(`comment-content-${id}`);
-        if (contentWrap) contentWrap.classList.remove('hidden');
-      }
-      return;
+    // 3) Delegated interactions: reply-toggle / edit / cancel
+    if (!document.body.dataset.delegBound) {
+      document.body.dataset.delegBound = '1';
+
+      document.addEventListener('click', (e) => {
+        // a) Toggle reply container
+        const rt = e.target.closest('button.reply-toggle');
+        if (rt) {
+          const targetId = rt.getAttribute('aria-controls') || `reply-container-${rt.getAttribute('data-comment-id')}`;
+          const container = document.getElementById(targetId) || rt.nextElementSibling;
+          if (!container || !container.classList.contains('reply-container')) return;
+
+          const willShow = container.classList.contains('hidden');
+          container.classList.toggle('hidden');
+
+          if (willShow) {
+            requestAnimationFrame(() => {
+              container.querySelectorAll('textarea.auto-resize-textarea').forEach(autoResize);
+            });
+            rt.textContent = '대댓글 닫기';
+          } else {
+            const count = container.querySelectorAll('[data-comment-id]').length;
+            rt.textContent = count > 0 ? `${count}개의 답글 보기` : '답글 달기';
+          }
+          return;
+        }
+
+        // b) Start edit (comment or reply)
+        const editBtn = e.target.closest('.edit-comment-button');
+        if (editBtn) {
+          const id = editBtn.dataset.commentId;
+          const content = document.getElementById(`comment-content-${id}`);
+          const form = document.getElementById(`comment-edit-form-${id}`);
+          if (content) content.classList.add('hidden');
+          if (form) {
+            form.classList.remove('hidden');
+            requestAnimationFrame(() => {
+              autoResize(form.querySelector('textarea.auto-resize-textarea'));
+            });
+          }
+          return;
+        }
+
+        // c) Cancel edit
+        const cancelBtn = e.target.closest('.cancel-edit-btn');
+        if (cancelBtn) {
+          const form = cancelBtn.closest('.comment-edit-form');
+          if (form) {
+            const id = form.id.replace('comment-edit-form-', '');
+            form.classList.add('hidden');
+            const content = document.getElementById(`comment-content-${id}`);
+            if (content) content.classList.remove('hidden');
+          }
+          return;
+        }
+      });
     }
 
-    // 대댓글 토글
-    const replyToggle = e.target.closest('.reply-toggle');
-    if (replyToggle) {
-      const id = replyToggle.getAttribute('data-comment-id');
-      const container = document.getElementById(`reply-container-${id}`);
-      if (!container) return;
-      const hidden = container.classList.contains('hidden');
-      if (hidden) {
-        container.classList.remove('hidden');
-        const count = container.querySelectorAll('.border-l-2').length;
-        replyToggle.textContent = count === 0 ? '답글 달기' : '대댓글 닫기';
-      } else {
-        container.classList.add('hidden');
-        const count = container.querySelectorAll('.border-l-2').length;
-        replyToggle.textContent = count === 0 ? '답글 달기' : `${count}개의 답글 보기`;
-      }
-      return;
-    }
-  });
+    // Final touch: fit any visible textareas on init
+    document.querySelectorAll('textarea.auto-resize-textarea').forEach((ta) => {
+      if (ta.offsetParent !== null) autoResize(ta);
+    });
+  }
 
-  // 보이는 textarea 자동 리사이즈 (초기)
-  document.querySelectorAll('.auto-resize-textarea').forEach((ta) => {
-    if (!isHidden(ta)) autoResize(ta);
-  });
-});
+  // Ensure init on first load + Turbo navigations/cached renders
+  document.addEventListener('DOMContentLoaded', init);
+  document.addEventListener('turbo:load', init);
+  document.addEventListener('turbo:render', init);
+})();
 </script>
+
 </body>
