@@ -78,99 +78,121 @@
             로그인
           </button> %>
       </div>
-   <div id="test-modal" class="hidden fixed inset-0  bg-opacity-50 z-50 flex justify-center items-center"
-     style="top: 50%; left: 50%; transform: translate(-50%, -50%);">
-  <div class="bg-white p-6 rounded shadow-lg max-w-6xl w-full max-h-[90vh] overflow-auto border border-gray-300">
+<div id="test-modal"
+     class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+  <!-- 모달 본체 -->
+  <div role="dialog" aria-modal="true"
+       class="w-[50vw] max-w-lg sm:max-w-xl max-h-[60vh] overflow-y-auto bg-white rounded-2xl shadow-xl border border-[#e7dfd6]">
 
-    <h2 class="text-2xl font-bold mb-6">설정</h2>
+    <!-- 헤더 -->
+    <div class="flex items-center justify-between px-4 py-3 border-b border-[#eadfd3]">
+      <h2 class="text-lg font-semibold text-[#3e2f23]">설정</h2>
+      <button id="close-modal-btn"
+              class="inline-flex items-center justify-center w-8 h-8 rounded-md hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-[#b88b65]"
+              aria-label="닫기">✕</button>
+    </div>
 
     <!-- 탭 버튼 -->
-    <nav class="flex border-b border-gray-300 mb-6" id="modal-tabs">
-      <button class="tab-btn px-4 py-2 border-b-2 border-[#3e2f23] font-semibold focus:outline-none" data-tab="0">알림</button>
-      <button class="tab-btn px-4 py-2 border-b-2 border-transparent hover:border-gray-400 focus:outline-none ml-6" data-tab="1">글자</button>
-      <button class="tab-btn px-4 py-2 border-b-2 border-transparent hover:border-gray-400 focus:outline-none ml-6" data-tab="2">언어</button>
-      <button class="tab-btn px-4 py-2 border-b-2 border-transparent hover:border-gray-400 focus:outline-none ml-6" data-tab="3">비밀번호 변경</button>
+    <nav id="modal-tabs" class="px-4 pt-3">
+      <div class="flex gap-3 border-b border-[#eadfd3]">
+        <button class="tab-btn px-3 py-2 border-b-2 border-[#3e2f23] font-semibold focus:outline-none"
+                data-tab="0">알림</button>
+        <button class="tab-btn px-3 py-2 border-b-2 border-transparent hover:border-[#d8c9b7] focus:outline-none"
+                data-tab="1">글자</button>
+        <button class="tab-btn px-3 py-2 border-b-2 border-transparent hover:border-[#d8c9b7] focus:outline-none"
+                data-tab="2">언어</button>
+        <button class="tab-btn px-3 py-2 border-b-2 border-transparent hover:border-[#d8c9b7] focus:outline-none"
+                data-tab="3">비밀번호 변경</button>
+      </div>
     </nav>
 
     <!-- 탭 내용 -->
-    <div id="tab-contents">
-      <section class="tab-content">
-        <h3 class="text-xl font-semibold mb-3">알림 설정</h3>
+    <div id="tab-contents" class="px-4 pb-4">
+      <!-- 알림 -->
+      <section class="tab-content pt-4">
+        <h3 class="font-semibold mb-2 text-[#3e2f23]">알림 설정</h3>
         <label class="inline-flex items-center mt-1">
-          <input type="checkbox" class="form-checkbox" />
+          <input type="checkbox" class="form-checkbox">
           <span class="ml-2">이메일 알림 받기</span>
         </label>
 
-        <div class="flex justify-center gap-6 mt-6">
-          <button class="bg-[#3e2f23] text-white py-2 px-6 rounded hover:bg-[#5b4633]">적용하기</button>
-          <button id="close-modal-btn" class="bg-gray-300 py-2 px-6 rounded hover:bg-gray-400">닫기</button>
+        <div class="flex justify-center gap-3 mt-5">
+          <button class="bg-[#3e2f23] text-white py-2 px-5 rounded-md hover:bg-[#5b4633]">적용하기</button>
+          <button id="close-modal-btn-1" class="bg-gray-200 py-2 px-5 rounded-md hover:bg-gray-300">닫기</button>
         </div>
       </section>
 
- <section class="tab-content hidden">
-  <h3 class="text-xl font-semibold mb-3">글자 설정</h3>
-  <label class="block mt-2">
-    <span class="text-sm font-medium mb-1 block">글자 크기 조절</span>
-    <input type="range" id="font-size-slider" min="13" max="19" value="16" class="w-full" />
-  </label>
+      <!-- 글자 -->
+      <section class="tab-content hidden pt-4">
+        <h3 class="font-semibold mb-2 text-[#3e2f23]">글자 설정</h3>
+        <label class="block mt-1">
+          <span class="text-sm mb-1 block">글자 크기 조절</span>
+          <input type="range" id="font-size-slider" min="13" max="19" value="16" class="w-full">
+        </label>
 
-  <div class="flex justify-center gap-6 mt-6">
-    <button id="close-modal-btn-2" class="bg-gray-300 py-2 px-6 rounded hover:bg-gray-400">닫기</button>
-  </div>
-</section>
+        <div class="flex justify-center mt-5">
+          <button id="close-modal-btn-2" class="bg-gray-200 py-2 px-5 rounded-md hover:bg-gray-300">닫기</button>
+        </div>
+      </section>
 
-      <section class="tab-content hidden">
-        <h3 class="text-xl font-semibold mb-3">언어 설정</h3>
+      <!-- 언어 -->
+      <section class="tab-content hidden pt-4">
+        <h3 class="font-semibold mb-2 text-[#3e2f23]">언어 설정</h3>
         <label for="language-select" class="block text-sm mb-1">언어 선택</label>
-        <select id="language-select" class="w-full border border-gray-300 rounded px-3 py-2">
+        <select id="language-select" class="w-full border border-gray-300 rounded-md px-3 py-2">
           <option value="ko">한국어 (Korean)</option>
           <option value="en">English</option>
         </select>
 
-        <div class="flex justify-center gap-6 mt-6">
-          <button class="bg-[#3e2f23] text-white py-2 px-6 rounded hover:bg-[#5b4633]">적용하기</button>
-          <button id="close-modal-btn-3" class="bg-gray-300 py-2 px-6 rounded hover:bg-gray-400">닫기</button>
+        <div class="flex justify-center gap-3 mt-5">
+          <button class="bg-[#3e2f23] text-white py-2 px-5 rounded-md hover:bg-[#5b4633]">적용하기</button>
+          <button id="close-modal-btn-3" class="bg-gray-200 py-2 px-5 rounded-md hover:bg-gray-300">닫기</button>
         </div>
       </section>
 
-      <section class="tab-content hidden">
-        <h3 class="text-xl font-semibold mb-3">비밀번호 변경</h3>
-       <% if user_signed_in? %>
-<% resource = current_user %>
-<% resource_name = :user %>
-<% devise_mapping = Devise.mappings[:user] %>
-<% @minimum_password_length = Devise.password_length.min %>
+      <!-- 비밀번호 변경 -->
+      <section class="tab-content hidden pt-4">
+        <h3 class="font-semibold mb-3 text-[#3e2f23]">비밀번호 변경</h3>
 
-<%= form_for(resource, as: resource_name, url: registration_path(resource_name), html: { method: :put }) do |f| %>
-  <div class="mb-6">
-    <%= f.label :current_password, "현재 비밀번호 (변경 사항 확인용)", class: "block text-sm font-medium mb-1" %>
-    <%= f.password_field :current_password, autocomplete: "current-password", class: "w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-[#3e2f23]" %>
-  </div>
+        <% if user_signed_in? %>
+          <% resource = current_user %>
+          <% resource_name = :user %>
+          <% devise_mapping = Devise.mappings[:user] %>
+          <% @minimum_password_length = Devise.password_length.min %>
 
-  <div class="mb-6">
-    <%= f.label :password, "새 비밀번호 (변경하지 않으려면 비워두세요)", class: "block text-sm font-medium mb-1" %>
-    <%= f.password_field :password, autocomplete: "new-password", class: "w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-[#3e2f23]" %>
-    <% if @minimum_password_length %>
-      <p class="text-xs mt-1 text-gray-500">최소 <%= @minimum_password_length %>자 이상</p>
-    <% end %>
-  </div>
+          <%= form_for(resource, as: resource_name, url: registration_path(resource_name), html: { method: :put }) do |f| %>
+            <div class="mb-4">
+              <%= f.label :current_password, "현재 비밀번호 (확인용)", class: "block text-sm font-medium mb-1" %>
+              <%= f.password_field :current_password, autocomplete: "current-password",
+                    class: "w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-[#b88b65]" %>
+            </div>
 
-  <div class="mb-6">
-    <%= f.label :password_confirmation, "새 비밀번호 확인", class: "block text-sm font-medium mb-1" %>
-    <%= f.password_field :password_confirmation, autocomplete: "new-password", class: "w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-[#3e2f23]" %>
-  </div>
+            <div class="mb-4">
+              <%= f.label :password, "새 비밀번호", class: "block text-sm font-medium mb-1" %>
+              <%= f.password_field :password, autocomplete: "new-password",
+                    class: "w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-[#b88b65]" %>
+              <% if @minimum_password_length %>
+                <p class="text-xs mt-1 text-gray-500">최소 <%= @minimum_password_length %>자 이상</p>
+              <% end %>
+            </div>
 
-  <div class="flex justify-center gap-6 mt-6">
-    <%= f.submit "적용하기", class: "bg-[#3e2f23] text-white py-2 px-6 rounded hover:bg-[#5b4633]" %>
-    <button type="button" id="close-modal-btn-4" class="bg-gray-300 py-2 px-6 rounded hover:bg-gray-400">닫기</button>
-  </div>
-<% end %>
-<% end %>
+            <div class="mb-5">
+              <%= f.label :password_confirmation, "새 비밀번호 확인", class: "block text-sm font-medium mb-1" %>
+              <%= f.password_field :password_confirmation, autocomplete: "new-password",
+                    class: "w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-[#b88b65]" %>
+            </div>
+
+            <div class="flex justify-center gap-3">
+              <%= f.submit "적용하기", class: "bg-[#3e2f23] text-white py-2 px-5 rounded-md hover:bg-[#5b4633]" %>
+              <button type="button" id="close-modal-btn-4" class="bg-gray-200 py-2 px-5 rounded-md hover:bg-gray-300">닫기</button>
+            </div>
+          <% end %>
+        <% end %>
       </section>
     </div>
-
   </div>
 </div>
+
 <% if @show_sidebar %>
 <div class="bg-[#f3ede3] pt-1 text-sm text-[#7c6243] flex justify-center space-x-8 relative">
   <% if params[:category] == "creation" %>
@@ -205,43 +227,54 @@
 <% if user_signed_in? %>
 <div id="notification-panel" class="hidden fixed right-0 mt-11 w-64 h-[calc(100vh-4rem)] bg-white shadow-lg border-l border-gray-200 z-50 overflow-y-auto">
   <div class="px-4 py-4">
-    <h3 class="text-base font-semibold text-[#3e2f23] mb-3">알림</h3>
+   
+  <!-- 상단 헤더(고정) -->
+  <div class="sticky top-0 z-10 bg-white/95 backdrop-blur px-4 py-3 border-b border-[#e3d5c6] flex items-center justify-between">
+    <h3 class="text-sm font-semibold text-[#3e2f23]" style="font-family:'Inter',sans-serif;">
+      알림
+    </h3>
+  </div>
 
-    <% if current_user.notifications.any? %>
-      <ul class="space-y-3">
-        <% current_user.notifications.order(created_at: :desc).limit(10).each do |notification| %>
-          <% if notification.notifiable_type == "Comment" %>
-            <% comment = Comment.find_by(id: notification.notifiable_id) %>
-            <% if comment && comment.post %>
-              <li class="text-sm text-gray-700 border-b border-gray-100 pb-2">
-                <%= notification.message %>
-                <div class="mt-1 text-xs text-gray-500">
-                  <%= truncate(comment.content, length: 50) %>
-                </div>
-                <div class="flex justify-between items-center mt-1">
-                  <span class="text-xs text-gray-400">
-                    <%= time_ago_in_words(notification.created_at) %> 전
-                  </span>
-                  <%= link_to "글로 이동", post_path(comment.post, anchor: "comment-#{comment.id}"),
-                        class: "text-blue-500 text-xs hover:underline" %>
-                </div>
-              </li>
-            <% end %>
-          <% else %>
-            <li class="text-sm text-gray-700 border-b border-gray-100 pb-2">
-              <%= notification.message %>
-              <div class="flex justify-between items-center mt-1">
-                <span class="text-xs text-gray-400">
-                  <%= time_ago_in_words(notification.created_at) %> 전
-                </span>
-              </div>
-            </li>
-          <% end %>
+  <% if current_user.notifications.any? %>
+  <ul class="space-y-2">
+    <% current_user.notifications.order(created_at: :desc).limit(10).each do |notification| %>
+      <% if notification.notifiable_type == "Comment" %>
+        <% comment = Comment.find_by(id: notification.notifiable_id) %>
+        <% if comment && comment.post %>
+        <li class="border-b border-gray-100 py-2">
+        <%= link_to post_path(comment.post, anchor: "comment-#{comment.id}"),
+                    class: "block rounded notif-link focus:outline-none focus:ring-1 focus:ring-[#b88b65]" do %>
+          <p class="text-sm text-gray-700 notif-text">
+            <%= notification.message %>
+          </p>
+          <p class="mt-0.5 text-xs text-gray-500 notif-text">
+            <%= truncate(comment.content, length: 50) %>
+          </p>
         <% end %>
-      </ul>
-    <% else %>
-      <p class="text-sm text-gray-500">새로운 알림이 없습니다.</p>
+        <div class="mt-1 flex justify-between items-center">
+          <span class="text-xs text-gray-400"><%= time_ago_in_words(notification.created_at) %> 전</span>
+        </div>
+      </li>
+      
+        <% end %>
+      <% else %>
+        <li class="border-b border-gray-100 py-2">
+          <p class="text-sm text-gray-700">
+            <%= notification.message %>
+          </p>
+          <div class="mt-1 flex justify-between items-center">
+            <span class="text-xs text-gray-400">
+              <%= time_ago_in_words(notification.created_at) %> 전
+            </span>
+          </div>
+        </li>
+      <% end %>
     <% end %>
+  </ul>
+<% else %>
+  <p class="text-sm text-gray-500 py-4 text-center">새로운 알림이 없습니다.</p>
+<% end %>
+
   </div>
 </div>
 
@@ -282,156 +315,348 @@
 
 <% if user_signed_in? %>
 <script>
-document.addEventListener("DOMContentLoaded", () => {
-  initNotificationPanel();
-  initPasswordValidation();
-  initSettingsModal();
-  initFontSizeSlider();
-});
+(function () {
+  // ---------- Bootstrap across full + Turbo nav ----------
+  function initAll() {
+    initNotificationPanel();
+    initPasswordValidation();
+    initSettingsModal();
+    initFontSizeSlider();
+    initFlashOnce();
+  }
+  document.addEventListener("DOMContentLoaded", initAll);
+  document.addEventListener("turbo:load", initAll);
+  document.addEventListener("turbo:render", initAll);
 
-function initNotificationPanel() {
-  const toggleBtn = document.getElementById("toggle-notification");
-  const panel = document.getElementById("notification-panel");
-  if (!toggleBtn || !panel) return;
+  // ---------- Notification Panel (with tiny skeleton) ----------
+  function initNotificationPanel() {
+    const toggleBtn = document.getElementById("toggle-notification");
+    const panel = document.getElementById("notification-panel");
+    if (!toggleBtn || !panel) return;
 
-  toggleBtn.addEventListener("click", () => {
-    panel.classList.toggle("hidden");
-  });
-
-  document.addEventListener("click", (e) => {
-    if (!panel.contains(e.target) && !toggleBtn.contains(e.target)) {
-      panel.classList.add("hidden");
-    }
-  });
-}
-
-function initPasswordValidation() {
-  const form = document.querySelector("form");
-  if (!form) return;
-
-  const currentPasswordInput = form.querySelector("[name='user[current_password]']");
-  const newPasswordInput = form.querySelector("[name='user[password]']");
-  const confirmPasswordInput = form.querySelector("[name='user[password_confirmation]']");
-  const submitBtn = document.getElementById("password-submit");
-
-  if (!currentPasswordInput || !newPasswordInput || !confirmPasswordInput || !submitBtn) return;
-
-  form.addEventListener("submit", (e) => {
-    e.preventDefault();
-    const currentPassword = currentPasswordInput.value.trim();
-    const newPassword = newPasswordInput.value.trim();
-    const confirmPassword = confirmPasswordInput.value.trim();
-
-    if (!currentPassword) {
-      alert("현재 비밀번호를 입력하세요.");
-      currentPasswordInput.focus();
-      return;
+    // bind once
+    if (!toggleBtn.dataset.bound) {
+      toggleBtn.dataset.bound = "1";
+      toggleBtn.addEventListener("click", () => {
+        // show skeleton on first open, remove next frame
+        if (panel.classList.contains("hidden") && !panel.querySelector("#notif-skeleton")) {
+          panel.insertAdjacentHTML("afterbegin",
+            '<div id="notif-skeleton" class="p-3 animate-pulse space-y-2">' +
+              '<div class="h-3 bg-gray-200 rounded w-2/3"></div>' +
+              '<div class="h-3 bg-gray-200 rounded w-1/2"></div>' +
+            '</div>'
+          );
+          requestAnimationFrame(() => {
+            const sk = panel.querySelector("#notif-skeleton");
+            sk && sk.remove();
+          });
+        }
+        panel.classList.toggle("hidden");
+      });
     }
 
-    if (newPassword || confirmPassword) {
-      if (newPassword.length < 6) {
-        alert("새 비밀번호는 최소 6자 이상이어야 합니다.");
-        newPasswordInput.focus();
-        return;
-      }
-      if (newPassword !== confirmPassword) {
-        alert("새 비밀번호와 확인용 비밀번호가 일치하지 않습니다.");
-        confirmPasswordInput.focus();
-        return;
-      }
-      if (newPassword === currentPassword) {
-        alert("새 비밀번호는 현재 비밀번호와 달라야 합니다.");
-        newPasswordInput.focus();
-        return;
-      }
+    // outside click (bind once per document)
+    if (!document.documentElement.dataset.notifOutsideBound) {
+      document.documentElement.dataset.notifOutsideBound = "1";
+      document.addEventListener("click", (e) => {
+        if (!panel || !toggleBtn) return;
+        if (panel.classList.contains("hidden")) return;
+        if (!panel.contains(e.target) && !toggleBtn.contains(e.target)) {
+          panel.classList.add("hidden");
+        }
+      });
     }
+  }
 
-    form.submit();
-  });
+  // ---------- Password Validation (prevent double-submit, bind once) ----------
+  function initPasswordValidation() {
+    const form = document.querySelector("form");
+    if (!form || form.dataset.pwBound === "1") return;
 
-  document.getElementById("close-modal-btn-4")?.addEventListener("click", () => {
-    document.getElementById("test-modal")?.classList.add("hidden");
-  });
-}
+    const currentPasswordInput = form.querySelector("[name='user[current_password]']");
+    const newPasswordInput     = form.querySelector("[name='user[password]']");
+    const confirmPasswordInput = form.querySelector("[name='user[password_confirmation]']");
+    const submitBtn            = document.getElementById("password-submit");
+    if (!currentPasswordInput || !newPasswordInput || !confirmPasswordInput || !submitBtn) return;
 
-function initSettingsModal() {
-  const modal = document.getElementById("test-modal");
-  if (!modal) return;
-
-  const openBtns = document.querySelectorAll(".open-settings-modal");
-  const closeBtns = modal.querySelectorAll("button[id^='close-modal-btn']");
-  const tabs = modal.querySelectorAll(".tab-btn");
-  const tabContents = modal.querySelectorAll(".tab-content");
-
-  openBtns.forEach(btn => {
-    btn.addEventListener("click", e => {
+    form.dataset.pwBound = "1";
+    form.addEventListener("submit", (e) => {
       e.preventDefault();
-      modal.classList.remove("hidden");
-      showTab(0);
-    });
-  });
+      const currentPassword = currentPasswordInput.value.trim();
+      const newPassword     = newPasswordInput.value.trim();
+      const confirmPassword = confirmPasswordInput.value.trim();
 
-  closeBtns.forEach(btn => {
-    btn.addEventListener("click", () => {
-      modal.classList.add("hidden");
+      if (!currentPassword) {
+        alert("현재 비밀번호를 입력하세요.");
+        currentPasswordInput.focus();
+        return;
+      }
+      if (newPassword || confirmPassword) {
+        if (newPassword.length < 6) {
+          alert("새 비밀번호는 최소 6자 이상이어야 합니다.");
+          newPasswordInput.focus();
+          return;
+        }
+        if (newPassword !== confirmPassword) {
+          alert("새 비밀번호와 확인용 비밀번호가 일치하지 않습니다.");
+          confirmPasswordInput.focus();
+          return;
+        }
+        if (newPassword === currentPassword) {
+          alert("새 비밀번호는 현재 비밀번호와 달라야 합니다.");
+          newPasswordInput.focus();
+          return;
+        }
+      }
+      form.submit();
     });
-  });
 
-  tabs.forEach((tab, i) => {
-    tab.addEventListener("click", () => {
-      showTab(i);
+    const close4 = document.getElementById("close-modal-btn-4");
+    if (close4 && !close4.dataset.bound) {
+      close4.dataset.bound = "1";
+      close4.addEventListener("click", () => {
+        document.getElementById("test-modal")?.classList.add("hidden");
+      });
+    }
+  }
+
+  // ---------- Settings Modal (tabs + open/close, bind once) ----------
+  function initSettingsModal() {
+    const modal = document.getElementById("test-modal");
+    if (!modal || modal.dataset.bound === "1") return;
+    modal.dataset.bound = "1";
+
+    const openBtns    = document.querySelectorAll(".open-settings-modal");
+    const closeBtns   = modal.querySelectorAll("button[id^='close-modal-btn']");
+    const tabs        = modal.querySelectorAll(".tab-btn");
+    const tabContents = modal.querySelectorAll(".tab-content");
+
+    // small skeleton once when open
+    const ensureSkeletonThenRemove = () => {
+      if (!modal.querySelector("#settings-skeleton")) {
+        modal.insertAdjacentHTML("afterbegin",
+          '<div id="settings-skeleton" class="p-4 animate-pulse space-y-2">' +
+            '<div class="h-4 bg-gray-200 rounded w-1/3"></div>' +
+            '<div class="h-4 bg-gray-100 rounded w-2/3"></div>' +
+          '</div>'
+        );
+        requestAnimationFrame(() => modal.querySelector("#settings-skeleton")?.remove());
+      }
+    };
+
+    openBtns.forEach((btn) => {
+      if (btn.dataset.bound === "1") return;
+      btn.dataset.bound = "1";
+      btn.addEventListener("click", (e) => {
+        e.preventDefault();
+        modal.classList.remove("hidden");
+        ensureSkeletonThenRemove();
+        showTab(0);
+      });
     });
-  });
 
-  function showTab(index) {
+    closeBtns.forEach((btn) => {
+      if (btn.dataset.bound === "1") return;
+      btn.dataset.bound = "1";
+      btn.addEventListener("click", () => modal.classList.add("hidden"));
+    });
+
     tabs.forEach((tab, i) => {
-      tab.classList.toggle("border-[#3e2f23]", i === index);
-      tab.classList.toggle("font-semibold", i === index);
-      tab.classList.toggle("border-transparent", i !== index);
+      if (tab.dataset.bound === "1") return;
+      tab.dataset.bound = "1";
+      tab.addEventListener("click", () => showTab(i));
     });
 
-    tabContents.forEach((content, i) => {
-      content.classList.toggle("hidden", i !== index);
-    });
-  }
-}
-
-function initFontSizeSlider() {
-  const slider = document.getElementById("font-size-slider");
-  const applyBtn = document.getElementById("apply-font-size");
-  if (!slider) return;
-
-  const savedFontSize = localStorage.getItem("fontSize");
-  if (savedFontSize) {
-    document.documentElement.style.fontSize = savedFontSize;
-    slider.value = parseInt(savedFontSize);
+    function showTab(index) {
+      tabs.forEach((tab, i) => {
+        tab.classList.toggle("border-[#3e2f23]", i === index);
+        tab.classList.toggle("font-semibold", i === index);
+        tab.classList.toggle("border-transparent", i !== index);
+      });
+      tabContents.forEach((content, i) => {
+        content.classList.toggle("hidden", i !== index);
+      });
+    }
   }
 
-  slider.addEventListener("input", () => {
-    const fontSize = slider.value + "px";
-    document.documentElement.style.fontSize = fontSize;
-    localStorage.setItem("fontSize", fontSize);
-  });
+  // ---------- Font Size Slider (persist in localStorage) ----------
+  function initFontSizeSlider() {
+    const slider  = document.getElementById("font-size-slider");
+    const applyBtn = document.getElementById("apply-font-size");
+    if (!slider || slider.dataset.bound === "1") return;
+    slider.dataset.bound = "1";
 
-  applyBtn?.addEventListener("click", () => {
-    const fontSize = slider.value + "px";
-    document.documentElement.style.fontSize = fontSize;
-    localStorage.setItem("fontSize", fontSize);
-  });
-}
+    const saved = localStorage.getItem("fontSize");
+    if (saved) {
+      document.documentElement.style.fontSize = saved;
+      const n = parseInt(saved, 10);
+      if (!Number.isNaN(n)) slider.value = n;
+    }
+
+    const apply = () => {
+      const fontSize = slider.value + "px";
+      document.documentElement.style.fontSize = fontSize;
+      localStorage.setItem("fontSize", fontSize);
+    };
+
+    slider.addEventListener("input", apply);
+    applyBtn?.addEventListener("click", apply);
+  }
+
+  // ---------- Flash (show once per visit, Turbo-safe) ----------
+  function initFlashOnce() {
+    const bag = window.__FLASH__;
+    if (!bag) return;
+    if (bag.notice) { alert(bag.notice); }
+    if (bag.alert)  { alert(bag.alert); }
+    // prevent re-alert on future turbo renders
+    delete window.__FLASH__;
+  }
+})();
 </script>
 
-
-<% if notice.present? %>
+<%# Put flash messages into a single global only once so Turbo doesn't double-fire %>
+<% if notice.present? || alert.present? %>
   <script>
-    alert("<%= j(notice) %>");
+    window.__FLASH__ = {
+      notice: "<%= j(notice.to_s) %>",
+      alert:  "<%= j(alert.to_s) %>"
+    };
   </script>
 <% end %>
-
-<% if alert.present? %>
-  <script>
-    alert("<%= j(alert) %>");
-  </script>
 <% end %>
 
-<% end %>
+<style>
+  #notification-panel .notif-link:hover .notif-text,
+  #notification-panel .notif-link:focus .notif-text{
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 2px;
+    text-decoration-color: black;
+  }
+
+  
+</style>
+
+<style>
+  /* ── 모달 오버레이 자체는 그대로, 내부 컨테이너에 우선순위 부여 ── */
+  #test-modal [role="dialog"]{
+    width: 92vw !important;
+    max-width: 36rem !important;          /* sm:max-w-xl 대응 */
+    max-height: 85vh !important;
+    overflow-y: auto !important;
+    background: #fff !important;
+    border-radius: 1rem !important;        /* rounded-2xl */
+    border: 1px solid #e7dfd6 !important;
+    box-shadow: 0 20px 45px rgba(0,0,0,.18) !important; /* shadow-xl */
+  }
+
+  /* 헤더 */
+  #test-modal [role="dialog"] > .flex.items-center.justify-between{
+    padding: 0.75rem 1rem !important;      /* px-4 py-3 */
+    border-bottom: 1px solid #eadfd3 !important;
+  }
+  #test-modal h2{
+    font-size: 1.125rem !important;        /* text-lg */
+    font-weight: 600 !important;
+    color: #3e2f23 !important;
+  }
+  #test-modal #close-modal-btn{
+    width: 2rem !important;
+    height: 2rem !important;
+    border-radius: .375rem !important;     /* rounded-md */
+  }
+  #test-modal #close-modal-btn:hover{
+    background: #f3f4f6 !important;        /* hover:bg-gray-100 */
+  }
+  #test-modal #close-modal-btn:focus{
+    outline: none !important;
+    box-shadow: 0 0 0 2px rgba(184,139,101,.5) !important; /* focus:ring */
+  }
+
+  /* 탭 바/버튼 */
+  #test-modal #modal-tabs{
+    padding: 0 1rem .75rem 1rem !important; /* px-4 pt-3 (하단은 바 내부에서) */
+  }
+  #test-modal #modal-tabs > .flex{
+    display: flex !important;
+    gap: .75rem !important;
+    border-bottom: 1px solid #eadfd3 !important;
+  }
+  #test-modal #modal-tabs .tab-btn{
+    padding: .5rem .75rem !important;      /* px-3 py-2 */
+    border-bottom-width: 2px !important;
+    border-color: transparent !important;
+    font-weight: 400 !important;
+  }
+  /* 활성 탭(기존 마크업 유지, 첫 탭 기본 활성화 가정) */
+  #test-modal #modal-tabs .tab-btn[style*="border-color: rgb(62, 47, 35)"],
+  #test-modal #modal-tabs .tab-btn.border-\[\#3e2f23\]{
+    border-color: #3e2f23 !important;
+    font-weight: 600 !important;
+  }
+  #test-modal #modal-tabs .tab-btn:hover{
+    border-color: #d8c9b7 !important;
+  }
+
+  /* 컨텐츠 영역 패딩 */
+  #test-modal #tab-contents{
+    padding: 0 1rem 1rem 1rem !important;  /* px-4 pb-4 */
+  }
+  #test-modal .tab-content{
+    padding-top: 1rem !important;          /* pt-4 */
+  }
+
+  /* 폼 컨트롤 */
+  #test-modal label{ margin-bottom: .25rem !important; }
+  #test-modal input[type="checkbox"]{ transform: translateY(1px) !important; }
+  #test-modal input[type="range"]{ width: 100% !important; }
+  #test-modal select{
+    width: 100% !important;
+    border: 1px solid #d1d5db !important;
+    border-radius: .375rem !important;     /* rounded-md */
+    padding: .5rem .75rem !important;      /* px-3 py-2 */
+    background: #fff !important;
+  }
+  #test-modal .w-full.border.rounded-lg.p-3{
+    width: 100% !important;
+    border: 1px solid #d1d5db !important;
+    border-radius: .5rem !important;       /* rounded-lg */
+    padding: .75rem !important;            /* p-3 */
+  }
+  #test-modal .focus\:ring-\[\#b88b65\]\:focus,
+  #test-modal .focus\:outline-none:focus{
+    outline: none !important;
+    box-shadow: 0 0 0 2px rgba(184,139,101,.45) !important;
+  }
+
+  /* 버튼(기본적인 것만 강제) */
+  #test-modal .bg-\[\#3e2f23\]{
+    background: #3e2f23 !important;
+    color: #fff !important;
+    border-radius: .375rem !important;
+    padding: .5rem 1.25rem !important;
+  }
+  #test-modal .bg-\[\#3e2f23\]:hover{ background: #5b4633 !important; }
+  #test-modal .bg-gray-200{
+    background: #e5e7eb !important;
+    color: #111827 !important;
+    border-radius: .375rem !important;
+    padding: .5rem 1.25rem !important;
+  }
+  #test-modal .bg-gray-200:hover{ background: #d1d5db !important; }
+
+  /* 간격 조정 */
+  #test-modal .gap-3{ gap: .75rem !important; }
+  #test-modal .mt-5{ margin-top: 1.25rem !important; }
+  #test-modal .mb-2{ margin-bottom: .5rem !important; }
+  #test-modal .mb-3{ margin-bottom: .75rem !important; }
+  #test-modal .mb-4{ margin-bottom: 1rem !important; }
+  #test-modal .mb-5{ margin-bottom: 1.25rem !important; }
+  #test-modal .pt-4{ padding-top: 1rem !important; }
+  #test-modal .px-4{ padding-left: 1rem !important; padding-right: 1rem !important; }
+  #test-modal .py-3{ padding-top: .75rem !important; padding-bottom: .75rem !important; }
+  #test-modal .rounded-md{ border-radius: .375rem !important; }
+  #test-modal .rounded-lg{ border-radius: .5rem !important; }
+  #test-modal .rounded-2xl{ border-radius: 1rem !important; }
+</style>

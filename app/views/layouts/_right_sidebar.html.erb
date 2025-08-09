@@ -1,39 +1,90 @@
-<div id="right-sidebar" class="fixed right-0 mt-16 h-[calc(100vh-4rem)] w-64  shadow-lg z-50">
+<div id="right-sidebar" class="fixed right-0 mt-16 h-[calc(100vh-4rem)] w-64 shadow-lg z-50">
+  <!-- Profile card -->
+  <div class="mx-3 mt-3  letter-card">
+    <!-- 헤더 -->
+    <div class="px-3 py-3 text-center border-b border-[#e6e1d9]">
+      <h2 class="text-lg font-semibold text-[#221a14]" style="font-family:'Noto Serif KR',serif;">
+        <%= current_user&.name || "닉네임" %>
+      </h2>
+      <p class="text-xs text-[#6f665e] mt-1">
+        <%= current_user&.self_intro.presence || "한줄 소개" %>
+      </p>
+    </div>
 
-  <div class="p-4 text-center border-b">
-    <h2 class="text-xl font-bold">
-    <%= current_user&.name || "닉네임" %>
-    </h2>
-    <p class="text-sm text-gray-600 mt-1"> <%= current_user&.self_intro || "한줄소개" %></p>
+    <% if current_user %>
+      <div class="px-3 py-3">
+        <% intros = current_user.book_intros.where.not(quote: [nil, ""]) %>
+        <% if intros.any? %>
+          <ul class="space-y-4 max-h-40 overflow-y-auto pr-1">
+            <% intros.limit(3).each do |intro| %>
+              <li class="relative pl-3">
+                <span class="absolute left-0 top-0 bottom-0 w-px bg-[#e6e1d9]"></span>
+                <p class="text-[14px] text-[#1f1712] leading-snug italic" style="font-family:'Noto Serif KR',serif;">
+                  “<%= intro.quote %>”
+                </p>
+                <p class="text-[11px] text-[#8b8278] mt-1">
+                  &lt;<%= intro.book_title.presence || "책 제목" %>&gt; <%= intro.author_name.presence || "저자이름" %>
+                </p>
+              </li>
+            <% end %>
+          </ul>
+        <% else %>
+          <p class="text-sm text-gray-500 italic">책 소개가 없습니다.</p>
+        <% end %>
+        <hr class="mt-3 border-0 border-t border-[#ece8e1]" />
+      </div>
+    <% end %>
   </div>
 
-<% if current_user %>
-  <div class="p-4 space-y-4 border-b">
-    <% intros = current_user.book_intros.where.not(quote: [nil, ""]) %>
-    <% if intros.any? %>
-      <% intros.each do |intro| %>
-        <div class="text-sm">
-          <p>“<%= intro.quote %>”</p>
-          <p class="text-xs text-gray-500">&lt;<%= intro.book_title.presence || "책 제목" %>&gt; <%= intro.author_name.presence || "저자이름" %></p>
-        </div>
+  <!-- Menu -->
+  <nav class="px-3 mt-4">
+    <ul class="right-menu space-y-3 text-center text-base font-medium">
+      <% if current_user %>
+        <li><%= link_to "프로필 편집",        user_path(current_user),                 class: "menu-link block px-2 py-1" %></li>
+        <li><%= link_to "내가 쓴 글",          user_path(current_user),                 class: "menu-link block px-2 py-1" %></li>
+        <li><%= link_to "좋아요 누른 글",      user_path(current_user, anchor: 'liked'),       class: "menu-link block px-2 py-1" %></li>
+        <li><%= link_to "저장한 글",          user_path(current_user, anchor: 'bookmarked'), class: "menu-link block px-2 py-1" %></li>
+        <li><%= link_to "피드백 및 문의",     feedback_path,                           class: "menu-link block px-2 py-1" %></li>
       <% end %>
-    <% else %>
-      <p class="text-sm text-gray-500 italic">책 소개가 없습니다.</p>
-    <% end %>
-  </div>
-<% end %>
-
-
-
-
-  <div class="p-4 space-y-4 text-center text-base font-medium">
-  <% if current_user %>
-    <%= link_to "프로필 편집", user_path(current_user), class: "block" %>
-    <%= link_to "내가 쓴 글", user_path(current_user), class: "block" %>
-    <%= link_to "좋아요 누른 글", user_path(current_user), class: "block" %>
-    <%= link_to "저장한 글", user_path(current_user), class: "block" %>
-     <%= link_to "피드백 및 문의", feedback_path, class: "block" %>
-    <% end %>
-
-  </div>
+    </ul>
+  </nav>
 </div>
+
+<style>
+  /* --------- 모던/얇은/고대비 카드 ---------- */
+  #right-sidebar .letter-card{
+    background: white;             /* 배경색 제거 */
+    border: 1px solid #e6e1d9;           /* 얇은 고대비 라인 */
+    border-radius: 12px;
+
+    box-shadow: 0 4px 12px rgba(0,0,0,.05); /* 가벼운 음영 */
+  }
+
+  /* 스크롤바 절제 */
+  #right-sidebar .letter-card ul::-webkit-scrollbar{ width:6px; }
+  #right-sidebar .letter-card ul::-webkit-scrollbar-thumb{
+    background:#ddd6ce; border-radius:6px;
+  }
+  #right-sidebar .letter-card ul::-webkit-scrollbar-track{ background:transparent; }
+
+  /* --------- 메뉴 링크(가독↑, 모던 언더라인) ---------- */
+  #right-sidebar .right-menu .menu-link{
+    color:#5f564e;                       /* 기본색: 더 진하게 */
+    transition: color .15s ease, text-decoration-color .15s ease, font-weight .15s ease;
+    text-underline-offset: 3px;
+  }
+  #right-sidebar .right-menu .menu-link:hover,
+  #right-sidebar .right-menu .menu-link:focus{
+    color:#231b14;
+    font-weight:700;
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-decoration-color:#231b14;
+    outline:none;
+  }
+
+  /* 높이 낮은 화면에선 간격 조금 줄이기 */
+  @media (max-height: 700px){
+    #right-sidebar .right-menu { row-gap:.5rem; }
+  }
+</style>
