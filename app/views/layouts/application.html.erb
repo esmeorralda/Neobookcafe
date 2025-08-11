@@ -244,70 +244,22 @@
 <% end %>
 
 
-<% if user_signed_in? %>
-<div id="notification-panel" class="hidden fixed right-0 mt-11 w-64 h-[calc(100vh-4rem)] bg-white shadow-lg border-l border-gray-200 z-50 overflow-y-auto">
-  <div class="px-4 py-4">
-   
-  <!-- 상단 헤더(고정) -->
-  <div class="sticky top-0 z-10 bg-white/95 backdrop-blur px-4 py-3 border-b border-[#e3d5c6] flex items-center justify-between">
-    <h3 class="text-sm font-semibold text-[#3e2f23]" style="font-family:'Inter',sans-serif;">
-      알림
-    </h3>
-  </div>
 
-  <% if current_user.notifications.any? %>
-  <ul class="space-y-2">
-    <% current_user.notifications.order(created_at: :desc).limit(10).each do |notification| %>
-      <% if notification.notifiable_type == "Comment" %>
-        <% comment = Comment.find_by(id: notification.notifiable_id) %>
-        <% if comment && comment.post %>
-        <li class="border-b border-gray-100 py-2">
-        <%= link_to post_path(comment.post, anchor: "comment-#{comment.id}"),
-                    class: "block rounded notif-link focus:outline-none focus:ring-1 focus:ring-[#b88b65]" do %>
-          <p class="text-sm text-gray-700 notif-text">
-            <%= notification.message %>
-          </p>
-          <p class="mt-0.5 text-xs text-gray-500 notif-text">
-            <%= truncate(comment.content, length: 50) %>
-          </p>
-        <% end %>
-        <div class="mt-1 flex justify-between items-center">
-          <span class="text-xs text-gray-400"><%= time_ago_in_words(notification.created_at) %> 전</span>
-        </div>
-      </li>
-      
-        <% end %>
-      <% else %>
-        <li class="border-b border-gray-100 py-2">
-          <p class="text-sm text-gray-700">
-            <%= notification.message %>
-          </p>
-          <div class="mt-1 flex justify-between items-center">
-            <span class="text-xs text-gray-400">
-              <%= time_ago_in_words(notification.created_at) %> 전
-            </span>
-          </div>
-        </li>
-      <% end %>
-    <% end %>
-  </ul>
-<% else %>
-  <p class="text-sm text-gray-500 py-4 text-center">새로운 알림이 없습니다.</p>
-<% end %>
-
-  </div>
-</div>
-
-<%end %>
     </header>
 
+    <% if user_signed_in? %>
+    <div id="notification-panel" class="hidden ">
 
+    <%= render 'layouts/notification' %>
+    </div>
+<%end%>
 
     <%= render 'layouts/sidebar' %>
 
    <main class="main-content h-[calc(100vh-4rem)] overflow-auto mt-15">
   <%= yield %>
 </main>
+
 
 
 
