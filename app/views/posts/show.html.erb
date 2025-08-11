@@ -341,8 +341,9 @@
       
 
       <% if @post.draft != true && @post.comments.any? %>
-        <div id="root-comment-list" class="mt-6 max-h-[600px] overflow-y-auto bg-[#f9f6f2] p-4 rounded-lg shadow-inner">
-
+      <div id="root-comment-list"
+      class="mt-6 bg-[#f9f6f2] p-4 rounded-lg shadow-inner">
+ 
           <!-- 댓글 정렬 드롭다운 -->
           <div class="mb-4 flex items-center space-x-2" style="font-family: 'Inter', sans-serif;">
             <label for="sort-comments" class="text-sm font-medium text-gray-700" style="font-family: 'Inter', sans-serif;">댓글 정렬:</label>

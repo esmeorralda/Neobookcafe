@@ -160,15 +160,16 @@
   </div>
 
   <div class="mt-2 space-y-2 text-center">
-    <%= link_to "게시글 쓰기", new_post_path,
-          class: "block",
-          style: "background:#7b5845;color:#fff;font-weight:700;padding:.5rem 0;margin-top:1rem;",
-           data: { requires_auth: true } 
-           %>
-    <%= link_to "독서 기록하기", new_note_path,
-          class: "block",
-          style: "border:1px solid #7b5845;background:#fff;color:#7b5845;font-weight:700;padding:.5rem 0;",
-           data: { requires_auth: true }  %>
-  </div>
+  <%= link_to "게시글 쓰기", new_post_path,
+        class: "block",
+        style: "background:#7b5845;color:#fff;font-weight:700;padding:.5rem 0;margin-top:1rem;",
+        data: (user_signed_in? ? {} : { requires_auth: true }) %>
+
+  <%= link_to "독서 기록하기", new_note_path,
+        class: "block",
+        style: "border:1px solid #7b5845;background:#fff;color:#7b5845;font-weight:700;padding:.5rem 0;",
+        data: (user_signed_in? ? {} : { requires_auth: true }) %>
+</div>
+
 </div>
 <% end %>

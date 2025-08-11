@@ -2,7 +2,7 @@
 <div class="min-h-screen bg-[#f7f1ea] flex flex-col">
   <!-- 상단 여백 제거 -->
   <main class="flex-1">
-<div class="max-w-2xl mx-auto bg-white p-6 rounded-xl shadow space-y-6 mt-5">
+<div class="max-w-2xl mx-auto bg-white p-6 shadow rounded-md space-y-6 mt-5">
 
   <h2 class="text-xl font-bold text-gray-800">
     <% if @note&.book.present? %>
@@ -89,7 +89,7 @@
     <!-- 🧠 메모 입력 영역 (그리드 바깥, 중앙 정렬, 너비 제한) -->
     <div class="space-y-6 w-full flex flex-col items-center mt-6">
      <div class="w-full max-w-[600px]">
-  <%= f.label :memo, "메모를 남겨주세요", class: "block text-sm font-medium text-gray-700 mb-1" %>
+  <%= f.label :memo, "메모를 남겨주세요.", class: "block text-sm font-medium text-gray-700 mb-1" %>
   <%= f.text_area :memo, rows: 10, class: "block w-full border border-gray-300 rounded-md shadow-sm p-3 resize-none", id: "auto-resize-textarea" %>
 </div>
 
