@@ -29,7 +29,8 @@
     <%= javascript_importmap_tags %>
   </head>
 
-  <body>
+<body data-signed-in="<%= user_signed_in? %>">
+
     <header class="site-header">
       <div class="header-container">
         <%# <div class="logo">
@@ -70,9 +71,10 @@
   <% else %>
 
  <% unless user_signed_in? %>
-  <%= link_to '로그인', '#sign_in_modal',
-        id: 'sign_in_button',
-        data: { bs_toggle: 'modal', bs_target: '#sign_in_modal' } %>
+ <%= link_to '로그인', '#sign_in_modal',
+ id: 'sign_in_button',
+ data: { requires_auth: true, bs_toggle: 'modal', bs_target: '#sign_in_modal' } %>
+
 <% else %>
   <!-- e.g. show profile / logout -->
   <%= link_to '로그아웃', destroy_user_session_path, data: { "turbo-method": :delete } %>

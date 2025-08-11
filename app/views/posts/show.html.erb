@@ -330,9 +330,12 @@
             class: "auto-resize-textarea w-full p-2 border border-[#d1c4b2] rounded text-sm resize-none focus:outline-none focus:ring-1 focus:ring-[#b88b65]" %>
       
         <div class="flex justify-end mt-2">
-          <button type="submit" class="bg-[#5d3b2e] text-white px-4 py-1 rounded text-sm cursor-pointer">
-            댓글 등록
-          </button>
+        <button type="submit"
+        class="bg-[#5d3b2e] text-white px-4 py-1 rounded text-sm cursor-pointer"
+        data-requires-auth="true">
+  댓글 등록
+</button>
+
         </div>
       <% end %>
       
@@ -442,7 +445,7 @@
               
                 <!-- 대댓글 컨테이너 -->
                 <% reply_draft = (flash[:new_comment_draft] if flash[:draft_parent_id].to_i == comment.id) %>
-                <div class="ml-4 mt-3 space-y-2 hidden reply-container"
+                <div class="ml-8 mt-3 space-y-2 hidden reply-container"
                 id="reply-container-<%= comment.id %>">
              <% comment.children.order(created_at: :asc).each do |reply| %>
                <div class="comment rounded-md p-4 bg-[#f9f6f2] shadow-sm" data-comment-id="<%= reply.id %>">
@@ -493,16 +496,16 @@
              <% end %>
            
              <!-- 대댓글 작성 폼 -->
-             <% if user_signed_in? %>
+ 
                <%= form_with model: Comment.new, url: post_comments_path(@post), local: true, html: { class: "reply-form" } do |f| %>
                  <%= f.hidden_field :parent_id, value: comment.id %>
                  <%= f.hidden_field :post_id, value: @post.id %>
                  <%= f.text_area :content, rows: 1, placeholder: "대댓글을 작성해주세요",
                        class: "auto-resize-textarea w-full p-2 border border-[#d1c4b2] rounded text-sm focus:outline-none focus:ring-1 focus:ring-[#b88b65]" %>
-                 <div class="flex justify-end mt-1" style="font-family: 'Inter', sans-serif;">
+                 <div class="flex justify-end mt-1" style="font-family: 'Inter', sans-serif;" data-requires-auth="true">
                    <%= f.submit "답글 등록", class: "px-3 py-1 bg-[#5d3b2e] text-white rounded text-xs cursor-pointer" %>
                  </div>
-               <% end %>
+    
              <% end %>
            </div>
            
@@ -602,7 +605,7 @@
        (flash[:new_comment_draft] if flash[:draft_post_block_id].to_i == block.id && flash[:draft_parent_id].blank?) %>
             <%= f.text_area :content,  value: block_new_draft, placeholder: "댓글을 작성해주세요", rows: 3, style: "min-height: 6rem;", class: "auto-resize-textarea w-full p-2 border border-[#d1c4b2] rounded text-sm focus:outline-none focus:ring-1 focus:ring-[#b88b65]" %>
           </div>
-          <div class="flex justify-end mt-0">
+          <div class="flex justify-end mt-0" data-requires-auth="true">
             <button type="submit" class="px-4 py-2 bg-[#5d3b2e] text-white rounded text-sm" style="font-family: 'Inter', sans-serif;">
               댓글 등록
             </button>
@@ -623,6 +626,57 @@
      data-edit-draft="<%= j(flash[:edit_comment_draft].to_s) %>"
      data-block-id="<%= @comments&.find_by(id: flash[:edit_comment_id])&.post_block_id.to_s rescue '' %>">
 </div>
+<% unless user_signed_in? %>
+  <%= render "shared/login_modal" %>
+
+  <script nonce="<%= content_security_policy_nonce %>">
+  (function () {
+    function getModal(){ return document.getElementById('sign_in_modal'); }
+
+    function openModal() {
+      const modal = getModal(); if (!modal) return;
+      modal.classList.remove('hidden');
+      const Modal = window.bootstrap?.Modal;
+      if (Modal?.getOrCreateInstance) {
+        Modal.getOrCreateInstance(modal).show();
+      } else {
+        modal.style.display = 'block';
+        modal.classList.add('show');
+        document.body.classList.add('modal-open');
+      }
+    }
+
+    // ✅ (추가) requires_auth 달린 submit 버튼 클릭 가로채기
+document.addEventListener('click', function (e) {
+  const btn = e.target.closest('button[type="submit"][data-requires-auth="true"]');
+  if (!btn) return;
+  e.preventDefault();          // 원래 제출 막고
+  openModal();                 // 로그인 모달 열기 (네가 이미 정의한 함수)
+}, true);
+
+
+    function bindGuestLoginModal() {
+      const modal = getModal(); if (!modal || modal.dataset.bound === '1') return;
+      modal.dataset.bound = '1';
+
+      // ✅ requires_auth 전용 트리거
+      document.addEventListener('click', function(e){
+        const trigger = e.target.closest('[data-requires-auth="true"]');
+        if (!trigger) return;
+        e.preventDefault(); // 페이지 이동 방지
+        openModal();
+      });
+
+      // 부트스트랩 닫힘 시 hidden 복원
+      modal.addEventListener('hidden.bs.modal', function(){
+        modal.classList.add('hidden');
+      });
+    }
+
+    bindGuestLoginModal();
+  })();
+  </script>
+<% end %>
 
 <script>
 (function () {

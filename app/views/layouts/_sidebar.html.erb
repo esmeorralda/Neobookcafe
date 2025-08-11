@@ -75,6 +75,50 @@
   }
 </style>
 
+<% unless user_signed_in? %>
+  <%= render "shared/login_modal" %>
+
+  <script nonce="<%= content_security_policy_nonce %>">
+  (function () {
+    function getModal(){ return document.getElementById('sign_in_modal'); }
+
+    function openModal() {
+      const modal = getModal(); if (!modal) return;
+      modal.classList.remove('hidden');
+      const Modal = window.bootstrap?.Modal;
+      if (Modal?.getOrCreateInstance) {
+        Modal.getOrCreateInstance(modal).show();
+      } else {
+        modal.style.display = 'block';
+        modal.classList.add('show');
+        document.body.classList.add('modal-open');
+      }
+    }
+
+    function bindGuestLoginModal() {
+      const modal = getModal(); if (!modal || modal.dataset.bound === '1') return;
+      modal.dataset.bound = '1';
+
+      // ✅ requires_auth 전용 트리거
+      document.addEventListener('click', function(e){
+        const trigger = e.target.closest('[data-requires-auth="true"]');
+        if (!trigger) return;
+        e.preventDefault(); // 페이지 이동 방지
+        openModal();
+      });
+
+      // 부트스트랩 닫힘 시 hidden 복원
+      modal.addEventListener('hidden.bs.modal', function(){
+        modal.classList.add('hidden');
+      });
+    }
+
+    bindGuestLoginModal();
+  })();
+  </script>
+<% end %>
+
+
 <div id="left-nav" class="fixed top-28 left-0 w-48 px-4 py-6 space-y-2">
   <div class="sidebar-box px-2 py-4 space-y-2 shadow" style="border: 1px solid #d8cbb4;">
     <ul class="space-y-4 text-center">
@@ -99,17 +143,17 @@
           class: "sidebar-link #{'is-active' if params[:category].to_s == 'board'}" %>
       </li>
 
-      <!-- 🔒 독서 메모장 (호버/활성 동일 처리) -->
-      <!-- 🔒 독서 메모장 (활성 시 색상 + 아이콘 변경) -->
       <li class="pt-4" style="border-top: 1px solid #d8cbb4;">
-        <% active_books = (controller_name == 'books') %>
-        <%= link_to books_path,
-            class: "sidebar-link flex items-center justify-center gap-1 #{'is-active' if active_books}" do %>
-          <%= image_tag(active_books ? "icon/filled_lock.svg" : "icon/post/Lock.svg",
-                        alt: "Lock", class: "w-4 h-4 mr-2") %>
-          <span>독서 메모장</span>
-        <% end %>
-      </li>
+      <% active_books = (controller_name == 'books') %>
+      <%= link_to books_path,
+          class: "sidebar-link flex items-center justify-center gap-1 #{'is-active' if active_books}",
+          data: (user_signed_in? ? {} : { requires_auth: true }) do %>
+        <%= image_tag(active_books ? "icon/filled_lock.svg" : "icon/post/Lock.svg",
+                      alt: "Lock", class: "w-4 h-4 mr-2") %>
+        <span>독서 메모장</span>
+      <% end %>
+    </li>
+    
       
       
     </ul>
@@ -118,10 +162,13 @@
   <div class="mt-2 space-y-2 text-center">
     <%= link_to "게시글 쓰기", new_post_path,
           class: "block",
-          style: "background:#7b5845;color:#fff;font-weight:700;padding:.5rem 0;margin-top:1rem;" %>
+          style: "background:#7b5845;color:#fff;font-weight:700;padding:.5rem 0;margin-top:1rem;",
+           data: { requires_auth: true } 
+           %>
     <%= link_to "독서 기록하기", new_note_path,
           class: "block",
-          style: "border:1px solid #7b5845;background:#fff;color:#7b5845;font-weight:700;padding:.5rem 0;" %>
+          style: "border:1px solid #7b5845;background:#fff;color:#7b5845;font-weight:700;padding:.5rem 0;",
+           data: { requires_auth: true }  %>
   </div>
 </div>
 <% end %>
