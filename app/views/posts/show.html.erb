@@ -183,9 +183,20 @@
           <!-- 오른쪽: 버튼들 -->
           <div class="flex space-x-2" style="font-family: 'Inter', sans-serif;">
             <% if user_signed_in? && @post.user_id == current_user.id %>
-              <button id="copy-link-btn" data-url="<%= post_url(@post) %>" class="border border-gray-300 bg-white px-3 py-1 text-sm hover:bg-gray-100 interactive">
-                공유하기
-              </button>
+  
+      <button
+  id="copy-link-btn"
+  data-url="<%= post_url(@post) %>"
+  class="inline-flex items-center justify-center w-9 h-9 px-2 rounded-md border border-gray-300 bg-white hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-[#b88b65]/60 focus:ring-offset-1 interactive"
+  aria-label="링크 복사"
+  title="링크 복사">
+  <%= image_tag "icon/post/copy_link.svg",
+        class: "w-4 h-4 pointer-events-none opacity-90",
+        alt: "" %>
+</button>
+
+
+
               <%= link_to "편집", edit_post_path(@post), class: "bg-[#b88b65] text-white px-3 py-1 text-sm hover:bg-[#a27958] interactive" %>
               <%= button_to post_path(@post), method: :delete, data: { confirm: "정말 삭제하시겠습니까?" }, class: "border border-gray-300 bg-white px-3 py-1 text-sm hover:bg-red-100 interactive" do %>
                 삭제
@@ -633,6 +644,8 @@
     el.style.height = el.scrollHeight + 'px';
   }
 
+
+
   // Bind a single global input handler for all .auto-resize-textarea (even dynamically added)
   function bindGlobalAutoResize() {
     if (document.body.dataset.arBound === '1') return;
@@ -693,6 +706,7 @@
     document.documentElement.setAttribute('data-js-ready', '1');
     bindGlobalAutoResize();
 
+    
     // 1) Block "댓글 보기" → open sidebar immediately with skeleton, then clone hidden template
     document.querySelectorAll('.comment-view-btn').forEach((btn) => {
       if (btn.dataset.bound === '1') return;
@@ -827,11 +841,32 @@
       });
     }
 
+     // 4) Copy link button (square icon button)
+    const copyBtn = document.getElementById('copy-link-btn');
+    if (copyBtn && copyBtn.dataset.bound !== '1') {
+      copyBtn.dataset.bound = '1';
+      copyBtn.addEventListener('click', async () => {
+        const url = copyBtn.getAttribute('data-url') || window.location.href;
+        try {
+          await navigator.clipboard.writeText(url);
+          alert('링크가 복사되었습니다.');
+        } catch {
+          // fallback
+          const ta = document.createElement('textarea');
+          ta.value = url; document.body.appendChild(ta);
+          ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
+          alert('링크가 복사되었습니다.');
+        }
+      });
+    }
+
     // Final touch: fit any visible textareas on init
     document.querySelectorAll('textarea.auto-resize-textarea').forEach((ta) => {
       if (ta.offsetParent !== null) autoResize(ta);
     });
   }
+
+  
 
   
 
