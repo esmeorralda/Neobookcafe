@@ -1,25 +1,127 @@
 <% if @show_sidebar %>
-<div class="fixed top-28 left-0 w-48 px-4 py-6 space-y-2">
-  <div class="bg-[#efe9df] text-[#9b825e] px-2 py-6 space-y-4 shadow">
-    <ul class="space-y-4 text-center">
-      <li><%= link_to "독서 토론관", posts_path(category: :discussion) %></li>
-      <li><%= link_to "독서 감상관", posts_path(category: :thought) %></li>
-      <li><%= link_to "문학 창작관", posts_path(category: :creation) %></li>
-      <li><%= link_to "자유 게시판", posts_path(category: :board) %></li>
+<style>
+  /* 왼쪽 네비 전용 스코프 */
+  #left-nav .sidebar-box {
+    background: #efe9df;
+    color: #9b825e;
+  }
+  /* 기본 링크 색 */
+  #left-nav .sidebar-link {
+    color: #<% if @show_sidebar %>
+<div class="bg-[#f3ede3] pt-1 text-sm text-[#9b825e] flex justify-center space-x-8 relative">
+  <% if params[:category] == "creation" %>
+    <%= link_to "전체", posts_path(category: :creation),
+        class: "pb-1 border-b-2 transition-colors hover:text-[#7c6243] hover:border-[#7c6243] " \
+               "#{params[:book_genre].blank? ? 'text-[#7c6243] border-[#7c6243] font-medium' : 'border-transparent'}" %>
 
-      <!-- 🔒 아이콘이 포함된 독서 메모장 항목 -->
-      <li class="border-t border-[#d8cbb4] pt-4">
-        <%= link_to books_path, class: "flex items-center justify-center space-x-2" do %>
-          <%= image_tag "icon/post/Lock.svg", alt: "Lock", class: "w-4 h-4" %>
+    <%= link_to "시", posts_path(category: :creation, book_genre: :poetry),
+        class: "pb-1 border-b-2 transition-colors hover:text-[#7c6243] hover:border-[#7c6243] " \
+               "#{params[:book_genre] == 'poetry' ? 'text-[#7c6243] border-[#7c6243] font-medium' : 'border-transparent'}" %>
+
+    <%= link_to "에세이", posts_path(category: :creation, book_genre: :essay),
+        class: "pb-1 border-b-2 transition-colors hover:text-[#7c6243] hover:border-[#7c6243] " \
+               "#{params[:book_genre] == 'essay' ? 'text-[#7c6243] border-[#7c6243] font-medium' : 'border-transparent'}" %>
+
+    <%= link_to "소설", posts_path(category: :creation, book_genre: :novel),
+        class: "pb-1 border-b-2 transition-colors hover:text-[#7c6243] hover:border-[#7c6243] " \
+               "#{params[:book_genre] == 'novel' ? 'text-[#7c6243] border-[#7c6243] font-medium' : 'border-transparent'}" %>
+
+  <% else %>
+    <%= link_to "전체", posts_path(category: params[:category]),
+        class: "pb-1 border-b-2 transition-colors hover:text-[#7c6243] hover:border-[#7c6243] " \
+               "#{params[:book_genre].blank? ? 'text-[#7c6243] border-[#7c6243] font-medium' : 'border-transparent'}" %>
+
+    <%= link_to "철학", posts_path(category: params[:category], book_genre: :philosophy),
+        class: "pb-1 border-b-2 transition-colors hover:text-[#7c6243] hover:border-[#7c6243] " \
+               "#{params[:book_genre] == 'philosophy' ? 'text-[#7c6243] border-[#7c6243] font-medium' : 'border-transparent'}" %>
+
+    <%= link_to "문학", posts_path(category: params[:category], book_genre: :literature),
+        class: "pb-1 border-b-2 transition-colors hover:text-[#7c6243] hover:border-[#7c6243] " \
+               "#{params[:book_genre] == 'literature' ? 'text-[#7c6243] border-[#7c6243] font-medium' : 'border-transparent'}" %>
+
+    <%= link_to "역사", posts_path(category: params[:category], book_genre: :history),
+        class: "pb-1 border-b-2 transition-colors hover:text-[#7c6243] hover:border-[#7c6243] " \
+               "#{params[:book_genre] == 'history' ? 'text-[#7c6243] border-[#7c6243] font-medium' : 'border-transparent'}" %>
+
+    <%= link_to "사회", posts_path(category: params[:category], book_genre: :society),
+        class: "pb-1 border-b-2 transition-colors hover:text-[#7c6243] hover:border-[#7c6243] " \
+               "#{params[:book_genre] == 'society' ? 'text-[#7c6243] border-[#7c6243] font-medium' : 'border-transparent'}" %>
+
+    <%= link_to "경제", posts_path(category: params[:category], book_genre: :economy),
+        class: "pb-1 border-b-2 transition-colors hover:text-[#7c6243] hover:border-[#7c6243] " \
+               "#{params[:book_genre] == 'economy' ? 'text-[#7c6243] border-[#7c6243] font-medium' : 'border-transparent'}" %>
+
+    <%= link_to "과학/기술", posts_path(category: params[:category], book_genre: :science_technology),
+        class: "pb-1 border-b-2 transition-colors hover:text-[#7c6243] hover:border-[#7c6243] " \
+               "#{params[:book_genre] == 'science_technology' ? 'text-[#7c6243] border-[#7c6243] font-medium' : 'border-transparent'}" %>
+  <% end %>
+</div>
+<% end %>
+ !important;
+    text-decoration: none;
+    transition: color .15s ease;
+  }
+  /* 호버 시 훨씬 어두운 갈색 */
+  #left-nav .sidebar-link:hover {
+    color: #7b5845 !important;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  /* 현재 활성 카테고리 */
+  #left-nav .sidebar-link.is-active {
+    color: #7b5845 !important;
+    font-weight: 600;
+    text-decoration: none;
+  }
+</style>
+
+<div id="left-nav" class="fixed top-28 left-0 w-48 px-4 py-6 space-y-2">
+  <div class="sidebar-box px-2 py-4 space-y-2 shadow" style="border: 1px solid #d8cbb4;">
+    <ul class="space-y-4 text-center">
+      <li>
+        <%= link_to "독서 토론관",
+          posts_path(category: :discussion),
+          class: "sidebar-link #{'is-active' if params[:category].to_s == 'discussion'}" %>
+      </li>
+      <li>
+        <%= link_to "독서 감상관",
+          posts_path(category: :thought),
+          class: "sidebar-link #{'is-active' if params[:category].to_s == 'thought'}" %>
+      </li>
+      <li>
+        <%= link_to "문학 창작관",
+          posts_path(category: :creation),
+          class: "sidebar-link #{'is-active' if params[:category].to_s == 'creation'}" %>
+      </li>
+      <li>
+        <%= link_to "자유 게시판",
+          posts_path(category: :board),
+          class: "sidebar-link #{'is-active' if params[:category].to_s == 'board'}" %>
+      </li>
+
+      <!-- 🔒 독서 메모장 (호버/활성 동일 처리) -->
+      <!-- 🔒 독서 메모장 (활성 시 색상 + 아이콘 변경) -->
+      <li class="pt-4" style="border-top: 1px solid #d8cbb4;">
+        <% active_books = (controller_name == 'books') %>
+        <%= link_to books_path,
+            class: "sidebar-link flex items-center justify-center gap-1 #{'is-active' if active_books}" do %>
+          <%= image_tag(active_books ? "icon/filled_lock.svg" : "icon/post/Lock.svg",
+                        alt: "Lock", class: "w-4 h-4") %>
           <span>독서 메모장</span>
         <% end %>
       </li>
+      
+      
     </ul>
   </div>
 
-  <div class="mt-12 space-y-2 text-center">
-    <%= link_to "게시글 쓰기", new_post_path, class: "block bg-[#7b5845] text-white font-bold py-2 mt-6" %>
-    <%= link_to "독서 기록하기", new_note_path, class: "block border border-[#7b5845] bg-white text-[#7b5845] font-bold py-2" %>
+  <div class="mt-2 space-y-2 text-center">
+    <%= link_to "게시글 쓰기", new_post_path,
+          class: "block",
+          style: "background:#7b5845;color:#fff;font-weight:700;padding:.5rem 0;margin-top:1rem;" %>
+    <%= link_to "독서 기록하기", new_note_path,
+          class: "block",
+          style: "border:1px solid #7b5845;background:#fff;color:#7b5845;font-weight:700;padding:.5rem 0;" %>
   </div>
 </div>
 <% end %>

@@ -1,6 +1,6 @@
 <div id="right-sidebar" class="fixed right-0 mt-16 h-[calc(100vh-4rem)] w-64 shadow-lg z-50">
   <!-- Profile card -->
-  <div class="mx-3 mt-3  letter-card">
+  <div class="mx-3 mt-3  letter-card ">
     <!-- 헤더 -->
     <div class="px-3 py-3 text-center border-b border-[#e6e1d9]">
       <h2 class="text-lg font-semibold text-[#221a14]" style="font-family:'Noto Serif KR',serif;">
@@ -31,7 +31,7 @@
         <% else %>
           <p class="text-sm text-gray-500 italic">책 소개가 없습니다.</p>
         <% end %>
-        <hr class="mt-3 border-0 border-t border-[#ece8e1]" />
+
       </div>
     <% end %>
   </div>
@@ -82,6 +82,9 @@
     text-decoration-color:#231b14;
     outline:none;
   }
+
+
+#right-sidebar { background-color:#f3ede3; }
 
   /* 높이 낮은 화면에선 간격 조금 줄이기 */
   @media (max-height: 700px){
