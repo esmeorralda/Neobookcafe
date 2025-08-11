@@ -1,12 +1,12 @@
 <div id="right-sidebar" class="fixed right-0 mt-16 h-[calc(100vh-4rem)] w-64 shadow-lg z-50">
   <!-- Profile card -->
-  <div class="mx-3 mt-6  letter-card ">
+  <div class=" mt-12  letter-card ">
     <!-- 헤더 -->
     <div class="px-3 py-3 text-center border-b border-[#e6e1d9]">
       <h2 class="text-lg font-semibold text-[#221a14]" style="font-family:'Noto Serif KR',serif;">
         <%= current_user&.name || "닉네임" %>
       </h2>
-      <p class="text-xs text-[#6f665e] mt-1">
+      <p class="text-[11px] text-[#6f665e] mt-1">
         <%= current_user&.self_intro.presence || "한줄 소개" %>
       </p>
     </div>
@@ -55,7 +55,6 @@
   #right-sidebar .letter-card{
     background: white;             /* 배경색 제거 */
     border: 1px solid #e6e1d9;           /* 얇은 고대비 라인 */
-    border-radius: 12px;
 
     box-shadow: 0 4px 12px rgba(0,0,0,.05); /* 가벼운 음영 */
   }

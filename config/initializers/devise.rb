@@ -305,6 +305,10 @@ Devise.setup do |config|
   config.responder.error_status = :unprocessable_entity
   config.responder.redirect_status = :see_other
 
+config.http_authenticatable_on_xhr = false
+config.navigational_formats = ['*/*', :html, :json] # add :json so sessions#create can reply via AJAX
+
+
   # ==> Configuration for :registerable
 
   # When set to false, does not sign a user in automatically after their password is

@@ -1,0 +1,27 @@
+<!-- app/views/devise/sessions/_form.html.erb -->
+<h2>로그인</h2>
+
+
+<%= form_for(resource,
+             as: resource_name,
+             url: session_path(resource_name),
+             data: { turbo: true }
+          ) do |f| %>
+
+  <%= f.email_field    :email,    class: 'form-control mb-2', placeholder: '이메일' %>
+  <%= f.password_field :password, class: 'form-control mb-2', placeholder: '비밀번호' %>
+
+  <% if devise_mapping.rememberable? %>
+    <div class="form-check my-2">
+      <%= f.check_box :remember_me, class: 'form-check-input' %>
+      <%= f.label :remember_me, '자동 로그인', class: 'form-check-label' %>
+    </div>
+  <% end %>
+
+  <!-- 불필요/오타 클래스 제거: item-center, 중복 justify-* 삭제 -->
+  <div class="text-center mt-3">
+    <%= f.submit '로그인',
+          class: 'btn px-4 py-2 fw-semibold d-block mx-auto' %>
+    <!-- 색/둥근/테두리는 위 CSS(#sign_in_modal input[type="submit"])에서 일괄 제어 -->
+  </div>
+<% end %>

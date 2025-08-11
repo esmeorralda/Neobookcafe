@@ -1,0 +1,6 @@
+<!-- app/views/shared/_flash.html.erb -->
+<% flash.each do |type, message| %>
+  <%# Bootstrap 기준 매핑: notice->success, alert->danger %>
+  <% css = { notice: "success", alert: "danger", error: "danger" }[type.to_sym] || "info" %>
+  <div class="alert alert-<%= css %> mb-2" role="alert"><%= message %></div>
+<% end %>

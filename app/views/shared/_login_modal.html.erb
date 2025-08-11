@@ -1,0 +1,161 @@
+<!-- app/views/shared/_login_modal.html.erb -->
+<div class="modal fade hidden" id="sign_in_modal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content"><!-- position: relative는 CSS에서 줄게요 -->
+
+      <!-- ✅ 하단 우측 코너 닫기 버튼 (유틸 클래스 제거) -->
+      <button type="button"
+              class="close-text-btn"
+              data-bs-dismiss="modal"
+              aria-label="Close">닫기</button>
+
+      <div class="modal-body pb-5">
+        <%= render 'devise/sessions/form' %>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  /* ⚠ 전역 .modal 오버라이드는 절대 금지! (Bootstrap 동작 깨짐) */
+
+  /* 가운데 정렬 + 너비만 ID 범위로 커스터마이즈 */
+ #sign_in_modal {
+  position: fixed !important;   /* 오버레이 보장 */
+  inset: 0 !important;          /* top/right/bottom/left: 0 */
+  z-index: 70000 !important;    /* 페이지 어떤 요소보다 위 */
+}
+/* 너비/비주얼 */
+  #sign_in_modal .modal-dialog { max-width: 380px; margin: 20vh auto 0 !important; }
+  #sign_in_modal .modal-content {
+    position: relative; /* ⬅️ 닫기 버튼 절대배치 기준 */
+    border: none;
+    border-radius: 0;
+    box-shadow: 0 4px 10px rgba(124,98,67,.3);
+  }
+  #sign_in_modal .modal-body { padding: 30px 40px; color: #5a4a2a; background: #fff; }
+
+  /* 제목 */
+  #sign_in_modal h2 { margin-bottom: 20px; font-weight: 700; font-size: 20px; text-align: center; }
+
+  /* 입력 필드 */
+  #sign_in_modal input[type="email"], #sign_in_modal input[type="password"] {
+    width: 100%; padding: 10px 12px; margin-bottom: 15px;
+    border: 1.8px solid #a5947b; border-radius: 0; font-size: 15px;
+    background-color: #faf7ef; color: #5a4a2a; transition: border-color .3s, background-color .3s;
+  }
+  #sign_in_modal input[type="email"]:focus, #sign_in_modal input[type="password"]:focus {
+    border-color: #7c6243; outline: none; background-color: #fff;
+  }
+
+  /* 로그인 버튼 */
+  #sign_in_modal button[type="submit"], #sign_in_modal input[type="submit"] {
+    display: block; margin: 10px auto 0; padding: 7px 52px;
+    font-size: 17px; font-weight: 500; background-color: #7c6243; color: #f7f3e9;
+    border: none; box-shadow: 0 3px 5px rgba(124,98,67,.6); transition: background-color .3s; cursor: pointer;
+  }
+  #sign_in_modal button[type="submit"]:hover, #sign_in_modal input[type="submit"]:hover { background-color: #5a4a2a; }
+
+  /* ✅ 하단 우측 코너 텍스트 닫기 버튼(절대 위치 확정) */
+  #sign_in_modal .close-text-btn {
+    background: transparent; border: 0; padding: 6px 10px;
+    font-size: 14px; font-weight: 600; color: #7c6243; cursor: pointer;
+  }
+  #sign_in_modal .close-text-btn:hover { text-decoration: underline; color: #5a4a2a; }
+  #sign_in_modal .modal-content > .close-text-btn {
+    position: absolute; right: 12px; bottom: 12px; /* ⬅️ 여기! */
+  }
+</style>
+<script>
+(function () {
+  // --- 뒤로가기/스냅샷 등으로 열린 상태 복원 방지 ---
+  function resetLoginModal() {
+    const el = document.getElementById('sign_in_modal');
+    if (!el) return;
+    el.classList.remove('show');
+    el.style.removeProperty('display');
+    document.querySelector('.modal-backdrop')?.remove();
+    document.body.classList.remove('modal-open');
+    document.body.style.removeProperty('paddingRight');
+  }
+
+  // --- 성공 flash 표시(없으면 alert로 폴백) ---
+  function showFlashSuccess(message) {
+    const flash = document.getElementById('flash-container');
+    const msg = message || '성공적으로 로그인했습니다!';
+    if (flash) {
+      flash.innerHTML = '<div class="alert alert-success mb-2" role="alert">' + msg + '</div>';
+    } else {
+      alert(msg);
+    }
+  }
+
+  // --- 모달 숨김(부트스트랩/폴백 모두 지원) ---
+  function hideModal(modalEl) {
+    const Modal = window.bootstrap?.Modal;
+    if (Modal?.getOrCreateInstance) {
+      Modal.getOrCreateInstance(modalEl).hide();
+      return;
+    }
+    modalEl.classList.remove('show');
+    modalEl.style.display = 'none';
+    document.body.classList.remove('modal-open');
+    document.body.style.removeProperty('paddingRight');
+    document.querySelector('.modal-backdrop')?.remove();
+  }
+
+  function bind() {
+    resetLoginModal(); // 매 로드마다 안전하게 닫아두기
+
+    const modalEl = document.getElementById('sign_in_modal');
+    if (!modalEl) return;
+
+    // ✅ 닫기 버튼들(텍스트/아이콘 모두) 클릭 시 무조건 닫기
+    const closeBtns = modalEl.querySelectorAll('.close-text-btn, [data-bs-dismiss="modal"]');
+    closeBtns.forEach((btn) => {
+      if (btn.dataset.boundClose === '1') return;
+      btn.dataset.boundClose = '1';
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        hideModal(modalEl);
+      });
+    });
+
+    // 로그인 폼 핸들러
+    const form = modalEl.querySelector('#login-form') || modalEl.querySelector('form');
+    if (form && !form.__bound) {
+      form.__bound = true;
+
+      // Rails UJS (remote: true)
+      form.addEventListener('ajax:success', (e) => {
+        const detail = e.detail || [];
+        const data = detail[0] || {};
+        const xhr  = detail[2];
+        if (xhr && xhr.status >= 200 && xhr.status < 300) {
+          showFlashSuccess(data.notice);
+          hideModal(modalEl);
+          // window.location.reload();
+        }
+      });
+
+      form.addEventListener('ajax:error', (e) => {
+        const detail = e.detail || [];
+        const data = detail[0] || {};
+        const msg = (data.errors && data.errors.join('\n')) || '이메일 또는 비밀번호가 올바르지 않습니다.';
+        alert(msg);
+      });
+
+      // Turbo 제출 경로
+      form.addEventListener('turbo:submit-end', (e) => {
+        if (e.detail?.success) {
+          showFlashSuccess();
+          hideModal(modalEl);
+        }
+      });
+    }
+  }
+
+  document.addEventListener('turbo:load', bind);
+  document.addEventListener('DOMContentLoaded', bind);
+})();
+</script>

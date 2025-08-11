@@ -68,7 +68,16 @@
 
 
   <% else %>
-    <%= link_to "로그인", new_user_session_path %>
+
+ <% unless user_signed_in? %>
+  <%= link_to '로그인', '#sign_in_modal',
+        id: 'sign_in_button',
+        data: { bs_toggle: 'modal', bs_target: '#sign_in_modal' } %>
+<% else %>
+  <!-- e.g. show profile / logout -->
+  <%= link_to '로그아웃', destroy_user_session_path, data: { "turbo-method": :delete } %>
+<% end %>
+
   <% end %>
 </div>
 
@@ -260,9 +269,6 @@
   <%= yield %>
 </main>
 
-
-
-
 <div id="right-sidebar" class="hidden fixed top-16 right-0 h-[calc(100vh-4rem)] w-64 bg-[#f0ece3] text-[#7c6243] shadow-lg z-50">
 
      <%= render 'layouts/right_sidebar' %>
@@ -277,9 +283,85 @@
 
 </div>
 
+<% unless user_signed_in? %>
+  <%= render "shared/login_modal" %>
 
+  <script nonce="<%= content_security_policy_nonce %>">
+  (function () {
+    function getModal(){ return document.getElementById('sign_in_modal'); }
 
+    function openModal() {
+      const modal = getModal(); if (!modal) return;
+      modal.classList.remove('hidden');              // ★ hidden 제거
+      const Modal = window.bootstrap?.Modal;
+      if (Modal?.getOrCreateInstance) {
+        Modal.getOrCreateInstance(modal).show();     // 부트스트랩 있으면 정석 오픈
+      } else {
+        // 폴백(부트스트랩 JS 없을 때도 뜨게)
+        modal.style.display = 'block';
+        modal.classList.add('show');
+        document.body.classList.add('modal-open');
+      }
+    }
 
+    function closeModal() {
+      const modal = getModal(); if (!modal) return;
+      const Modal = window.bootstrap?.Modal;
+      if (Modal?.getOrCreateInstance) Modal.getOrCreateInstance(modal).hide();
+      modal.classList.add('hidden');                 // 닫힐 때 다시 hidden
+      modal.classList.remove('show');
+      modal.style.removeProperty('display');
+      document.body.classList.remove('modal-open');
+      document.querySelector('.modal-backdrop')?.remove();
+    }
+
+    function bindGuestLoginModal() {
+      const modal = getModal(); if (!modal || modal.dataset.bound === '1') return;
+      modal.dataset.bound = '1';
+
+      // ① "로그인" 트리거 클릭 시 무조건 열기(+ 해시 맞추기)
+      document.addEventListener('click', function(e){
+        const trigger = e.target.closest('#sign_in_button,[data-bs-target="#sign_in_modal"],a[href="#sign_in_modal"]');
+        if (!trigger) return;
+        e.preventDefault();          // 해시 점프/Turbo 네비 방지
+        openModal();
+        if (location.hash !== '#sign_in_modal') history.replaceState(null, '', '#sign_in_modal');
+      });
+
+      // ② 해시로 진입/변경 시 자동 오픈
+      function handleHash(){ if (location.hash === '#sign_in_modal') openModal(); }
+      window.addEventListener('hashchange', handleHash);
+      document.addEventListener('DOMContentLoaded', handleHash);
+      document.addEventListener('turbo:load', handleHash);
+
+      // ③ 부트스트랩이 닫을 때 hidden 복원(자동표시 방지)
+      modal.addEventListener('hidden.bs.modal', function(){
+        modal.classList.add('hidden');
+        if (location.hash === '#sign_in_modal') {
+          history.replaceState(null, '', location.pathname + location.search);
+        }
+      });
+
+      // ④ 부트스트랩이 없을 때도 닫기 버튼 작동하도록 폴백
+      modal.querySelectorAll('.close-text-btn,[data-bs-dismiss="modal"]').forEach(function(btn){
+        if (btn.dataset.boundClose === '1') return;
+        btn.dataset.boundClose = '1';
+        btn.addEventListener('click', function(ev){
+          const hasBS = !!(window.bootstrap?.Modal?.getOrCreateInstance);
+          if (hasBS) return;         // 부트스트랩이 처리하면 패스
+          ev.preventDefault();
+          closeModal();
+          if (location.hash === '#sign_in_modal') {
+            history.replaceState(null, '', location.pathname + location.search);
+          }
+        });
+      });
+    }
+
+    bindGuestLoginModal();
+  })();
+  </script>
+<% end %>
 
   </body>
 
@@ -486,6 +568,8 @@
   }
 })();
 </script>
+
+
 
 <%# Put flash messages into a single global only once so Turbo doesn't double-fire %>
 <% if notice.present? || alert.present? %>

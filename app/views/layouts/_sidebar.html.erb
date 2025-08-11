@@ -106,7 +106,7 @@
         <%= link_to books_path,
             class: "sidebar-link flex items-center justify-center gap-1 #{'is-active' if active_books}" do %>
           <%= image_tag(active_books ? "icon/filled_lock.svg" : "icon/post/Lock.svg",
-                        alt: "Lock", class: "w-4 h-4") %>
+                        alt: "Lock", class: "w-4 h-4 mr-2") %>
           <span>독서 메모장</span>
         <% end %>
       </li>

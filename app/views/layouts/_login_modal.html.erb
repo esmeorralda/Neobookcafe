@@ -1,15 +1,5 @@
 <style>
   /* 모달 전체 배경 */
-  .modal {
-    position: fixed;
-    top: 0; left: 0;
-    width: 100vw; height: 100vh;
-    background-color: rgba(230, 225, 215, 0.7);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 10000;
-  }
 
   /* 모달 콘텐츠 박스 */
   .modal-content {
@@ -91,7 +81,7 @@
   }
 </style>
 
-<div id="loginModal" class="modal hidden">
+<div id="loginModal" class="modal ">
   <div class="modal-content">
     <h2>로그인</h2>
     <form id="loginForm" action="/users/sign_in" method="post">
