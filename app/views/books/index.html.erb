@@ -51,32 +51,79 @@
   </div>
 </div>
 
-        <div class="flex flex-wrap gap-6 relative">
-          <% recent_notes.each_with_index do |note, index| %>
-            <div class="relative w-56 aspect-square shadow-md p-5 pt-10 pb-8 font-serif overflow-hidden"
-                 style="background-color: <%= note.color  %>; clip-path: polygon(0 0, 100% 0, 100% 95%, 95% 100%, 0 100%);">
-              <div class="absolute top-3 left-3 text-[13px] text-gray-600 font-medium">
-                <% if note.page_from && note.page_to %>
-                  <%= note.page_from %>~<%= note.page_to %>쪽
-                <% elsif note.page_from %>
-                  <%= note.page_from %>쪽
-                <% end %>
-              </div>
-              <div class="absolute top-3 right-3 text-[13px] text-gray-600">
-                <%= note.created_at.strftime('%d/%m/%Y') %>
-              </div>
-              <div class="whitespace-pre-line text-gray-800 text-sm leading-relaxed overflow-hidden text-ellipsis line-clamp-8">
-                <%= truncate(note.memo, length: 300) %>
-              </div>
-              <div class="absolute bottom-0 right-0 w-10 h-10 bg-[#e5e5d7] clip-path-corner"></div>
-              <%= link_to "더보기 »", note_path(note), class: "absolute bottom-2 right-3 text-xs text-gray-600 hover:underline" %>
-            </div>
+<div class="flex flex-wrap gap-6 relative ">
+<% fold_px = 28 %> <!-- 접힌 모서리 크기 (px) -->
+<% corner_map = {
+     '#FFFFCD' => '#E0E0A7', # 노랑
+     '#E3FFDC' => '#B5D3AE', # 연두
+     '#FFF0F8' => '#EDC6DB', # 핑크
+     '#E1FAFF' => '#B1D6DD'  # 하늘
+   } %>
 
-            <% if index == 2 && book.notes.count > 3 %>
-              <div class="flex items-center text-xl text-gray-500">...</div>
-            <% end %>
-          <% end %>
-        </div>
+<% recent_notes.each_with_index do |note, index| %>
+  <!-- 메모지 카드 -->
+   <% bg = (note.color || '#f7f7cf') %>
+   <% corner = corner_map[bg.to_s.upcase] || '#e5e5d7' %>
+   
+   <%= link_to note_path(note), 
+   class: "relative shadow-md block w-56 aspect-square p-5 pt-10 pb-8 font-serif overflow-hidden shadow-[0_10px_20px_rgba(0,0,0,0.25)]",
+   style: "
+     background-color: #{note.color || '#f7f7cf'};
+     clip-path: polygon(
+       0 0,
+       100% 0,
+       100% calc(100% - 40px),
+       calc(100% - 40px) 100%,
+       0 100%
+     );
+   " do %>
+
+    <!-- 상단 메타 -->
+    <div class="absolute top-3 left-3 text-[13px] text-gray-600 font-medium">
+      <% if note.page_from && note.page_to %>
+        <%= note.page_from %>~<%= note.page_to %>쪽
+      <% elsif note.page_from %>
+        <%= note.page_from %>쪽
+      <% end %>
+    </div>
+    <div class="absolute top-3 right-3 text-[13px] text-gray-600">
+      <%= note.created_at.strftime('%d/%m/%Y') %>
+    </div>
+
+    <!-- 내용 -->
+    <div class="whitespace-pre-line text-gray-800 text-sm leading-relaxed overflow-hidden text-ellipsis line-clamp-8">
+      <%= truncate(note.memo, length: 300) %>
+    </div>
+
+    <!-- 하단 바닥 그림자 (자연스러운 떠있는 느낌) -->
+    <div class="pointer-events-none absolute -bottom-2 left-3 right-10 h-3 rounded-full bg-black/10 blur-md"></div>
+
+    <!-- 접힌 모서리: 본체 -->
+    <div
+      class="absolute bottom-0 right-0 w-10 h-10
+             [clip-path:polygon(0_0,100%_0,100%_100%)]
+             bg-[#e5e5d7]
+             shadow-[inset_0_1px_0_rgba(0,0,0,0.12),inset_1px_0_0_rgba(0,0,0,0.10)]"
+             style="
+             background-color: <%= corner %>;
+           
+           "
+    ></div>
+    <!-- 접힌 모서리: 하이라이트/그라데이션 -->
+    <div
+      class="pointer-events-none absolute bottom-0 right-0 w-10 h-10
+             [clip-path:polygon(0_0,100%_0,100%_100%)]
+             bg-gradient-to-br from-white/45 via-transparent to-black/25"
+    ></div>
+
+
+  <%end%>
+
+  <% if index == 2 && book.notes.count > 3 %>
+    <div class="flex items-center text-xl text-gray-500">...</div>
+  <% end %>
+<% end %>
+</div>
 
         <hr class="my-10 border-t border-gray-300">
       </div>
@@ -85,47 +132,177 @@
 </div>
 
 <style>
-  .clip-path-corner {
-    clip-path: polygon(100% 0, 100% 100%, 0 100%);
-  }
+
 </style>
-
-
 <script src="https://cdn.jsdelivr.net/npm/progressbar.js"></script>
 
 <script>
-  document.addEventListener('DOMContentLoaded', function () {
-    const container = document.getElementById('progress1');
-    if (!container || typeof ProgressBar === 'undefined') return;
+(function () {
+  // ───────── State ─────────
+  const BAR_MAP = new WeakMap(); // container => ProgressBar instance
 
-    const currentPage = Number(container.dataset.currentPage) || 0;
-    const totalPages = Number(container.dataset.totalPages) || 0;
-
-    const progress = (currentPage > 0 && totalPages > 0) 
-      ? Math.min(currentPage / totalPages, 1)
-      : 0;
-    const bar = new ProgressBar.Circle(container, {
-      strokeWidth: 12,
-      color: '#815e4e',
-      trailColor: '#fff',
-      trailWidth: 1,
-      easing: 'easeInOut',
-      duration: 1000,
-    });
-
-    bar.animate(progress);
-  });
-
-  document.addEventListener('DOMContentLoaded', () => {
-  document.querySelectorAll('.export-btn').forEach(button => {
-    button.addEventListener('click', () => {
-      const bookId = button.dataset.bookId;
-      if (bookId) {
-        const url = `/books/${bookId}/export_notes`;
-        window.location.href = url; // 다운로드 트리거
+  // ───────── Skeleton UI ─────────
+  function ensureStyles() {
+    if (document.getElementById('progress-skeleton-style')) return;
+    const css = `
+      #progress1.progress-skeleton, [data-progress-circle].progress-skeleton {
+        position: relative;
+        border-radius: 9999px;
+        background: linear-gradient(90deg, #f7f2ed 0%, #f0e6dd 50%, #f7f2ed 100%);
+        animation: pb-pulse 1.2s ease-in-out infinite;
       }
-    });
-  });
-});
+      #progress1.progress-skeleton .progress-skeleton-fill,
+      [data-progress-circle].progress-skeleton .progress-skeleton-fill {
+        position: absolute; inset: 4px;
+        border-radius: 9999px; background: #ffffff;
+      }
+      @keyframes pb-pulse { 0%{opacity:.85} 50%{opacity:1} 100%{opacity:.85} }
+    `;
+    const style = document.createElement('style');
+    style.id = 'progress-skeleton-style';
+    style.textContent = css;
+    document.head.appendChild(style);
+  }
+  function skeletonOn(el) {
+    if (!el) return;
+    el.classList.add('progress-skeleton');
+    if (!el.querySelector('.progress-skeleton-fill')) {
+      const fill = document.createElement('div');
+      fill.className = 'progress-skeleton-fill';
+      el.appendChild(fill);
+    }
+  }
+  function skeletonOff(el) {
+    if (!el) return;
+    el.classList.remove('progress-skeleton');
+    const f = el.querySelector('.progress-skeleton-fill');
+    if (f) f.remove();
+  }
 
+  // ───────── Wait until ProgressBar.js is ready ─────────
+  function waitForProgressBar(maxMs = 5000) {
+    return new Promise((resolve, reject) => {
+      const start = performance.now();
+      (function poll() {
+        if (window.ProgressBar && typeof window.ProgressBar.Circle === 'function') {
+          resolve();
+          return;
+        }
+        if (performance.now() - start > maxMs) {
+          reject(new Error('ProgressBar.js load timeout'));
+          return;
+        }
+        setTimeout(poll, 100);
+      })();
+    });
+  }
+
+  // ───────── Init Progress Circles ─────────
+  function initProgressCircles() {
+    const nodes = [];
+    const direct = document.getElementById('progress1');
+    if (direct) nodes.push(direct);
+    document.querySelectorAll('[data-progress-circle]').forEach(n => {
+      if (n !== direct) nodes.push(n);
+    });
+
+    nodes.forEach(container => {
+      if (!container || container.dataset.pbBound === '1') return;
+      container.dataset.pbBound = '1';
+
+      const currentPage = Number(container.dataset.currentPage) || 0;
+      const totalPages  = Number(container.dataset.totalPages)  || 0;
+      const progress    = (currentPage > 0 && totalPages > 0) ? Math.min(currentPage / totalPages, 1) : 0;
+
+      // Skeleton 먼저
+      skeletonOn(container);
+
+      // 라이브러리 준비되면 그때 실제 바 렌더
+      waitForProgressBar().then(() => {
+        // 기존 인스턴스 정리
+        if (BAR_MAP.has(container)) {
+          try { BAR_MAP.get(container).destroy(); } catch(e) {}
+          BAR_MAP.delete(container);
+        }
+        // 스켈레톤 제거 후 실제 원형 프로그레스 생성
+        skeletonOff(container);
+        const bar = new ProgressBar.Circle(container, {
+          strokeWidth: 12,
+          color: '#815e4e',
+          trailColor: '#fff',
+          trailWidth: 1,
+          easing: 'easeInOut',
+          duration: 1000
+        });
+        BAR_MAP.set(container, bar);
+        bar.animate(progress);
+      }).catch(() => {
+        // 타임아웃 시 스켈레톤 유지 (조용히 실패)
+      });
+    });
+  }
+
+  // Turbo 캐시로 들어가기 전 정리 (중복 SVG 방지)
+  function cleanupBeforeCache() {
+    const all = [];
+    const direct = document.getElementById('progress1');
+    if (direct) all.push(direct);
+    document.querySelectorAll('[data-progress-circle]').forEach(n => {
+      if (n !== direct) all.push(n);
+    });
+
+    all.forEach(container => {
+      if (BAR_MAP.has(container)) {
+        try { BAR_MAP.get(container).destroy(); } catch(e) {}
+        BAR_MAP.delete(container);
+      }
+      Array.from(container.querySelectorAll('svg, .progressbar-text')).forEach(n => n.remove());
+      container.removeAttribute('data-pb-bound');
+    });
+  }
+
+  // ───────── Export 버튼 (안전한 복제/위임) ─────────
+  function initExportButtons() {
+    if (document.body.dataset.exportDelegBound === '1') return;
+    document.body.dataset.exportDelegBound = '1';
+
+    // 이벤트 위임: 새로 삽입된 버튼도 즉시 동작
+    document.addEventListener('click', (e) => {
+      const btn = e.target.closest('.export-btn');
+      if (!btn) return;
+
+      const bookId = btn.dataset.bookId;
+      if (!bookId) return;
+
+      if (!btn.dataset.busy) {
+        btn.dataset.busy = '1';
+        const original = btn.textContent;
+        btn.textContent = original && original.trim().length ? original : '내보내는 중...';
+        btn.disabled = true;
+
+        // 다운로드 트리거
+        window.location.href = `/books/${encodeURIComponent(bookId)}/export_notes`;
+
+        // 적당한 딜레이 후 버튼 원복 (다운로드는 계속 진행)
+        setTimeout(() => {
+          btn.textContent = original;
+          btn.disabled = false;
+          delete btn.dataset.busy;
+        }, 1500);
+      }
+    }, { passive: true });
+  }
+
+  // ───────── Bootstrap ─────────
+  function init() {
+    ensureStyles();
+    initProgressCircles();
+    initExportButtons();
+  }
+
+  document.addEventListener('DOMContentLoaded', init); // 최초 로드
+  document.addEventListener('turbo:load', init);       // Turbo 네비 완료
+  document.addEventListener('turbo:render', init);     // Turbo 캐시 렌더
+  document.addEventListener('turbo:before-cache', cleanupBeforeCache); // 캐시 저장 직전 정리
+})();
 </script>

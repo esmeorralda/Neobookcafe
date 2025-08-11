@@ -36,6 +36,7 @@ end
     end
     
     def show
+      @show_sidebar = true
     
       @book = current_user.books.find(params[:id])
       @notes = @book.notes

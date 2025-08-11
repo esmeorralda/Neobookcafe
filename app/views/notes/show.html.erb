@@ -1,5 +1,5 @@
 <div class="relative max-w-3xl mx-auto space-y-4">
-  <!-- 책 제목 + 목차: 배경 밖 상단 -->
+  <!-- 책 제목 + 목차 -->
   <h2 class="text-2xl font-semibold text-black mt-5">
     <%= @note.book.title %>
     <span class="text-sm text-[#926f6f]">
@@ -7,8 +7,20 @@
     </span>
   </h2>
 
-  <!-- 편집/삭제 버튼: 메모지 바깥 오른쪽 -->
-  <div class="absolute mt-25 -right-20 top-0 flex flex-col space-y-2">
+  <%# 접힌 모서리 색상 매핑 + 파라미터 %>
+  <% corner_map = {
+    '#FFFFCD' => '#E0E0A7', # 노랑
+    '#E3FFDC' => '#B5D3AE', # 연두
+    '#FFF0F8' => '#EDC6DB', # 핑크
+    '#E1FAFF' => '#B1D6DD'  # 하늘
+  } %>
+  <% fold_px = 40 %>
+  <% bg = (@note.color || '#f7f7cf').to_s.upcase %>
+  <% corner = corner_map[bg] || '#e5e5d7' %>
+  <% base_bg = @note.color.presence || '#f7f7cf' %>
+
+  <!-- 편집/삭제 버튼 (메모지 바깥) -->
+  <div class="absolute top-0 -right-20 flex flex-col space-y-2">
     <%= link_to "편집", edit_note_path(@note),
         class: "border border-gray-400 text-gray-800 px-3 py-1 rounded hover:bg-gray-100 text-sm" %>
     <%= link_to "삭제", note_path(@note),
@@ -17,14 +29,28 @@
         class: "border border-gray-400 text-gray-800 px-3 py-1 rounded hover:bg-red-50 text-sm" %>
   </div>
 
-  <!-- 메모지 (동적 배경색 적용) -->
-  <div class="p-8 mt-10 shadow-md rounded-tr-none rounded-bl-none rounded-2xl relative"
-       style="background-color: <%= @note.color %>;">
-       
-    <!-- 쪽수 / 날짜 -->
+  <!-- 메모지 카드 (접힌 모서리 포함) -->
+  <div class="relative p-8 mt-10 shadow-md font-serif overflow-hidden"
+       style="
+         background-color:<%= base_bg %>;
+         clip-path: polygon(
+           0 0,
+           100% 0,
+           100% calc(100% - <%= fold_px %>px),
+           calc(100% - <%= fold_px %>px) 100%,
+           0 100%
+         );
+       ">
+    <!-- 상단 메타: 쪽수 / 날짜 -->
     <div class="flex justify-between items-start mb-6">
-      <p class="text-sm text-gray-500"><%= @note.page_from %>~<%= @note.page_to %>쪽</p>
-      <p class="text-sm text-gray-500"><%= @note.created_at.strftime('%d/%m/%Y') %></p>
+      <p class="text-sm text-gray-600">
+        <% if @note.page_from && @note.page_to %>
+          <%= @note.page_from %>~<%= @note.page_to %>쪽
+        <% elsif @note.page_from %>
+          <%= @note.page_from %>쪽
+        <% end %>
+      </p>
+      <p class="text-sm text-gray-600"><%= @note.created_at.strftime('%d/%m/%Y') %></p>
     </div>
 
     <!-- 메모 내용 -->
@@ -32,13 +58,27 @@
       <%= @note.memo %>
     </div>
 
-    <!-- 페이지 접힌 효과 -->
-    <div class="absolute bottom-0 right-0 w-12 h-12 bg-[#e5e5d7] clip-path-corner"></div>
+    <!-- 바닥 그림자(부드럽게 떠있는 느낌) -->
+    <div class="pointer-events-none absolute -bottom-2 left-3 right-10 h-3 rounded-full bg-black/10 blur-md"></div>
+
+    <!-- 접힌 모서리: 본체 -->
+    <div
+    class="absolute bottom-0 right-0 w-10 h-10
+           [clip-path:polygon(0_0,100%_0,100%_100%)]
+           bg-[#e5e5d7]
+           shadow-[inset_0_1px_0_rgba(0,0,0,0.12),inset_1px_0_0_rgba(0,0,0,0.10)]"
+           style="
+           background-color: <%= corner %>;
+         
+         "
+  ></div>
+
+    <!-- 접힌 모서리: 하이라이트 -->
+    <div
+    class="pointer-events-none absolute bottom-0 right-0 w-10 h-10
+           [clip-path:polygon(0_0,100%_0,100%_100%)]
+           bg-gradient-to-br from-white/45 via-transparent to-black/25"
+  ></div>
+
   </div>
 </div>
-
-<style>
-  .clip-path-corner {
-    clip-path: polygon(100% 0, 100% 100%, 0 100%);
-  }
-</style>
