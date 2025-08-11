@@ -4,7 +4,7 @@
     <!-- 왼쪽: 제목, 저자, 진행률 -->
     <div>
       <div class="flex items-center space-x-2 mb-4"> <!-- 제목과 저자 사이 간격 추가 -->
-        <h1 class="text-2xl font-bold whitespace-nowrap"><%= @book.title %></h1>
+        <h1 class="text-2xl font-bold whitespace-nowrap mt-5"><%= @book.title %></h1>
         <p class="text-sm text-gray-600 whitespace-nowrap self-end">
           <%= @book.author.present? ? @book.author : "책 저자 정보 없음"  %>
         </p>
@@ -28,13 +28,13 @@
     </div>
 
     <!-- 오른쪽: 버튼들만 별도 div -->
-    <div class="flex flex-col space-y-2">
-      <%= link_to "메모 추가", new_book_note_path(@book), class: "bg-[#644536] text-white px-4 py-2 text-sm" %>
-      <%= link_to "책 편집", edit_book_path(@book), class: "border px-4 py-2 text-sm text-center" %>
+    <div class="flex flex-col space-y-2 mt-3">
+      <%= link_to "메모 추가", new_book_note_path(@book), class: "bg-[#644536] text-white px-3 py-1 text-sm" %>
+      <%= link_to "책 편집", edit_book_path(@book), class: "border px-3 py-1 text-sm text-center" %>
     </div>
   </div>
  
-  <!-- 노트 메모지 그리드 -->
+  <div class="max-h-[70vh] overflow-y-auto pr-1">
   <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8 ">
   <% corner_map = {
     '#FFFFCD' => '#E0E0A7', # 노랑
@@ -85,6 +85,8 @@
            
            "
     ></div>
+</div>
+
     <!-- 접힌 모서리: 하이라이트/그라데이션 -->
     <div
       class="pointer-events-none absolute bottom-0 right-0 w-10 h-10
@@ -92,7 +94,8 @@
              bg-gradient-to-br from-white/45 via-transparent to-black/25"
     ></div>
 
-        </div>
+     
+        
       <% end %>
     <% end %>
   </div>

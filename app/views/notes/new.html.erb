@@ -95,7 +95,9 @@
 
       <div class="flex justify-end gap-4 w-full max-w-[600px]">
         <%= f.submit "저장", class: "bg-[#644536] rounded text-white py-2 px-4 rounded-sm" %>
-        <%= link_to "취소", new_note_path, class: "rounded bg-gray-300 hover:bg-gray-400 text-gray-800 py-2 px-4 rounded-sm flex items-center justify-center" %>
+        <%= link_to "취소", "javascript:history.back()", 
+        class: "rounded bg-gray-300 hover:bg-gray-400 text-gray-800 py-2 px-4 rounded-sm flex items-center justify-center" %>
+    
         <% if @note.persisted? %>
           <%= link_to "삭제", note_path(@note), method: :delete, data: { confirm: "정말 삭제할까요?" }, class: "bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded-sm flex items-center justify-center" %>
         <% end %>
