@@ -844,26 +844,27 @@ document.addEventListener('click', function (e) {
 
       document.addEventListener('click', (e) => {
         // a) Toggle reply container
-        const rt = e.target.closest('button.reply-toggle');
-        if (rt) {
-          const targetId = rt.getAttribute('aria-controls') || `reply-container-${rt.getAttribute('data-comment-id')}`;
-          const container = document.getElementById(targetId) || rt.nextElementSibling;
-          if (!container || !container.classList.contains('reply-container')) return;
+     // a) Toggle reply container
+const rt = e.target.closest('button.reply-toggle');
+if (rt) {
+  // 처음 클릭 시 현재 버튼 문구를 저장
+  if (!rt.dataset.closedLabel) rt.dataset.closedLabel = rt.textContent.trim();
 
-          const willShow = container.classList.contains('hidden');
-          container.classList.toggle('hidden');
+  const targetId = rt.getAttribute('aria-controls') || `reply-container-${rt.getAttribute('data-comment-id')}`;
+  const container = document.getElementById(targetId) || rt.nextElementSibling;
+  if (!container || !container.classList.contains('reply-container')) return;
 
-          if (willShow) {
-            requestAnimationFrame(() => {
-              container.querySelectorAll('textarea.auto-resize-textarea').forEach(autoResize);
-            });
-            rt.textContent = '대댓글 닫기';
-          } else {
-            const count = container.querySelectorAll('[data-comment-id]').length;
-            rt.textContent = count > 0 ? `${count}개의 답글 보기` : '답글 달기';
-          }
-          return;
-        }
+  const willShow = container.classList.contains('hidden');
+  container.classList.toggle('hidden');
+
+  if (willShow) {
+    rt.textContent = '대댓글 닫기';
+  } else {
+    // ⬇️ 처음 저장한 라벨로 복원 (숫자 재계산 안 함)
+    rt.textContent = rt.dataset.closedLabel;
+  }
+  return;
+}
 
         // b) Start edit (comment or reply)
         const editBtn = e.target.closest('.edit-comment-button');
