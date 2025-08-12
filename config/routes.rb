@@ -6,7 +6,13 @@ Rails.application.routes.draw do
   get "feedbacks/create"
   get "feedbacks/index"
   get "chapters/index"
-devise_for :users, controllers: { sessions: 'sessions' }
+# config/routes.rb
+devise_for :users, controllers: {
+  sessions: 'sessions',
+  registrations: 'users/registrations'
+}
+
+
 
 
   root "home#index"
