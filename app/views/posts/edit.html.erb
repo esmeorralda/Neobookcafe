@@ -48,29 +48,50 @@
 
       <!-- 장르 선택 -->
       <div id="genre-container">
+      <% default_genres = [
+  ["philosophy",         "철학"],
+  ["literature",         "문학"],
+  ["history",            "역사"],
+  ["society",            "사회"],
+  ["economy",            "경제"],
+  ["science_technology", "과학/기술"]
+] %>
+
+<% creation_genres = [
+  ["poetry", "시"],
+  ["essay",  "에세이"],
+  ["novel",  "소설"]
+] %>
+
+<% board_genres = [
+  ["book_recommendation", "책 추천"],
+  ["book_promotion",      "책 홍보"],
+  ["author_story",        "작가 이야기"],
+  ["reading_tips",        "독서팁/습관"],
+  ["event_promotion",     "책 관련 행사 홍보"],
+  ["book_qna",            "책 Q&A"],
+  ["others",              "기타"]
+] %>
         <span class="text-sm mr-2">장르</span>
 
-        <% # 기존 선택된 장르가 배열 형태라고 가정 (ex: @post.genres) %>
-        <% selected_genres = @post.book_genre || [] %>
+        <%# 상단의 selected_genres 계산은 아예 제거해도 됩니다 %>
+<% default_genres.each do |value, label| %>
+  <label class="mr-2 text-sm genre-default <%= 'hidden' unless ['thought', 'discussion'].include?(@post.category) %>" for="book_genre_<%= value %>">
+    <%= f.radio_button :book_genre, value, id: "book_genre_#{value}" %> <%= label %>
+  </label>
+<% end %>
 
-        <% ["철학", "문학", "역사", "사회", "경제", "과학/기술"].each do |genre| %>
-          <label class="mr-2 text-sm genre-default <%= 'hidden' unless ['thought', 'discussion'].include?(@post.category) %>">
-            <%= radio_button_tag "genres[]", genre, selected_genres.include?(genre) %> <%= genre %>
-          </label>
-        <% end %>
+<% creation_genres.each do |value, label| %>
+  <label class="mr-2 text-sm genre-creation <%= @post.category == 'creation' ? '' : 'hidden' %>" for="book_genre_<%= value %>">
+    <%= f.radio_button :book_genre, value, id: "book_genre_#{value}" %> <%= label %>
+  </label>
+<% end %>
 
-        <% ["시", "에세이", "소설"].each do |genre| %>
-          <label class="mr-2 text-sm genre-creation <%= @post.category == 'creation' ? '' : 'hidden' %>">
-            <%= radio_button_tag "genres[]", genre, selected_genres.include?(genre) %> <%= genre %>
-          </label>
-        <% end %>
-
-        <% ["책 추천", "책 홍보", "작가 이야기", "독서팁/습관", "책 관련 행사 홍보", "책 Q&A", "기타"].each do |genre| %>
-          <label class="mr-2 text-sm genre-board <%= @post.category == 'board' ? '' : 'hidden' %>">
-            <%= radio_button_tag "genres[]", genre, selected_genres.include?(genre) %> <%= genre %>
-          </label>
-        <% end %>
-
+<% board_genres.each do |value, label| %>
+  <label class="mr-2 text-sm genre-board <%= @post.category == 'board' ? '' : 'hidden' %>" for="book_genre_<%= value %>">
+    <%= f.radio_button :book_genre, value, id: "book_genre_#{value}" %> <%= label %>
+  </label>
+<% end %>
   
       </div>
 <div id="blocks-container" class="bg-white p-6 shadow mt-4 rounded"
