@@ -14,9 +14,10 @@
 categories = [:thought, :discussion, :creation, :board]
 book_genres = [:philosophy, :literature, :history, :society, :economy, :science_technology]
 
-user = User.find_or_create_by!(email: "test@example.com") do |u|
-    u.password = "password"
-    u.password_confirmation = "password"
+user = User.find_or_create_by!(email: "gsun51234@gmail.com") do |u|
+    u.password = "gsun51234"
+    u.password_confirmation = "gsun51234"
+    u.name="네오"
   end
   
 
