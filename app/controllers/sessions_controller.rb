@@ -63,7 +63,7 @@ class SessionsController < Devise::SessionsController
     Devise.sign_out_all_scopes ? sign_out : sign_out(scope)
 
     respond_to do |format|
-      format.html { redirect_to after_sign_out_path_for(scope), status: :see_other, notice: "로그아웃되었습니다." }
+      format.html { redirect_to after_sign_out_path_for(scope), status: :see_other }
       format.json { render json: { success: true } }
       format.js   { render json: { success: true } }
     end

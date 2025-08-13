@@ -8,7 +8,10 @@
 <%= link_to "설정", "#", class: "open-settings-modal text-sm underline", data: { url: settings_path } %>
 
 
-<%= link_to "로그아웃", destroy_user_session_path, method: :delete, data: { confirm: "정말 로그아웃 하시겠습니까?" }, class: "text-[14px] text-[#333] no-underline" %>
+<%= link_to "로그아웃",
+            destroy_user_session_path,
+            data: { turbo_method: :delete, turbo_confirm: "정말 로그아웃 하시겠습니까?" },
+            class: "text-[14px] text-[#333] no-underline" %>
 
 
 <% else %>

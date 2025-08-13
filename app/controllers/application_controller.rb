@@ -12,10 +12,9 @@ class ApplicationController < ActionController::Base
     root_path
   end
 
-  # 로그아웃 후에도 루트로 이동 (선택사항)
-  # def after_sign_out_path_for(resource_or_scope)
-  #   root_path
-  # end 
+  def after_sign_out_path_for(resource_or_scope)
+    root_path
+  end 
 
 
   def configure_permitted_parameters
