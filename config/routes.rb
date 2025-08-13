@@ -6,6 +6,7 @@ Rails.application.routes.draw do
   get "feedbacks/create"
   get "feedbacks/index"
   get "chapters/index"
+  get "/users/sign_out", to: redirect("/"), as: nil
 # config/routes.rb
 devise_for :users, controllers: {
   sessions: 'sessions',
