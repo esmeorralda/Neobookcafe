@@ -1,0 +1,26 @@
+<% if user_signed_in? %>
+<!-- 헤더 영역에 알림 버튼 -->
+<button id="toggle-notification" class="text-[14px] text-[#333] no-underline ml-4">
+<img src="<%= asset_path('icon/alarm.svg') %>" alt="Notification" class="w-5 h-5 inline" />
+</button>
+
+  <button id="toggle-right-sidebar" class="text-[14px] text-[#333] no-underline">프로필</button>
+<%= link_to "설정", "#", class: "open-settings-modal text-sm underline", data: { url: settings_path } %>
+
+
+<%= link_to "로그아웃", destroy_user_session_path, method: :delete, data: { confirm: "정말 로그아웃 하시겠습니까?" }, class: "text-[14px] text-[#333] no-underline" %>
+
+
+<% else %>
+
+<% unless user_signed_in? %>
+<%= link_to '로그인', '#sign_in_modal',
+id: 'sign_in_button',
+data: { requires_auth: true, bs_toggle: 'modal', bs_target: '#sign_in_modal' } %>
+
+<% else %>
+<!-- e.g. show profile / logout -->
+<%= link_to '로그아웃', destroy_user_session_path, data: { "turbo-method": :delete } %>
+<% end %>
+
+<% end %>

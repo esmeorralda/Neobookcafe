@@ -5,7 +5,8 @@
 <%= form_for(resource,
              as: resource_name,
              url: session_path(resource_name),
-             data: { turbo: true }
+             data: { remote: true, type: :json, turbo: false },
+             html: { id: "login-form" }
           ) do |f| %>
 
   <%= f.email_field    :email,    class: 'form-control mb-2', placeholder: '이메일' %>

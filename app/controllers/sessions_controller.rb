@@ -2,38 +2,50 @@
 class SessionsController < Devise::SessionsController
   respond_to :html, :json, :js
 
-  # POST /users/sign_in
-# app/controllers/sessions_controller.rb
-def create
-  scope = :user
-  self.resource = warden.authenticate(scope: scope) # 실패 시 nil
+  def create
+    scope = :user
+    self.resource = warden.authenticate(scope: scope)
 
-  success_msg = '성공적으로 로그인했습니다!'
-  error_msg   = '이메일 또는 비밀번호가 올바르지 않습니다.'
-
-  if resource
-    sign_in(scope, resource)
-    respond_to do |format|
-      format.html { redirect_to after_sign_in_path_for(resource), status: :see_other }
-      format.json { response.set_header('X-Flash-Notice', success_msg); render json: { success: true, notice: success_msg } }
-      format.js   { response.set_header('X-Flash-Notice', success_msg); render json: { success: true, notice: success_msg } }
-    end
-  else
-    # ✅ 실패 시, 뷰가 쓸 빈 리소스를 만들어준다
-    self.resource = resource_class.new(sign_in_params)
+    success_msg = I18n.t("devise.sessions.signed_in", default: "성공적으로 로그인했습니다!")
+    error_msg   = I18n.t("devise.failure.invalid",    default: "이메일 또는 비밀번호가 올바르지 않습니다.")
 
     respond_to do |format|
-      format.html do
-        flash.now[:alert] = error_msg
-        render :new, status: :unauthorized
+      if resource
+        sign_in(scope, resource)
+
+        format.html do
+          flash[:alert] = success_msg
+          redirect_to root_path, status: :see_other
+        end
+
+        format.json do
+          # 🔥 로그인 직후 상태 기준으로 부분 뷰를 HTML로 뽑아서 실어 보냄
+          nav_html   = render_to_string(partial: "layouts/nav_links", formats: [:html])
+          notif_html = render_to_string(partial: "layouts/notification", formats: [:html])
+
+          response.set_header("X-Auth-Result", "success")
+          render json: {
+            success: true,
+            notice:  success_msg,
+            signed_in: true,
+            nav_html: nav_html,
+            notification_html: notif_html,
+            redirect_url: after_sign_in_path_for(resource) # 🔥 추가
+          }
+        end
+      else
+        format.html do
+          flash[:alert] = error_msg
+          redirect_to root_path, status: :see_other
+        end
+
+        format.json do
+          response.set_header("X-Auth-Result", "failure")
+          render json: { success: false, errors: [error_msg] }, status: :unauthorized
+        end
       end
-      format.json { render json: { success: false, errors: [error_msg] }, status: :unauthorized }
-      format.js   { render json: { success: false, errors: [error_msg] }, status: :unauthorized }
     end
   end
-end
-
-
 
 
   # GET /users/sign_in
@@ -57,9 +69,10 @@ end
     end
   end
 
-  private
+  protected
 
-def sign_in_params
-  params.require(:user).permit(:email, :password, :remember_me)
-end
+  # ✅ 혹시 다른 경로에서 sign_in이 호출되더라도 루트로
+  def after_sign_in_path_for(_resource)
+    root_path
+  end
 end

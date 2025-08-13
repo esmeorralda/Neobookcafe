@@ -68,7 +68,17 @@
 </style>
 <script>
 (function () {
-  // --- 뒤로가기/스냅샷 등으로 열린 상태 복원 방지 ---
+  const DEBUG = true;
+
+  function log(group, obj) {
+    if (!DEBUG) return;
+    try {
+      console.groupCollapsed(group);
+      Object.entries(obj || {}).forEach(([k, v]) => console.log(k, v));
+      console.groupEnd();
+    } catch (e) {}
+  }
+
   function resetLoginModal() {
     const el = document.getElementById('sign_in_modal');
     if (!el) return;
@@ -79,18 +89,26 @@
     document.body.style.removeProperty('paddingRight');
   }
 
-  // --- 성공 flash 표시(없으면 alert로 폴백) ---
   function showFlashSuccess(message) {
+    if (!message) return; // ✅ 기본문구 제거 (무조건 뜨는 문제 차단)
     const flash = document.getElementById('flash-container');
-    const msg = message || '성공적으로 로그인했습니다!';
     if (flash) {
-      flash.innerHTML = '<div class="alert alert-success mb-2" role="alert">' + msg + '</div>';
+      flash.innerHTML = '<div class="alert alert-success mb-2" role="alert">' + message + '</div>';
+    } else {
+      alert(message);
+    }
+  }
+
+  function showFlashError(message) {
+    const msg = message || '이메일 또는 비밀번호가 올바르지 않습니다.';
+    const flash = document.getElementById('flash-container');
+    if (flash) {
+      flash.innerHTML = '<div class="alert alert-danger mb-2" role="alert">' + msg + '</div>';
     } else {
       alert(msg);
     }
   }
 
-  // --- 모달 숨김(부트스트랩/폴백 모두 지원) ---
   function hideModal(modalEl) {
     const Modal = window.bootstrap?.Modal;
     if (Modal?.getOrCreateInstance) {
@@ -105,12 +123,12 @@
   }
 
   function bind() {
-    resetLoginModal(); // 매 로드마다 안전하게 닫아두기
+    resetLoginModal();
 
     const modalEl = document.getElementById('sign_in_modal');
     if (!modalEl) return;
 
-    // ✅ 닫기 버튼들(텍스트/아이콘 모두) 클릭 시 무조건 닫기
+    // 닫기 버튼
     const closeBtns = modalEl.querySelectorAll('.close-text-btn, [data-bs-dismiss="modal"]');
     closeBtns.forEach((btn) => {
       if (btn.dataset.boundClose === '1') return;
@@ -121,37 +139,59 @@
       });
     });
 
-    // 로그인 폼 핸들러
+    // 폼 핸들러 (UJS: ajax:success / ajax:error)
     const form = modalEl.querySelector('#login-form') || modalEl.querySelector('form');
     if (form && !form.__bound) {
       form.__bound = true;
 
-      // Rails UJS (remote: true)
       form.addEventListener('ajax:success', (e) => {
         const detail = e.detail || [];
         const data = detail[0] || {};
         const xhr  = detail[2];
-        if (xhr && xhr.status >= 200 && xhr.status < 300) {
-          showFlashSuccess(data.notice);
-          hideModal(modalEl);
-          // window.location.reload();
+        const ok = (xhr?.getResponseHeader?.('X-Auth-Result') === 'success') || data.success === true;
+      
+        if (!ok) { showFlashError((data.errors && data.errors.join('\n')) || '로그인 실패'); return; }
+      
+        // (선택) 플래시를 새로고침 뒤에 보여주고 싶으면 저장
+        try { if (data.notice) sessionStorage.setItem('__flash_notice', data.notice); } catch(_) {}
+      
+        // 무한 새로고침 방지 플래그
+        try { sessionStorage.setItem('__post_login_reload', '1'); } catch(_) {}
+      
+        // 모달 닫기
+        hideModal(document.getElementById('sign_in_modal'));
+      
+        // 즉시 전체 새로고침/네비게이션
+        const url = data.redirect_url || window.location.href;
+      
+        if (window.Turbo?.visit) {
+          // Turbo 사용 시 서버 렌더를 강제로 재요청
+          Turbo.visit(url, { action: 'replace' });
+        } else if ('replaceState' in history) {
+          // Turbo 없으면 전통 방식
+          window.location.replace(url);   // 히스토리 오염 없이 이동
+        } else {
+          window.location.reload();       // 최후의 수단
         }
+      
+        // 아래 로직(교체/재바인딩)은 어차피 새 페이지로 갈 거라 불필요
       });
+      
 
       form.addEventListener('ajax:error', (e) => {
         const detail = e.detail || [];
         const data = detail[0] || {};
+        const status = detail[2]?.status;
+        const hdr = detail[2]?.getResponseHeader?.('X-Auth-Result');
         const msg = (data.errors && data.errors.join('\n')) || '이메일 또는 비밀번호가 올바르지 않습니다.';
-        alert(msg);
+
+        log('[login] ajax:error', { data, status, hdr });
+
+        showFlashError(msg);
       });
 
-      // Turbo 제출 경로
-      form.addEventListener('turbo:submit-end', (e) => {
-        if (e.detail?.success) {
-          showFlashSuccess();
-          hideModal(modalEl);
-        }
-      });
+      // ❌ Turbo 경로는 비활성화했으므로 핸들러 제거
+      // form.addEventListener('turbo:submit-end', ... )  <-- 삭제
     }
   }
 
