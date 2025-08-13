@@ -261,19 +261,14 @@
   <%= yield %>
 </main>
 
-<div id="right-sidebar" class="hidden fixed top-16 right-0 h-[calc(100vh-4rem)] w-64 bg-[#f0ece3] text-[#7c6243] shadow-lg z-50">
 
-     <%= render 'layouts/right_sidebar' %>
 
-     <% if flash[:alert] %>
-    <div class="alert alert-danger">
-      <pre><%= flash[:alert] %></pre>
-    </div>
-  <% end %>
-
-  <%= yield %>
-
+<div id="right-sidebar" class="hidden">
+<% if user_signed_in? %>
+   <%= render 'layouts/right_sidebar' %>
+<% end %>
 </div>
+
 
 <% unless user_signed_in? %>
   <%= render "shared/login_modal" %>
