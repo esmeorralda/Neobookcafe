@@ -37,21 +37,33 @@
           <%= image_tag "logo.svg", alt: "NeoBookCafe Logo", class: "logo" %>
           <%# <span class="brand">BookCafe</span>
         </div> %> 
-  <%= link_to root_path, class: "logo flex items-center space-x-2" do %>
-  <%= image_tag "logo.svg", alt: "NeoBookCafe Logo", class: "logo" %>
-  <span class="brand">BookCafe</span>
+  <%= link_to root_path, class: "logo group flex items-center gap-[clamp(6px,1.2vw,10px)] min-w-0" do %>
+  <%= image_tag "logo.svg",
+      alt: "NeoBookCafe Logo",
+      class: "h-[clamp(24px,4vw,36px)] w-auto shrink-0" %>
+  <span class="brand truncate  leading-none text-[clamp(16px,2.2vw,22px)]">
+    BookCafe
+  </span>
 <% end %>
 
-      <%= form_with url: search_path, method: :get, class: "search-box", data: { turbo: false } do |f| %>
-  <%= f.text_field :q, 
-      value: params[:q], 
-      placeholder: "책 제목, 저자, 글 제목, 글 저자...", 
-      class: "search-input" %>
-  <%= f.button "🔍", 
-      type: "submit", 
-      class: "search-btn",
-      name: nil %>
+
+    
+    <%= form_with url: search_path, method: :get,
+      class: "search-box flex items-center gap-2 w-[clamp(240px,50vw,700px)] min-w-[220px] max-w-[700px]",
+      data: { turbo: false } do |f| %>
+
+  <%= f.text_field :q,
+        value: params[:q],
+        placeholder: "책 제목, 저자, 글 제목, 글 저자...",
+        class: "search-input flex-1 min-w-0" %>
+
+  <%= f.button "🔍",
+        type: "submit",
+        class: "search-btn shrink-0",
+        name: nil %>
 <% end %>
+
+
 
 
 <div class="nav-links" id="nav-links">
