@@ -1,0 +1,23 @@
+# config/locales/activerecord.ko.yml
+ko:
+  activerecord:
+    attributes:
+      user:
+        email: "이메일"
+        password: "비밀번호"
+        password_confirmation: "비밀번호 확인"
+    errors:
+      models:
+        user:
+          attributes:
+            email:
+              taken: "이미 사용 중인 이메일입니다."
+            password:
+              too_short: "비밀번호는 최소 %{count}자 이상이어야 합니다."
+            password_confirmation:
+              confirmation: "비밀번호 확인이 비밀번호와 일치하지 않습니다."
+      messages:
+        taken: "이미 사용 중입니다."
+        confirmation: "확인값이 원래 값과 일치하지 않습니다."
+        too_short: "너무 짧습니다(최소 %{count}자)."
+        blank: "입력해 주세요."

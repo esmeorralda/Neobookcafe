@@ -17,6 +17,42 @@ class Users::RegistrationsController < Devise::RegistrationsController
       end
     end
   
+    def create
+      build_resource(sign_up_params)
+      if resource.name.present? && User.where('LOWER(name) = ?', resource.name.downcase).exists?
+        resource.errors.add(:name, :taken)
+      end
+
+      if resource.errors.any?
+        flash.now[:alert] =
+          if resource.errors.added?(:name, :taken) && resource.errors.size == 1
+            I18n.t("signup.errors.name_taken",
+              default: I18n.t("activerecord.errors.models.user.attributes.name.taken",
+                              default: "이미 사용 중인 이름입니다."))
+          else
+            resource.errors.full_messages.join("\n")
+          end
+        return render :new, status: :unprocessable_entity
+      end
+    
+
+      if resource.save
+        flash[:alert] = I18n.t("devise.registrations.signed_up", default: "회원가입이 완료되었습니다.")
+        sign_up(resource_name, resource)
+        respond_with resource, location: after_sign_up_path_for(resource)
+      else
+        # 이메일 중복만 별도 문구, 그 외는 full_messages
+        if resource.errors.added?(:email, :taken)
+          flash.now[:alert] = I18n.t("signup.errors.email_taken",
+            default: I18n.t("activerecord.errors.models.user.attributes.email.taken",
+                            default: "이미 사용 중인 이메일입니다."))
+        else
+          flash.now[:alert] = resource.errors.full_messages.join("\n")
+        end
+  
+        render :new, status: :unprocessable_entity
+      end
+    end
     protected
   
     # ✅ 리다이렉트 위치 커스텀(원하는 경로로)

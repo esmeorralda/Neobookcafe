@@ -3,7 +3,34 @@
     <h2 class="login-form-title">회원가입</h2>
 
     <%= form_for(resource, as: resource_name, url: registration_path(resource_name), html: { class: "login-form" }) do |f| %>
-      <%= render "devise/shared/error_messages", resource: resource %>
+<% if flash[:alert].present? %>
+  <div role="alert"
+       class="js-flash mb-4 rounded-xl border border-amber-200 bg-amber-50 text-amber-900 shadow-md">
+    <div class="relative flex items-start gap-3 p-3">
+      <!-- 아이콘 -->
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
+           fill="currentColor" class="h-5 w-5 flex-shrink-0 text-amber-600">
+        <path fill-rule="evenodd"
+              d="M8.257 3.099c.765-1.36 2.72-1.36 3.485 0l6.518 11.596c.73 1.298-.19 2.905-1.742 2.905H3.48c-1.553 0-2.473-1.607-1.742-2.905L8.257 3.1zM11 14a1 1 0 10-2 0 1 1 0 002 0zm-1-2a.75.75 0 01-.75-.75V8.25a.75.75 0 011.5 0v3a.75.75 0 01-.75.75z"
+              clip-rule="evenodd" />
+      </svg>
+
+      <!-- 메시지 -->
+      <pre class="whitespace-pre-line font-sans text-sm leading-6 m-0"><%= flash[:alert] %></pre>
+
+      <!-- 닫기 버튼 (옵션) -->
+      <button type="button"
+              class="absolute right-2 top-2 inline-flex h-7 w-7 items-center justify-center rounded-full hover:bg-amber-100"
+              aria-label="닫기"
+              onclick="this.closest('.js-flash')?.remove()">
+        ✕
+      </button>
+    </div>
+
+    <!-- 하단 강조선 -->
+    <div class="h-1 w-full rounded-b-xl bg-gradient-to-r from-amber-400 via-amber-500 to-amber-400"></div>
+  </div>
+<% end %>
 
       <div>
         <%= f.label :email, "이메일", class: "login-form-label" %>
@@ -34,10 +61,7 @@
       </div>
     <% end %>
 
-    <div class="login-form-register">
-      <%= link_to "이미 계정이 있으신가요?", new_session_path(resource_name),
-          class: "login-form-link" %>
-    </div>
+   
   </div>
 </div>
 

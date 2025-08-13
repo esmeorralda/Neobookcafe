@@ -51,6 +51,7 @@ ko:
       send_instructions: "계정 잠금 해제 방법에 대한 이메일을 곧 받게 됩니다."
       send_paranoid_instructions: "계정이 존재하면 잠금 해제 안내 이메일을 곧 받게 됩니다."
       unlocked: "계정이 성공적으로 잠금 해제되었습니다. 계속하려면 로그인하세요."
+
   errors:
     messages:
       already_confirmed: "이미 확인되었습니다. 로그인해 주세요."
@@ -59,5 +60,5 @@ ko:
       not_found: "찾을 수 없습니다."
       not_locked: "잠기지 않은 상태입니다."
       not_saved:
-        one: "1개의 오류로 인해  저장에 실패했습니다:"
-        other:  오류로 인해  저장에 실패했습니다:"
+        one: "1개의 오류로 인해 저장에 실패했습니다:"
+        other: "%{count}개의 오류로 인해 저장에 실패했습니다:"

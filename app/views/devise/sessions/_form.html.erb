@@ -12,12 +12,17 @@
   <%= f.email_field    :email,    class: 'form-control mb-2', placeholder: '이메일' %>
   <%= f.password_field :password, class: 'form-control mb-2', placeholder: '비밀번호' %>
 
-  <% if devise_mapping.rememberable? %>
-    <div class="form-check my-2">
-      <%= f.check_box :remember_me, class: 'form-check-input' %>
-      <%= f.label :remember_me, '자동 로그인', class: 'form-check-label' %>
+ <% if devise_mapping.rememberable? %>
+  <div class="my-2 flex items-center justify-between">
+    <div class="form-check m-0 flex items-center gap-2">
+      <%= f.check_box :remember_me, class: "form-check-input", id: "remember_me" %>
+      <%= f.label :remember_me, "자동 로그인", class: "form-check-label cursor-pointer", for: "remember_me" %>
     </div>
-  <% end %>
+
+    <%= link_to "회원가입하기", new_user_registration_path,
+          class: "underline text-sm text-[#7c6243] hover:text-[#5a4a2a] whitespace-nowrap" %>
+  </div>
+<% end %>
 
   <!-- 불필요/오타 클래스 제거: item-center, 중복 justify-* 삭제 -->
   <div class="text-center mt-3">
