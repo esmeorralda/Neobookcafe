@@ -1,12 +1,60 @@
 <% if @show_sidebar %>
 <style>
   /* 왼쪽 네비 전용 스코프 */
-  #left-nav .sidebar-box {
-    background: #efe9df;
-    color: #9b825e;
-  }
-  /* 기본 링크 색 */
+ #left-nav .sidebar-box { background:#efe9df; color:#9b825e; }
   #left-nav .sidebar-link {
+    color:#9b825e !important; text-decoration:none; transition:color .15s ease;
+  }
+  #left-nav .sidebar-link:hover {
+    color:#7b5845 !important; text-decoration:underline; text-underline-offset:2px;
+  }
+  #left-nav .sidebar-link.is-active {
+    color:#7b5845 !important; font-weight:600; text-decoration:none;
+  }
+  #left-nav { transition: transform .25s ease; }
+
+  /* 닫기 버튼 기본 스타일 (데스크탑에서는 숨김) */
+#left-nav .sidebar-close{
+  position:absolute; top:8px; right:8px;
+  display:none;                        /* 데스크탑에서 숨김 */
+  height:25px; width:25px;
+  border:0; border-radius:30px;
+  background:#efe9df; color:#5f4434;
+  font-weight:800; line-height:1;
+  box-shadow:0 1px 2px rgba(0,0,0,.06);
+  cursor:pointer;
+
+}
+#left-nav .sidebar-close:hover{ background:#dccbb8; }
+
+/* 모바일(<=1024px)에서만 표시 */
+@media (max-width:1024px){
+  #left-nav .sidebar-close{
+    display:inline-flex; align-items:center; justify-content:center;
+  }
+}
+
+
+  /* 모바일(<=1024px): 위치만 바꿈 (룩앤필 변경 금지) */
+  @media (max-width: 1024px) {
+    #left-nav{
+      position:fixed; top:7rem; left:0;
+      height:calc(100vh - 7rem);
+      width:12rem;               /* w-48 동일 */
+      transform:translateX(-110%);
+      z-index:100001;            /* 버튼보다 아래 */
+    }
+    body.sidebar-open #left-nav{ transform:translateX(0); }
+  }
+    /* 백드롭: 열렸을 때만 표시 */
+    #sidebar-backdrop { display: none; }
+    body.sidebar-open #sidebar-backdrop { display: block; }
+  }
+
+  /* 데스크탑에선 백드롭 강제 숨김 */
+  @media (min-width: 1025px) {
+    #sidebar-backdrop { display: none !important; }
+  }
     color: #<% if @show_sidebar %>
 <div class="bg-[#f3ede3] pt-1 text-sm text-[#9b825e] flex justify-center space-x-8 relative">
   <% if params[:category] == "creation" %>
@@ -61,18 +109,6 @@
     text-decoration: none;
     transition: color .15s ease;
   }
-  /* 호버 시 훨씬 어두운 갈색 */
-  #left-nav .sidebar-link:hover {
-    color: #7b5845 !important;
-    text-decoration: underline;
-    text-underline-offset: 2px;
-  }
-  /* 현재 활성 카테고리 */
-  #left-nav .sidebar-link.is-active {
-    color: #7b5845 !important;
-    font-weight: 600;
-    text-decoration: none;
-  }
 </style>
 
 <% unless user_signed_in? %>
@@ -120,6 +156,8 @@
 
 
 <div id="left-nav" class="fixed top-28 left-0 w-48 px-4 py-6 space-y-2">
+<button id="sidebar-close" class="sidebar-close" aria-label="사이드바 닫기">✕</button>
+
   <div class="sidebar-box px-2 py-4 space-y-2 shadow" style="border: 1px solid #d8cbb4;">
     <ul class="space-y-4 text-center">
       <li>
@@ -173,3 +211,60 @@
 
 </div>
 <% end %>
+
+<script nonce="<%= content_security_policy_nonce %>">
+(function () {
+  const BP = 1024; // px: 이 이하에서 오프캔버스 모드
+
+  function bindSidebarToggle() {
+    const btn      = document.getElementById('sidebar-toggle');
+    const nav      = document.getElementById('left-nav');
+    const backdrop = document.getElementById('sidebar-backdrop');
+    if (!btn || !nav) return;
+
+    function open() {
+      document.body.classList.add('sidebar-open');
+      btn.setAttribute('aria-expanded', 'true');
+      document.body.classList.add('overflow-hidden'); // 모바일에서 배경 스크롤 방지
+      if (backdrop) backdrop.classList.remove('hidden');
+    }
+    function close() {
+      document.body.classList.remove('sidebar-open');
+      btn.setAttribute('aria-expanded', 'false');
+      document.body.classList.remove('overflow-hidden');
+      if (backdrop) backdrop.classList.add('hidden');
+    }
+    function toggle() {
+      if (document.body.classList.contains('sidebar-open')) close(); else open();
+    }
+
+    if (!btn.dataset.bound) {
+      btn.dataset.bound = '1';
+      btn.addEventListener('click', toggle);
+    }
+    if (backdrop && !backdrop.dataset.bound) {
+      backdrop.dataset.bound = '1';
+      backdrop.addEventListener('click', close);
+    }
+
+    // 화면이 넓어지면(데스크탑) 강제로 닫기
+    function handleResize() {
+      if (window.innerWidth > BP) close();
+    }
+    if (!window.__sidebarResizeBound) {
+      window.__sidebarResizeBound = true;
+      window.addEventListener('resize', handleResize);
+    }
+
+    const closeBtn = document.getElementById('sidebar-close');
+if (closeBtn && !closeBtn.dataset.bound) {
+  closeBtn.dataset.bound = '1';
+  closeBtn.addEventListener('click', close); // ← 위에서 정의한 close() 호출
+}
+
+  }
+
+  document.addEventListener('turbo:load', bindSidebarToggle);
+  document.addEventListener('DOMContentLoaded', bindSidebarToggle);
+})();
+</script>
