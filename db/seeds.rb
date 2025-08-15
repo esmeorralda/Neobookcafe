@@ -1,57 +1,40 @@
-# This file should ensure the existence of records required to run the application in every environment (production,
-# development, test). The code here should be idempotent so that it can be executed at any point in every environment.
-# The data can then be loaded with the bin/rails db:seed command (or created alongside the database with db:setup).
-#
-# Example:
-#
-#   ["Action", "Comedy", "Drama", "Horror"].each do |genre_name|
-#     MovieGenre.find_or_create_by!(name: genre_name)
-#   end
 # db/seeds.rb
 
+nicknames = [
+  "스프링",    # 소크라테스 + 크로스오버
+  "밤열두시",    # 감성적
+  "오로모스",    # 그리스어 'oros'(산) 변형
+  "책오리",      # 단순 직관
+  "네페리온",    # 'nephelion'(구름+태양)
+  "감자",      # 유머 감성
+  "파이값",      # 수학 상징 π
+  "루멘",        # 빛의 단위
+  "별밤길",      # 시적인 느낌
+  "디오스",      # 그리스어 '신'
+  "아루",        # 짧고 귀여움
+  "프로톤",      # 물리학 입자
+  "몽유도원",    # 몽유도원도(꿈속 낙원)
+  "제로원",      # 0과 1의 조합
+  "키리아",      # 그리스어 'kyrios'(주인)
+  "냉소펭귄",    # 유머+동물
+  "시네마틱",    # 영화적인
+  "헤르모",      # 그리스 신 Hermes 변형
+  "푸른책",    # 감성
+  "오르페",      # 그리스 신 Orpheus 변형
+]
 
+nicknames.each_with_index do |nickname, i|
+  email = "tester#{i + 1}@example.com"
 
-categories = [:thought, :discussion, :creation, :board]
-book_genres = [:philosophy, :literature, :history, :society, :economy, :science_technology]
-
-user = User.find_or_create_by!(email: "test@example.com") do |u|
-    u.password = "password"
-    u.password_confirmation = "password"
-  end
-  
-
-categories.each do |category|
-  3.times do
-    genre = book_genres.sample
-
-    post = Post.create!(
-      title: "#{category.to_s.humanize} - #{genre.to_s.humanize} 글 제목 #{SecureRandom.hex(3)}",
-      book_title: "#{genre.to_s.humanize} 책 제목 #{SecureRandom.hex(2)}",
-      book_author: "#{genre.to_s.humanize} 저자 #{SecureRandom.hex(2)}",
-      user: user, 
-      category: category,
-      draft: false,
-      allow_comments: true,
-      book_genre: genre
+  unless User.exists?(email: email)
+    User.create!(
+      email: email,
+      password: "password",
+      password_confirmation: "password",
+      name: nickname
     )
-
-    rand(2..3).times.with_index(1) do |_, i|
-      block_type = ["paragraph", "quote", "subtitle"].sample
-      content = case block_type
-                when "paragraph"
-                  "문단 내용 예시 #{SecureRandom.hex(4)}"
-                when "quote"
-                  "인용문 예시 #{SecureRandom.hex(4)}"
-                when "subtitle"
-                  "부제목 예시 #{SecureRandom.hex(3)}"
-                end
-
-      PostBlock.create!(
-        post_id: post.id,
-        content: content,
-        block_type: block_type,
-        position: i
-      )
-    end
+    puts "✅ Created: #{email} (#{nickname})"
+  else
+    puts "⚠️ Skipped: #{email} already exists"
   end
 end

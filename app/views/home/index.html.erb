@@ -28,8 +28,8 @@
         <div style="flex:1; min-width: 0;">
           <h3 class="text-lg font-semibold text-[#3a2d20] mb-1" style="font-family: 'Noto Serif KR', serif; font-weight: 700;">
             <%= link_to truncate(post.title, length: 40), post_path(post), class: "hover:underline" %>
-            <span class="text-sm text-[#b67c4a] ml-2" style="font-family: 'Inter', sans-serif;">
-              책 제목<%= post.id.to_s.rjust(8, "0") %>
+            <span class="text-sm text-[#b67c4a] ml-1" style="font-family: 'Inter', sans-serif;">
+           <%= post.book_title %>
             </span>
           </h3>
 
