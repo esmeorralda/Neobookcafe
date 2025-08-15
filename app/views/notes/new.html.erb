@@ -108,8 +108,6 @@
 </div>
 
 </main>
-
-</div>
 <!-- ✅ JS: 책 선택 → 새 입력란 표시 + 목차 로딩 및 새로운 목차 입력란 토글 -->
 <script>
 (function () {
@@ -137,66 +135,62 @@
     el.classList.toggle("hidden", !show);
   }
 
-  // ===== 핵심 바인딩 (한 페이지 내 중복 바인딩 방지) =====
+  // ===== 핵심 바인딩 =====
   function initNoteForm() {
     // DOM 재조회 (Turbo 전환 대비)
     const bookSelect      = document.getElementById("book_select");
-    const bookWrapper     = document.getElementById("book_select_wrapper");
     const newBookField    = document.getElementById("new_book_title_field");
 
     const chapterSelect   = document.getElementById("chapter_select");
     const chapterWrapper  = document.getElementById("chapter_select_wrapper");
     const newChapterField = document.getElementById("new_chapter_title_field");
-
     const chapterLabel    = document.getElementById("chapter_select_label");
+    const newChapterOutlineField = document.getElementById("new_chapter_outline_field"); // 선택
 
     const pageFromField   = document.getElementById("page_from_field");
 
-    // 요소가 없으면 스킵
     if (!bookSelect) return;
 
-    // 중복 바인딩 방지 플래그
-    if (bookSelect.dataset.bound === "1") {
-      // 바인딩은 되어있더라도, 첫 렌더/복귀 시 상태 보정은 해준다
-      applyInitialState();
-      return;
-    }
+    if (bookSelect.dataset.bound === "1") { applyInitialState(); return; }
     bookSelect.dataset.bound = "1";
 
     // --- 상태 토글 함수들 ---
     function toggleBookField() {
       const isNewBook = (bookSelect.value === "new_book");
 
+      // 새 책 제목 입력칸
       toggle(newBookField, isNewBook);
-      toggle(bookWrapper, !isNewBook);
 
+      // ✅ 부모 래퍼(chapterWrapper)는 숨기지 않음! 내부 요소만 토글
       if (isNewBook) {
-        // 새 책 입력이면 챕터 드롭다운은 숨기고, 새 챕터 입력 필드만 보여줌
-        toggle(chapterWrapper, false);
-        toggle(chapterLabel, false);
+        // 기존 드롭다운/라벨 숨김, 새 목차 입력 ON
+        if (chapterSelect) chapterSelect.classList.add("hidden");
+        if (chapterLabel)  chapterLabel.classList.add("hidden");
         toggle(newChapterField, true);
+        if (newChapterOutlineField) toggle(newChapterOutlineField, true);
       } else {
-        // 기존 책이면 챕터 드롭/라벨을 보여주고, 새 챕터 입력 필드는 숨김
-        toggle(chapterWrapper, true);
-        toggle(chapterLabel, true);
+        if (chapterSelect) chapterSelect.classList.remove("hidden");
+        if (chapterLabel)  chapterLabel.classList.remove("hidden");
         toggle(newChapterField, false);
+        if (newChapterOutlineField) toggle(newChapterOutlineField, false);
       }
     }
 
     function toggleChapterField() {
       if (!chapterSelect) return;
       const isNewChapter = (chapterSelect.value === "new_chapter");
-      toggle(chapterSelect, !isNewChapter);
+      // 드롭다운 숨기고 인풋 표시
+      chapterSelect.classList.toggle("hidden", isNewChapter);
       toggle(newChapterField, isNewChapter);
+      if (newChapterOutlineField) toggle(newChapterOutlineField, isNewChapter);
       if (chapterLabel) chapterLabel.classList.toggle("hidden", isNewChapter);
     }
 
-    // --- Ajax 로 챕터/현재 페이지 가져오기 ---
+    // --- Ajax로 챕터/현재 페이지 가져오기 ---
     async function loadChapters(bookId) {
       if (!bookId || bookId === "new_book") return;
 
       try {
-        // 로딩 스켈레톤
         showChapterSkeleton(chapterWrapper);
 
         const response = await fetch(`/books/${bookId}/chapters_and_current_page`, {
@@ -208,32 +202,29 @@
         const chapters = Array.isArray(data.chapters) ? data.chapters : [];
 
         if (chapterSelect) {
-          // 기존 옵션 제거
           chapterSelect.innerHTML = "";
-          // 챕터 채우기
           chapters.forEach(ch => {
             const option = document.createElement("option");
             option.value = ch.id;
             option.text  = ch.title;
             chapterSelect.appendChild(option);
           });
-          // 새 챕터 옵션
           const newOption = document.createElement("option");
           newOption.value = "new_chapter";
           newOption.text  = "➕ 새로운 목차 입력";
           chapterSelect.appendChild(newOption);
 
-          // 드롭다운/라벨 표시, 새 챕터 입력 숨김
-          toggle(chapterWrapper, true);
+          // 기존 책 선택 → 드롭다운/라벨 보이기, 새 입력 숨김
           chapterSelect.classList.remove("hidden");
-          toggle(newChapterField, false);
           if (chapterLabel) chapterLabel.classList.remove("hidden");
+          toggle(newChapterField, false);
+          if (newChapterOutlineField) toggle(newChapterOutlineField, false);
         }
 
         // current_page + 1 → page_from 자동 입력
         if (pageFromField) {
           const currentPage = parseInt(data.current_page, 10);
-          pageFromField.value = isNaN(currentPage) ? "" : (currentPage + 1);
+          pageFromField.value = Number.isNaN(currentPage) ? "" : (currentPage + 1);
         }
       } catch (err) {
         console.error("Ajax error:", err);
@@ -266,12 +257,11 @@
       }
 
       // chapterSelect가 이미 렌더되어 있을 수 있으므로 상태 보정
-      toggleChapterField();
+      if (chapterSelect) toggleChapterField();
     }
-    // 다음 프레임에 초기 상태 적용(레이아웃 안정 후)
     requestAnimationFrame(applyInitialState);
 
-    // --- 폼 유효성 검사 (해당 폼 1개에만 바인딩) ---
+    // --- 폼 유효성 검사 ---
     const form = bookSelect.closest("form") || document.querySelector("form");
     if (form && !form.dataset.bound) {
       form.dataset.bound = "1";
@@ -329,10 +319,8 @@
     }
   }
 
-  // ===== Turbo 대응: 모든 네비게이션에서 보장 =====
-  function initAll() {
-    initNoteForm();
-  }
+  // Turbo/일반 모두
+  function initAll() { initNoteForm(); }
   document.addEventListener("DOMContentLoaded", initAll);
   document.addEventListener("turbo:load", initAll);
   document.addEventListener("turbo:render", initAll);
