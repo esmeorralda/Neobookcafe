@@ -1,3 +1,7 @@
+<% content_for :title, "온라인 독서 토론 플랫폼 | 네오북카페" %>
+<% content_for :description, "무료로 참여할 수 있는 온라인 독서토론 플랫폼. 책을 읽고 자유롭게 토론하며 생각을 나누세요." %>
+<% content_for :keywords, "온라인 독서 토론, 무료 독서토론, 독서 모임, 비대면 토론, 책 토론" %>
+
 <div class="max-w-4xl mx-auto mt-10 p-8">
   <h2 class="text-2xl font-bold mb-2">
     <%= params[:category].present? ? Post.category_korean[params[:category].to_sym] : "전체 글" %>

@@ -9,6 +9,23 @@
 
 
     <title>NeoBookCafe</title>
+
+
+  <title><%= content_for?(:title) ? yield(:title) : "네오북카페 | 온라인 독서 토론 플랫폼" %></title>
+
+  <meta name="description" content="<%= content_for?(:description) ? yield(:description) : "온라인으로 무료 독서 토론에 참여하세요. 주제별 토론장, 독서기록장, 자유게시판 제공." %>">
+
+ 
+  <meta name="keywords" content="<%= content_for?(:keywords) ? yield(:keywords) : "온라인 독서 토론, 무료 독서토론, 독서 모임, 책 토론" %>">
+
+  <!-- 권장: OG/Twitter도 같은 값 재사용 -->
+  <meta property="og:title" content="<%= content_for?(:title) ? yield(:title) : "네오북카페 | 온라인 독서 토론 플랫폼" %>">
+  <meta property="og:description" content="<%= content_for?(:description) ? yield(:description) : "온라인으로 무료 독서 토론에 참여하세요. 주제별 토론장, 독서기록장, 자유게시판 제공." %>">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="<%= request.original_url %>">
+  <meta property="og:image" content="https://neobookcafe.com/og-default.png">
+  <meta name="twitter:card" content="summary_large_image">
+
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -409,6 +426,16 @@
     }
   }
 
+  document.addEventListener("DOMContentLoaded", function() {
+  const profileBtn = document.getElementById("toggle-right-sidebar");
+  const rightSidebar = document.getElementById("right-sidebar");
+
+  if (profileBtn && rightSidebar) {
+    profileBtn.addEventListener("click", function() {
+      rightSidebar.classList.toggle("hidden");
+    });
+  }
+});
   // ---------- Password Validation (prevent double-submit, bind once) ----------
   function initPasswordValidation() {
     const form = document.querySelector("form");
@@ -588,6 +615,66 @@
 </script>
 
 
+<script>
+(function() {
+  // ---------- Right Sidebar (toggle + outside click) ----------
+  function initRightSidebar() {
+    const toggleBtn = document.getElementById("toggle-right-sidebar");
+    const panel = document.getElementById("right-sidebar");
+    if (!toggleBtn || !panel) return;
+
+    // 1) 버튼 클릭 토글 (bind once)
+    if (!toggleBtn.dataset.bound) {
+      toggleBtn.dataset.bound = "1";
+      toggleBtn.addEventListener("click", function(e) {
+        e.stopPropagation(); // 바깥 클릭 핸들러와 충돌 방지
+        panel.classList.toggle("hidden");
+      });
+    }
+
+    // 2) 패널 내부 클릭은 전파 차단(선택: 패널 전체 대신 닫기 버튼만 써도 됨)
+    if (!panel.dataset.bound) {
+      panel.dataset.bound = "1";
+      panel.addEventListener("click", function(e) {
+        e.stopPropagation();
+      });
+    }
+
+    // 3) 바깥 클릭 시 닫기 (bind once per document)
+    if (!document.documentElement.dataset.rightOutsideBound) {
+      document.documentElement.dataset.rightOutsideBound = "1";
+      document.addEventListener("click", function(e) {
+        // 최신 참조(페이지 전환/partial 교체 대비)
+        const _toggle = document.getElementById("toggle-right-sidebar");
+        const _panel  = document.getElementById("right-sidebar");
+        if (!_toggle || !_panel) return;
+
+        if (_panel.classList.contains("hidden")) return;
+        if (!_panel.contains(e.target) && !_toggle.contains(e.target)) {
+          _panel.classList.add("hidden");
+        }
+      });
+    }
+
+    // 4) ESC 키로 닫기 (bind once per document)
+    if (!document.documentElement.dataset.rightEscBound) {
+      document.documentElement.dataset.rightEscBound = "1";
+      document.addEventListener("keydown", function(e) {
+        if (e.key === "Escape") {
+          const _panel = document.getElementById("right-sidebar");
+          if (_panel && !_panel.classList.contains("hidden")) {
+            _panel.classList.add("hidden");
+          }
+        }
+      });
+    }
+  }
+
+  // 초기화: Turbo/일반 모두 지원
+  document.addEventListener("turbo:load", initRightSidebar);
+  document.addEventListener("DOMContentLoaded", initRightSidebar);
+})();
+</script>
 
 
 <%# Put flash messages into a single global only once so Turbo doesn't double-fire %>
