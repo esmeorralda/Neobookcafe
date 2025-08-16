@@ -153,41 +153,41 @@ def index
   
 
 def search
-   @is_search_result = true
+  @is_search_result = true
   @query = params[:q].to_s.strip
   return redirect_to root_path if @query.blank?
 
-  base_scope = Post.pg_search(@query)
-                   .includes(:user, :post_blocks) # 여기 포함!
-                   .where("draft = ? OR draft IS NULL", false)
+  base = Post.pg_search(@query)              # pg_search 스코프
+             .with_pg_search_rank            # pg_search_rank 노출
+             .where(draft: [false, nil])
+             .preload(:user, :first_block)   # JOIN 방지, 필요한 것만
+             .select("posts.*")              # (선택) 필요 컬럼만 select 로 좁힐 수 있음
 
-   # category 필터
-  if params[:category].present?
-    base_scope = base_scope.where(category: params[:category])
-  end
+  base = base.where(category:   params[:category])   if params[:category].present?
+  base = base.where(book_genre: params[:genre])      if params[:genre].present?
 
-  # genre 필터
-  if params[:genre].present?
-    base_scope = base_scope.where(book_genre: params[:genre])
-  end
-
-@posts = case params[:sort]
-         when "most_views"
-           base_scope.reorder(view_count: :desc)
-         when "most_likes"
-           base_scope.reorder(like_count: :desc)
-         when "newest"
-           base_scope.reorder(created_at: :desc)
-         when "relevance"
-           base_scope.order("rank DESC")
-         else
-           base_scope.order("rank DESC") # 기본은 관련도순
-         end
+  @posts =
+    case params[:sort]
+    when "most_views"
+      base.reorder(Arel.sql("COALESCE(posts.view_count,0) DESC"))
+          .order(pg_search_rank: :desc, created_at: :desc)
+    when "most_likes"
+      base.reorder(Arel.sql("COALESCE(posts.like_count,0) DESC"))
+          .order(pg_search_rank: :desc, created_at: :desc)
+    when "newest"
+      base.reorder(created_at: :desc)
+          .order(pg_search_rank: :desc)
+    when "relevance", nil, ""
+      base.order(pg_search_rank: :desc, created_at: :desc)
+    else
+      base.order(pg_search_rank: :desc, created_at: :desc)
+    end
 
   @posts = @posts.page(params[:page]).per(20)
   @total_pages = @posts.total_pages
-  render 'search'
+  render "search"
 end
+
 def update
 
 

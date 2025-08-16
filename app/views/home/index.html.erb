@@ -44,7 +44,7 @@
 <%= link_to post_path(post), class: "block" do %>
   <p class="text-sm text-[#5e5147] font-serif leading-snug mb-2"
      style="font-family: 'Noto Serif KR', serif; overflow: hidden; text-overflow: ellipsis;">
-    <%= truncate(post.post_blocks.first&.content || "", length: 170) %>
+    <%= truncate(post.first_block&.content || "", length: 170) %>
   </p>
 <% end %>
 

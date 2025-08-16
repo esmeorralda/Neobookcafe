@@ -39,9 +39,9 @@
   </div>
 
   <% if @posts.any? %>
-    <div class="space-y-6">
+    <div class="space-y-3">
       <% @posts.each do |post| %>
-        <div class="p-6 border-b border-[#ddd6ce] flex justify-between">
+        <div class="p-3 border-b border-[#ddd6ce] flex justify-between">
           <!-- 왼쪽: 제목 및 내용 -->
           <div class="flex-1 min-w-0 pr-4">
             <div class="flex justify-between">
@@ -87,7 +87,7 @@
             </p>
 
             <p class="text-sm text-[#5e5147] font-serif leading-snug mb-2" style="font-family: 'Noto Serif KR', serif; overflow: hidden; text-overflow: ellipsis;">
-              <%= truncate(post.post_blocks.first&.content || "", length: 170) %>
+              <%= truncate(post.first_block&.content || "", length: 170) %>
             </p>
           </div>
         </div>
