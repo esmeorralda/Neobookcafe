@@ -1,12 +1,20 @@
 <div class="max-w-4xl mx-auto mt-10 p-8">
-  <h2 class="text-2xl font-bold mb-2">
-    <%= params[:category].present? ? Post.category_korean[params[:category].to_sym] : "전체 글" %>
-  </h2>
+<% category_titles = {
+  "discussion" => "독서 토론관",
+  "thought"     => "독서 감상관",
+  "creation"   => "문학 창작관",
+  "board"       => "자유 게시판"
+} %>
+
+<h2 class="text-2xl font-bold mb-2">
+  <%= category_titles.fetch(params[:category].to_s, "전체 글") %>
+</h2>
+
 
  <p class="text-sm text-gray-400 mb-4">
   <%= case params[:category]
       when "discussion"
-        "책의 핵심 주제와 쟁점에 대해 논리적이고 깊이 있는 토론을 나누는 공간입니다."
+        "책의 핵심 주제와 쟁점에 대해 함께 토론하고 사유를 나누는 공간입니다."
       when "thought"
         "책과 관련된 감상문과 개인의 공감, 느낌을 자유롭게 나누는 공간입니다."
       when "creation"
