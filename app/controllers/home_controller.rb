@@ -39,31 +39,29 @@ class HomeController < ApplicationController
 
   private
 
-  # ---- Sorting relations (SQL-accurate) ----
-  def relation_for_sort(scope, sort)
-    case sort
-    when "newest"
-      scope.order(created_at: :desc)
+def relation_for_sort(scope, sort)
+  case sort
+  when "newest"
+    scope.order(created_at: :desc)
 
-    when "most_views"
-      scope.order(Arel.sql("COALESCE(posts.view_count, 0) DESC, posts.created_at DESC"))
+  when "most_views"
+    scope.order(Arel.sql("COALESCE(posts.view_count, 0) DESC, posts.created_at DESC"))
 
-    when "most_likes", "popular"
-      scope.left_joins(:likes)
-           .select("posts.*, COUNT(likes.id) AS likes_count")
-           .group("posts.id")
-           .order(Arel.sql("likes_count DESC, posts.created_at DESC"))
+  when "most_likes", "popular"
+    scope.left_joins(:likes)
+         .group("posts.id")
+         .order(Arel.sql("COUNT(likes.id) DESC, posts.created_at DESC"))
 
-    when "most_comments"
-      scope.left_joins(:comments)
-           .select("posts.*, COUNT(comments.id) AS comments_count")
-           .group("posts.id")
-           .order(Arel.sql("comments_count DESC, posts.created_at DESC"))
+  when "most_comments"
+    scope.left_joins(:comments)
+         .group("posts.id")
+         .order(Arel.sql("COUNT(comments.id) DESC, posts.created_at DESC"))
 
-    else
-      scope.order(created_at: :desc)
-    end
+  else
+    scope.order(created_at: :desc)
   end
+end
+
 
   # ---- Cache version seed (bumps when relevant data changes) ----
   def cache_version_for(sort)

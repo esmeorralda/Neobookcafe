@@ -98,72 +98,59 @@ Rails.logger.debug "@comments order: #{@comments.pluck(:created_at)}"
   end
 end
 
-
 def index
-     @show_sidebar = true
+    @show_sidebar = true
 
-  sorted_posts = fetch_cached_posts
+    sort       = params[:sort].presence || "newest"
+    page       = page_no
+    per        = per_page
+    category   = params[:category].presence
+    book_genre = book_genre_param
+    version    = cache_version_for(sort)
 
-  @posts = case params[:sort]
-           when "popular"
-             sorted_posts.sort_by { |p| -p.like_count.to_i }
-           when "most_comments"
-             sorted_posts.sort_by { |p| -total_comments_count(p)}
-           when "most_views"
-           sorted_posts.sort_by { |p| -p.view_count.to_i }
-         when "newest"
-           sorted_posts.sort_by { |p| -p.created_at.to_i }
-         when "most_likes"
-           sorted_posts.sort_by { |p| -p.like_count.to_i }
-         else
-           sorted_posts
-         end
+    ids_key   = "posts:index:ids:cat=#{category || 'all'}:genre=#{book_genre || 'all'}:sort=#{sort}:v=#{version}:page=#{page}:per=#{per}"
+    count_key = "posts:index:count:cat=#{category || 'all'}:genre=#{book_genre || 'all'}:sort=#{sort}:v=#{version}"
 
+    # ---- Base scope (draft 제외) + 필터 ----
+    scope = Post.where(draft: [false, nil])
+    scope = scope.where(category: category)     if category
+    scope = scope.where(book_genre: book_genre) if book_genre
 
-@show_genre_tap = !@posts.all? { |p| p.respond_to?(:category) && p.category == 'board' }
+    # ---- 정렬은 DB가 처리 ----
+    relation = relation_for_sort(scope, sort)
 
+    # ---- 전체 개수 캐시 (GROUP BY 부작용 피하려면 except(:order)) ----
+    total_count = Rails.cache.fetch(count_key, expires_in: ttl_for(sort)) do
+      if %w[most_likes popular most_comments].include?(sort)
+        scope.count
+      else
+        relation.except(:order).count
+      end
+    end
+    @total_pages = (total_count / per.to_f).ceil
 
-  total_count = @posts.size
-  @total_pages = (total_count / per_page.to_f).ceil
+    # ---- 페이지별 ID 캐시 ----
+    ids = Rails.cache.fetch(ids_key, expires_in: ttl_for(sort)) do
+      offset = (page - 1) * per
+      relation.limit(per).offset(offset).pluck(Arel.sql("posts.id"))
+    end
 
-  # paginate는 Relation용이라 Array일 경우에는 직접 자르기
-  if @posts.is_a?(Array)
-    @posts = @posts.slice((page_no - 1) * per_page, per_page) || []
-  else
-    @posts = paginate.call(@posts)
+    # ---- 하이드레이션 (원래 순서 유지) ----
+    posts_by_id = Post.where(id: ids).includes(:user, :post_blocks).index_by(&:id)
+    @posts = ids.map { |id| posts_by_id[id] }.compact
+
+    # ---- 장르 탭 표시 규칙 (이전 로직과 동일) ----
+    if category.present?
+      @show_genre_tap = category != "board"
+    else
+      @show_genre_tap = !@posts.all? { |p| p.respond_to?(:category) && p.category == "board" }
+    end
+
+    Rails.logger.debug "page_no: #{page}, per_page: #{per}, total_pages: #{@total_pages}"
+    Rails.logger.debug "category: #{category}, book_genre: #{book_genre}, sort: #{sort}"
   end
 
-  Rails.logger.debug "page_no: #{page_no}, per_page: #{per_page}, total_pages: #{@total_pages}" 
-
-  Rails.logger.debug "book_genre: #{params[:book_genre]}, category: #{
-params[:category]}"
-
-
-end
-
-# def search
-#   @query = params[:q].to_s.strip.downcase
-#   return redirect_to root_path if @query.blank?
-
-#   base_query = Post.includes(:user, :post_blocks)
-#                   .joins(:user, :post_blocks)
-#                   .distinct
-#                   .where(
-#                     "LOWER(posts.title) LIKE :q OR 
-#                      LOWER(posts.book_title) LIKE :q OR 
-#                      LOWER(posts.book_author) LIKE :q OR 
-#                      LOWER(users.name) LIKE :q OR 
-#                      LOWER(post_blocks.content) LIKE :q",
-#                     q: "%#{@query}%"
-#                   )
-
-#   @posts = apply_sorting(base_query)
-#   @total_count = @posts.size
-#   @posts = Kaminari.paginate_array(@posts).page(params[:page]).per(20)
   
-#   # Changed to render search template
-#   render 'search'
-# end
 
 def search
    @is_search_result = true
@@ -306,7 +293,72 @@ def unbookmark
   redirect_back(fallback_location: post_path(@post), notice: '북마크를 취소했습니다.')
 end
 
+
 private
+
+def relation_for_sort(scope, sort)
+  case sort
+  when "newest"
+    scope.order(created_at: :desc)
+
+  when "most_views"
+    scope.order(Arel.sql("COALESCE(posts.view_count, 0) DESC, posts.created_at DESC"))
+
+  when "most_likes", "popular"
+    scope.left_joins(:likes)
+         .group("posts.id")
+         .order(Arel.sql("COUNT(likes.id) DESC, posts.created_at DESC"))
+
+  when "most_comments"
+    scope.left_joins(:comments)
+         .group("posts.id")
+         .order(Arel.sql("COUNT(comments.id) DESC, posts.created_at DESC"))
+
+  else
+    scope.order(created_at: :desc)
+  end
+end
+
+
+  # ---- Cache version seed (bumps when relevant data changes) ----
+  def cache_version_for(sort)
+    base = Post.where(draft: [false, nil]).maximum(:updated_at)&.to_i || 0
+    case sort
+    when "most_likes", "popular"
+      [base, Like.maximum(:updated_at)&.to_i || 0].max
+    when "most_comments"
+      [base, Comment.maximum(:updated_at)&.to_i || 0].max
+    when "most_views"
+      base
+    else
+      base
+    end
+  end
+
+  # ---- TTL by sort ----
+  def ttl_for(sort)
+    case sort
+    when "most_views"                then 1.minute
+    when "most_likes", "popular",
+         "most_comments"             then 5.minutes
+    else                                 3.minutes
+    end
+  end
+
+  # ---- Pagination helpers ----
+  def per_page
+    (params[:per_page].presence || 20).to_i.clamp(1, 100)
+  end
+
+  def page_no
+    (params[:page].presence || 1).to_i.clamp(1, 100_000)
+  end
+
+  # Accept both ?book_genre= and ?genre=
+  def book_genre_param
+    params[:book_genre].presence || params[:genre].presence
+  end
+
 
 def korean_reason_map(category)
   case category

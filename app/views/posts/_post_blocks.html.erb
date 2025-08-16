@@ -31,8 +31,29 @@
 
   <button type="button" class="block-controls-right" onclick="deleteBlock(this)" title="블록 삭제">삭제</button>
 
-  <% placeholder_text =
-     (index.to_i == 0 ? "프리뷰에 표시될 내용을 입력하세요" : "내용을 입력하세요") %>
+<% current_category = (@post&.category || params.dig(:post, :category) || params[:category] || "").to_s %>
+
+<% placeholder_text =
+  if block.block_type == "subtitle"
+    case current_category
+    when "thought"     then "예: 삶과 죽음 — 카르페 디엠의 의미"
+    when "discussion"  then "예: “나는 생각한다, 고로 존재한다”는 타당한가?"
+    when "creation"    then "예: 제1장 — 겨울의 문턱"
+    else                     "예: 소주제 제목"
+    end
+  elsif block.block_type == "quote"
+    case current_category
+      when "thought"     then "예: “죽느냐 사느냐, 그것이 문제로다” — p.12"
+   when "discussion"  then "예: “지식은 힘이다” — 프랜시스 베이컨, p.83"
+
+    when "creation"    then "예: “인용문을 입력하세요."
+    else                     "예: “인용문을 입력하세요.”"
+    end
+  else
+    (index.to_i == 0 ? "프리뷰에 표시될 내용을 입력하세요" : "내용을 입력하세요")
+  end
+%>
+
 
   <textarea
   name="post[post_blocks_attributes][<%= index %>][content]"
