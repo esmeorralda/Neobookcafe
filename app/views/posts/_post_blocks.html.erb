@@ -26,7 +26,7 @@
     style="padding: 0.2rem 0.5rem; border: 1px solid #ccc; border-radius: 0.25rem; background: white;">
     <option value="paragraph" <%= 'selected' if block.block_type == 'paragraph' %>>문단</option>
     <option value="quote"     <%= 'selected' if block.block_type == 'quote' %>>인용</option>
-    <option value="subtitle"  <%= 'selected' if block.block_type == 'subtitle' %>>소제목</option>
+    <option value="subtitle"  <%= 'selected' if block.block_type == 'subtitle' %>>소주제</option>
   </select>
 
   <button type="button" class="block-controls-right" onclick="deleteBlock(this)" title="블록 삭제">삭제</button>
@@ -262,7 +262,7 @@
     const opts = [
       { val: 'paragraph', label: '문단' },
       { val: 'quote',     label: '인용' },
-      { val: 'subtitle',  label: '소제목' }
+      { val: 'subtitle',  label: '소주제' }
     ];
     opts.forEach(o => {
       const op = document.createElement('option');

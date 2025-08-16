@@ -35,19 +35,25 @@
         <div style="flex:1; min-width: 0;">
           <h3 class="text-lg font-semibold text-[#3a2d20] mb-1" style="font-family: 'Noto Serif KR', serif; font-weight: 700;">
             <%= link_to truncate(post.title, length: 40), post_path(post), class: "hover:underline" %>
-            <span class="text-sm text-[#b67c4a] ml-1" style="font-family: 'Inter', sans-serif;">
-                        <%= post.book_title %>
-            </span>
+           <% if post.category.in?(%w[discussion thought]) && post.book_title.present? %>
+  <span class="text-sm text-[#b67c4a] ml-1" style="font-family: 'Inter', sans-serif;">
+    <%= post.book_title %>
+  </span>
+<% end %>
           </h3>
 
           <p class="text-xs text-[#7c6243] mb-1" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-            <%= Post.book_genre_korean[post.book_genre.to_sym] || "정보 없음" %> |
-            <%= post.category.present? ? Post.category_korean[post.category.to_sym] : "정보 없음" %>
+            <%= post.category.present? ? Post.category_korean[post.category.to_sym] : "정보 없음" %> |
+          <%= Post.book_genre_korean[post.book_genre.to_sym] || "정보 없음" %>
+          
           </p>
 
-          <p class="text-sm text-[#5e5147] font-serif leading-snug mb-2" style="font-family: 'Noto Serif KR', serif; overflow: hidden; text-overflow: ellipsis;">
-            <%= truncate(post.post_blocks.first&.content || "", length: 170) %>
-          </p>
+       <%= link_to post_path(post), class: "block" do %>
+  <p class="text-sm text-[#5e5147] font-serif leading-snug mb-2"
+     style="font-family: 'Noto Serif KR', serif; overflow: hidden; text-overflow: ellipsis;">
+    <%= truncate(post.post_blocks.first&.content || "", length: 170) %>
+  </p>
+<% end %>
         </div>
 
         <!-- 작성자/날짜 및 통계 오른쪽 아래 정렬 -->

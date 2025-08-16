@@ -31,9 +31,6 @@ enum :book_genre, [
   accepts_nested_attributes_for :post_blocks, allow_destroy: true, reject_if: proc { |attributes| attributes['content'].blank? }
   after_commit :clear_post_cache
   validates :title, presence: true, unless: :draft?
-    validates :title, presence: true, unless: :draft?
-  validates :book_title, presence: true, unless: :draft?
-  validates :book_author, presence: true, unless: :draft?
   validates :category, presence: true, unless: :draft?
   validates :book_genre, presence: true, unless: :draft?
 

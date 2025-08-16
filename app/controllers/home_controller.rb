@@ -1,6 +1,7 @@
 class HomeController < ApplicationController
   def index
     @show_sidebar = true
+     @show_genre_tap = true
 
     sort     = params[:sort].presence || "newest"
     page     = page_no

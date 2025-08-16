@@ -194,7 +194,7 @@
     </div>
   </div>
 </div>
-<% if @show_sidebar %>
+<% if @show_genre_tap %>
 <div class="bg-[#f3ede3] pt-1 text-sm text-[#9b825e] flex justify-center space-x-8 relative" >
   <% if params[:category] == "creation" %>
     <%= link_to "전체", posts_path(category: :creation),

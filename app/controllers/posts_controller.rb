@@ -101,6 +101,7 @@ end
 
 def index
      @show_sidebar = true
+
   sorted_posts = fetch_cached_posts
 
   @posts = case params[:sort]
@@ -117,6 +118,10 @@ def index
          else
            sorted_posts
          end
+
+
+@show_genre_tap = !@posts.all? { |p| p.respond_to?(:category) && p.category == 'board' }
+
 
   total_count = @posts.size
   @total_pages = (total_count / per_page.to_f).ceil

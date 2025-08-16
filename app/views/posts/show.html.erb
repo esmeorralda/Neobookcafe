@@ -213,11 +213,11 @@
           </div>
         </div>
 
-        <p class="text-sm text-gray-700 mb-2" style="font-family: 'Noto Serif KR', serif;">
-
-《<%= @post.book_title %>》 — <%= @post.book_author %>
-
-        </p>
+      <% if @post.category.in?(%w[discussion thought]) && @post.book_title.present? %>
+  <p class="text-sm text-gray-700 mb-2" style="font-family: 'Noto Serif KR', serif;">
+    《<%= @post.book_title %>》<% if @post.book_author.present? %> — <%= @post.book_author %><% end %>
+  </p>
+<% end %>
 
         <p class="text-sm text-gray-900 mb-2 text-right mb-2">
           <%= @post.category.present? ? Post.category_korean[@post.category.to_sym] : "카테고리 없음 " %>,
@@ -274,16 +274,16 @@
               <% end %>
             </div>
 
-            <% if block.block_type != 'quote' && @post.draft != true %>
-              <div class="ml-3 flex-shrink-0">
-                <button type="button"
-                  class="text-xs px-2 py-1 border border-gray-300 rounded text-gray-600 hover:bg-gray-100 comment-view-btn interactive"
-                  style="font-family: 'Inter', sans-serif;"
-                  data-block-id="<%= block.id %>">
-                  댓글 보기
-                </button>
-              </div>
-            <% end %>
+            <% if @post.category.in?(%w[discussion thought]) && block.block_type == 'subtitle' && @post.draft != true %>
+  <div class="ml-3 flex-shrink-0">
+    <button type="button"
+      class="text-xs px-2 py-1 border border-gray-300 rounded text-gray-600 hover:bg-gray-100 comment-view-btn interactive"
+      style="font-family: 'Inter', sans-serif;"
+      data-block-id="<%= block.id %>">
+      댓글 보기
+    </button>
+  </div>
+<% end %>
           </div>
         <% end %>
       </div>
