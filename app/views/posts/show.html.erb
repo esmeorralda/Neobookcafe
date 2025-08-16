@@ -166,6 +166,14 @@
       font-size: 0.9rem;
       font-weight: 600;
     }
+
+    /* subtitle 하이라이트 박스 */
+#post-content .subtitle-shadow {
+  box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+  border-radius: 10px;
+  transition: box-shadow .2s ease, background-color .2s ease;
+}
+
   </style>
 </head>
 
@@ -275,9 +283,9 @@
             </div>
 
             <% if @post.category.in?(%w[discussion thought]) && block.block_type == 'subtitle' && @post.draft != true %>
-  <div class="ml-3 flex-shrink-0">
+  <div class="ml-3 mt-4 flex-shrink-0">
     <button type="button"
-      class="text-xs px-2 py-1 border border-gray-300 rounded text-gray-600 hover:bg-gray-100 comment-view-btn interactive"
+      class="text-xs px-2 py-0 border border-gray-300 rounded text-gray-600 hover:bg-gray-100 comment-view-btn interactive"
       style="font-family: 'Inter', sans-serif;"
       data-block-id="<%= block.id %>">
       댓글 보기
@@ -596,7 +604,10 @@
             <% end %>
           </div>
         <% else %>
-          <p class="text-gray-500 text-sm italic mt-2">댓글이 없습니다.</p>
+          <p class="text-gray-500 text-sm italic mb-4">
+  소주제 ‘<%= h(truncate(block.content.to_s, length: 40)) %>’에 대한 댓글을 자유롭게 달아보세요.
+</p>
+
         <% end %>
 
         <!-- ⚠️ 중복 id 방지: 폼 id를 블록별로 고유하게 -->
@@ -720,38 +731,7 @@ document.addEventListener('click', function (e) {
   }
 
   function init() {
-    document.querySelectorAll('.comment-view-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const blockId = btn.getAttribute('data-block-id');
-    
-        // 기존 보더 제거
-        document.querySelectorAll('.post-block').forEach(el => {
-          el.style.border = ''; 
-          el.style.borderRadius = '';
-          el.style.padding = '';
-          el.style.transition = 'border-color 0.5s ease'; // 부드러운 전환
-        });
-    
-        // 선택된 블럭 보더 추가
-        const target = document.getElementById(`post-block-${blockId}`);
-        if (target) {
-          target.style.border = '1px solid #e3d5c6';
-          target.style.borderRadius = '3px';
-          target.style.padding = '0.5rem';
-         
-    
-          // 10초 후에 보더 색상 투명 → 완전 제거
-          setTimeout(() => {
-            target.style.borderColor = 'transparent'; // 서서히 사라짐
-            setTimeout(() => {
-              target.style.border = ''; // 완전 제거
-            }, 1000); // transition 시간과 맞춤
-          }, 10000); // 10초 뒤 시작
-        }
-      });
-    });
-    
-
+  
 
   
     const postContainer = document.getElementById('post-container');
@@ -991,6 +971,35 @@ if (rt) {
       autoResize(ta);
       ta?.focus();
     }
+  }
+
+  if (!window.__subtitle_highlight_bound) {
+    window.__subtitle_highlight_bound = true;
+
+    const HIGHLIGHT_CLASS = 'subtitle-shadow';
+
+    document.addEventListener('click', (e) => {
+      const btn = e.target.closest('.comment-view-btn');
+      if (!btn) return;
+
+      const id = btn.dataset.blockId; 
+      if (!id) return;
+
+      // 이전 하이라이트 제거
+      document.querySelectorAll('#post-content .' + HIGHLIGHT_CLASS)
+        .forEach(el => el.classList.remove(HIGHLIGHT_CLASS));
+
+      // 해당 줄(wrapper)에 하이라이트 토글
+      const wrap = document.getElementById(`post-block-wrapper-${id}`);
+      if (!wrap) return;
+
+      // 토글로 쓰고 싶으면 아래 2줄 주석 해제
+      // if (wrap.classList.contains(HIGHLIGHT_CLASS)) { wrap.classList.remove(HIGHLIGHT_CLASS); return; }
+
+      wrap.classList.add(HIGHLIGHT_CLASS);
+      // 보기 좋게 가운데로 스크롤
+      wrap.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, true); // 캡처 단계(옵션)
   }
 
   document.addEventListener('DOMContentLoaded', bootstrapDraft);
