@@ -187,7 +187,7 @@
           class: "sidebar-link flex items-center justify-center gap-1 #{'is-active' if active_books}",
           data: (user_signed_in? ? {} : { requires_auth: true }) do %>
         <%= image_tag(active_books ? "icon/filled_lock.svg" : "icon/post/Lock.svg",
-                      alt: "Lock", class: "w-4 h-4 mr-2") %>
+                      alt: "Lock", class: "w-4 h-4 mr-1") %>
         <span>독서 메모장</span>
       <% end %>
     </li>

@@ -14,7 +14,6 @@
 <% end %>
 
 
-
       <!-- 기본 정보 -->
       <div class="flex justify-between items-center gap-2 max-w-4xl mx-auto bg-[#f7f1ea]">
       
@@ -592,8 +591,74 @@
     initBlocks();
   }
 
+  // ===================== 카테고리 ⇄ 장르 + 책메타 토글 =====================
+function bindCategoryGenre() {
+  const genreContainer = document.getElementById("genre-container");
+  const categorySelect = document.getElementById("category-select");
+  if (!genreContainer || !categorySelect) return;
+  if (genreContainer.dataset.genreInited === "1") return;
+  genreContainer.dataset.genreInited = "1";
+
+  showGenreSkeleton(genreContainer);
+
+  // ⬇️ 책 제목/저자 입력 필드와 그 래퍼(.flex.flex-col) 찾기
+  const bookTitleInput  = document.getElementById("book_title");
+  const bookAuthorInput = document.getElementById("book_author");
+
+  // label+input을 감싸는 div(부모 컬럼) 기준으로 토글
+  const bookTitleWrap  = bookTitleInput  ? (bookTitleInput.closest(".flex.flex-col")  || bookTitleInput.parentElement)  : null;
+  const bookAuthorWrap = bookAuthorInput ? (bookAuthorInput.closest(".flex.flex-col") || bookAuthorInput.parentElement) : null;
+
+  // ⬇️ 카테고리별로 책 메타 UI만 숨김/표시 (submit 파라미터는 건드리지 않음)
+  function toggleBookMetaUI() {
+    const v = categorySelect.value; // "discussion" | "thought" | "creation" | "board"
+    const hide = (v === "creation" || v === "board");
+    [bookTitleWrap, bookAuthorWrap].forEach(wrap => {
+      if (!wrap) return;
+      wrap.classList.toggle("hidden", hide); // Tailwind 'hidden' 사용
+    });
+  }
+
+  // 기존 장르 라디오 토글 유지
+  function toggleGenres() {
+    const selected = categorySelect.value;
+
+    const showDefault = (selected === "thought" || selected === "discussion");
+    document.querySelectorAll(".genre-default")
+      .forEach(el => el.classList.toggle("hidden", !showDefault));
+    document.querySelectorAll(".genre-creation")
+      .forEach(el => el.classList.toggle("hidden", selected !== "creation"));
+    document.querySelectorAll(".genre-board")
+      .forEach(el => el.classList.toggle("hidden", selected !== "board"));
+
+    // 현재 체크된 라디오가 숨겨졌다면 보이는 첫 라디오로 보정
+    const allRadios = Array.from(document.querySelectorAll('input[type="radio"][name="post[book_genre]"]'));
+    const checked = allRadios.find(r => r.checked);
+    const isCheckedHidden = checked ? checked.closest(".hidden") : null;
+    if (!checked || isCheckedHidden) {
+      const firstVisible = allRadios.find(r => !r.closest(".hidden"));
+      if (firstVisible) firstVisible.checked = true;
+    }
+
+    // ⬇️ 카테고리 바뀔 때 책 제목/저자 보이기/숨기기
+    toggleBookMetaUI();
+  }
+
+  categorySelect.addEventListener("change", toggleGenres);
+
+  // 초기 상태 반영 (Turbo로 들어와도 즉시 맞춤)
+  requestAnimationFrame(() => {
+    toggleGenres();
+    hideGenreSkeleton(genreContainer);
+  });
+}
+
+
   document.addEventListener('DOMContentLoaded', initAll);
   document.addEventListener('turbo:load', initAll);
   document.addEventListener('turbo:render', initAll);
 })();
+
+
+
 </script>
