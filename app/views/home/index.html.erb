@@ -1,11 +1,16 @@
 <% content_for :title, "온라인 독서 토론 플랫폼 | 네오북카페" %>
-<% content_for :description, "무료로 참여할 수 있는 온라인 독서토론 플랫폼. 책을 읽고 자유롭게 토론하며 생각을 나누세요." %>
-<% content_for :keywords, "온라인 독서 토론, 무료 독서토론, 독서 모임, 비대면 토론, 책 토론" %>
+<% catchphrase = "독서 모임의 미래: 시간과 공간, 한계를 넘어" %>
+<% desc_body  = "무료로 참여할 수 있는 온라인 독서토론 플랫폼. 책을 읽고 자유롭게 토론하며 생각을 나누세요." %>
+<% content_for :description, "#{catchphrase} — #{desc_body}" %>
+<% content_for :keywords, "네오북카페, 온라인 독서 토론, 무료 독서토론, 독서 모임, 비대면 토론, 독서 토론" %>
 
 <div class="max-w-4xl mx-auto mt-10 p-8">
   <h2 class="text-2xl font-bold mb-2">
     <%= params[:category].present? ? Post.category_korean[params[:category].to_sym] : "전체 글" %>
   </h2>
+    <h1 class="text-3xl md:text-4xl font-extrabold tracking-tight text-[#2c1a0d]">
+    독서 모임의 미래: <span class="whitespace-nowrap">시간과 공간, 한계를 넘어</span>
+  </h1>
 
 
   <div class="mb-1 text-right">
