@@ -1,36 +1,37 @@
+
 <div class="flex justify-center items-center min-h-screen" style="background-color: rgba(230, 225, 215, 0.7);">
   <div class="w-full max-w-md bg-white rounded-lg shadow-md p-8 login-form-container">
     <h2 class="login-form-title">회원가입</h2>
 
-    <%= form_for(resource, as: resource_name, url: registration_path(resource_name), html: { class: "login-form" }) do |f| %>
-<% if flash[:alert].present? %>
-  <div role="alert"
-       class="js-flash mb-4 rounded-xl border border-amber-200 bg-amber-50 text-amber-900 shadow-md">
-    <div class="relative flex items-start gap-3 p-3">
-      <!-- 아이콘 -->
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
-           fill="currentColor" class="h-5 w-5 flex-shrink-0 text-amber-600">
-        <path fill-rule="evenodd"
-              d="M8.257 3.099c.765-1.36 2.72-1.36 3.485 0l6.518 11.596c.73 1.298-.19 2.905-1.742 2.905H3.48c-1.553 0-2.473-1.607-1.742-2.905L8.257 3.1zM11 14a1 1 0 10-2 0 1 1 0 002 0zm-1-2a.75.75 0 01-.75-.75V8.25a.75.75 0 011.5 0v3a.75.75 0 01-.75.75z"
-              clip-rule="evenodd" />
-      </svg>
+    <%= form_for(resource, as: resource_name, url: registration_path(resource_name), html: { class: "login-form", id: "signupForm" }) do |f| %>
+      <% if flash[:alert].present? %>
+        <div role="alert"
+             class="js-flash mb-4 rounded-xl border border-amber-200 bg-amber-50 text-amber-900 shadow-md">
+          <div class="relative flex items-start gap-3 p-3">
+            <!-- 아이콘 -->
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
+                 fill="currentColor" class="h-5 w-5 flex-shrink-0 text-amber-600">
+              <path fill-rule="evenodd"
+                    d="M8.257 3.099c.765-1.36 2.72-1.36 3.485 0l6.518 11.596c.73 1.298-.19 2.905-1.742 2.905H3.48c-1.553 0-2.473-1.607-1.742-2.905L8.257 3.1zM11 14a1 1 0 10-2 0 1 1 0 002 0zm-1-2a.75.75 0 01-.75-.75V8.25a.75.75 0 011.5 0v3a.75.75 0 01-.75.75z"
+                    clip-rule="evenodd" />
+            </svg>
 
-      <!-- 메시지 -->
-      <pre class="whitespace-pre-line font-sans text-sm leading-6 m-0"><%= flash[:alert] %></pre>
+            <!-- 메시지 -->
+            <pre class="whitespace-pre-line font-sans text-sm leading-6 m-0"><%= flash[:alert] %></pre>
 
-      <!-- 닫기 버튼 (옵션) -->
-      <button type="button"
-              class="absolute right-2 top-2 inline-flex h-7 w-7 items-center justify-center rounded-full hover:bg-amber-100"
-              aria-label="닫기"
-              onclick="this.closest('.js-flash')?.remove()">
-        ✕
-      </button>
-    </div>
+            <!-- 닫기 버튼 -->
+            <button type="button"
+                    class="absolute right-2 top-2 inline-flex h-7 w-7 items-center justify-center rounded-full hover:bg-amber-100"
+                    aria-label="닫기"
+                    onclick="this.closest('.js-flash')?.remove()">
+              ✕
+            </button>
+          </div>
 
-    <!-- 하단 강조선 -->
-    <div class="h-1 w-full rounded-b-xl bg-gradient-to-r from-amber-400 via-amber-500 to-amber-400"></div>
-  </div>
-<% end %>
+          <!-- 하단 강조선 -->
+          <div class="h-1 w-full rounded-b-xl bg-gradient-to-r from-amber-400 via-amber-500 to-amber-400"></div>
+        </div>
+      <% end %>
 
       <div>
         <%= f.label :email, "이메일", class: "login-form-label" %>
@@ -56,12 +57,96 @@
             class: "login-form-input" %>
       </div>
 
+      <!-- ✅ 약관 동의 영역 (체크/텍스트 클릭 시 모달 오픈, 동의하기 누르면 자동 체크) -->
+      <div class="mt-2 mb-4 flex items-start gap-2 text-sm text-[#5a4a2a]">
+        <%= check_box_tag :terms_of_service, "1", false,
+              id: "termsCheckbox",
+              required: true,
+              class: "mt-1 h-4 w-4 cursor-pointer border-[#a5947b] text-[#7c6243] focus:ring-[#7c6243]" %>
+
+        <div>
+          <button type="button" id="openTermsLink" class="underline text-[#7c6243] hover:text-[#5a4a2a]">
+            이용약관에 동의합니다
+          </button>
+          <span class="text-[#8b7a5b]"> (필수)</span>
+          <div class="text-xs text-[#8b7a5b] mt-1">
+            체크박스나 위 텍스트를 클릭하면 약관이 열립니다. 모달에서 <strong>동의하기</strong>를 누르면 자동으로 체크됩니다.
+          </div>
+        </div>
+      </div>
+
       <div class="login-form-actions">
         <%= f.submit "회원가입", class: "login-form-submit" %>
       </div>
     <% end %>
+  </div>
+</div>
 
-   
+<!-- ✅ 약관 모달 -->
+<div id="termsModal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="termsTitle">
+  <div class="modal-backdrop"></div>
+  <div class="modal-box" role="document">
+    <div class="modal-header">
+      <h3 id="termsTitle">네오북카페 이용약관 (발췌)</h3>
+      <button type="button" id="termsClose" class="modal-close" aria-label="닫기">✕</button>
+    </div>
+
+    <div class="modal-body">
+      <div class="terms-body">
+        <h4>제1조 (청소년 보호 및 AI 모더레이션 고지)</h4>
+        <p>
+          네오북카페는 청소년 보호 및 불법·유해 콘텐츠 방지를 위해 자동 모더레이션 시스템을 운영합니다.
+          이와 관련하여 OpenAI Moderation API를 사용하여 사용자가 제출하는 텍스트·이미지 일부를 자동 분석할 수 있습니다.
+          이 과정에서 해당 데이터가 OpenAI에 전송·처리되며, 서비스 제공 및 악용 방지 목적으로 OpenAI가 최대 30일간 API 입력/출력을 보유할 수 있습니다.
+          OpenAI는 API로 제공된 데이터는 기본적으로 모델 학습에 사용하지 않으며(조직이 별도 옵트인하는 경우 제외), 자격 요건 충족 시 일부 엔드포인트에 대해 Zero Data Retention(ZDR)옵션이 제공될 수 있습니다.
+          네오북카페는 모더레이션 과정에서 개인정보 최소 전송 원칙을 준수하며, 법령 및 정책에 따라 필요한 범위 내에서만 처리를 수행합니다.
+        </p>
+
+        <h4>제2조 (서비스 개선을 위한 데이터 활용)</h4>
+        <p>
+          <strong>목적:</strong> 네오북카페는 서비스 품질 향상(검색 품질, 추천 정확도, 스팸·사기 탐지 고도화, 장애 대응, 보안 강화 등)을 위해
+          사용자 콘텐츠 및 이용 로그를 익명·가명처리하여 내부 모델·규칙의 개선에 활용합니다.
+        </p>
+        <p>
+          <strong>범위:</strong> 개선 목적에 필요한 최소한의 데이터만 수집·처리하며, 개인정보는 가능한 한 익명화·가명화하여 처리합니다.
+        </p>
+        <p>
+          <strong>보관 및 보호:</strong> 법령 및 내부 정책에 따른 보관 기간을 준수하고, 접근통제·암호화 등 합리적 보호조치를 적용합니다.
+        </p>
+
+        <h4>제2조 (사용자 게시물의 저작권 및 책임·조치)</h4>
+        <p><strong>소유권:</strong> 이용자가 네오북카페에 게시·업로드하는 텍스트 및 기타 자료(“콘텐츠”)의 저작권은 이용자에게 있습니다.</p>
+        <p><strong>서비스 운영 라이선스(목적 제한):</strong></p>
+        <ul class="list">
+          <li>
+            이용자는 네오북카페가 서비스 제공·운영·보호(예: 호스팅, 저장, 캐시, 백업, 표시, 전송, 검색 인덱싱 및 노출, 미리보기/썸네일 생성)을 위해
+            콘텐츠를 전 세계적·비독점적·무상·양도 불가 라이선스로 이용할 수 있음에 동의합니다.
+            네오북카페는 위 목적 달성을 위해 필요한 범위 내에서 클라우드·CDN·보안 등 위탁처리자(서브프로세서)에게 동일 범위의 이용을 허용할 수 있습니다.
+          </li>
+          <li>
+            이용자가 콘텐츠를 삭제하거나 계정을 해지하는 경우, 합리적 기간 내 위 라이선스는 종료되나,
+            법적 의무 이행·분쟁 대응·정기 백업 회전 주기(예: 최대 90일)를 위한 사본은 해당 목적 범위 내에서만 보관될 수 있습니다.
+          </li>
+          <li>
+            네오북카페는 이용자의 별도 동의 없이 콘텐츠를 광고·홍보 기타 상업적 2차 활용 목적으로 사용하지 않습니다.
+          </li>
+        </ul>
+        <p><strong>제3자 분쟁에 대한 책임 제한:</strong>
+          이용자가 게시한 콘텐츠와 관련한 제3자와의 분쟁·청구·손해는 원칙적으로 이용자가 책임을 부담하며,
+          네오북카페는 법령이 허용하는 최대한도에서 이에 대한 책임을 지지 않습니다.
+        </p>
+        <p><strong>권리 침해 의심 시 신고 및 제재:</strong>
+          권리 침해가 의심되는 경우, 앱/웹 내 ‘피드백’ 메뉴를 통해 신고해 주시기 바랍니다.
+          네오북카페는 정당한 사유가 확인되면 사전 통지 없이 해당 콘텐츠의 임시 차단 또는 삭제,
+          반복·중대한 위반 시 계정 제한·정지 등 필요한 조치를 취할 수 있습니다.
+        </p>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button type="button" id="termsDecline" class="btn-secondary">동의하지 않음</button>
+      <button type="button" id="termsAgree" class="btn-primary">동의하기</button>
+    </div>
   </div>
 </div>
 
@@ -111,9 +196,7 @@ html, body {
   background-color: #fff;
 }
 
-.login-form-actions {
-  margin-top: 10px;
-}
+.login-form-actions { margin-top: 10px; }
 
 .login-form-submit {
   width: 100%;
@@ -128,10 +211,7 @@ html, body {
   box-shadow: 0 3px 5px rgba(124, 98, 67, 0.6);
   transition: background-color 0.3s;
 }
-
-.login-form-submit:hover {
-  background-color: #5a4a2a;
-}
+.login-form-submit:hover { background-color: #5a4a2a; }
 
 .login-form-link {
   display: block;
@@ -142,9 +222,137 @@ html, body {
   text-decoration: underline;
   margin-top: 20px;
 }
+.login-form-register { margin-top: 20px; text-align: center; }
 
-.login-form-register {
-  margin-top: 20px;
-  text-align: center;
+/* ✅ 모달 스타일 */
+.modal-overlay.hidden { display: none; }
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
 }
+
+.modal-backdrop {
+  position: absolute; inset: 0;
+
+}
+
+.modal-box {
+  position: relative;
+  margin: 4rem auto;
+  width: min(680px, calc(100% - 2rem));
+  background: #fff;
+  color: #5a4a2a;
+  border-radius: 10px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+  overflow: hidden;
+}
+
+.modal-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 16px;
+  background: #f3ede3;
+  border-bottom: 1px solid #e6dfd4;
+}
+.modal-header h3 { font-size: 16px; font-weight: 700; color: #7c6243; margin: 0; }
+.modal-close {
+  border: none; background: transparent; font-size: 18px; cursor: pointer;
+  color: #7c6243; border-radius: 9999px; width: 32px; height: 32px; line-height: 32px;
+}
+.modal-close:hover { background: #e9e1d6; }
+
+.modal-body {
+  padding: 16px;
+  max-height: 60vh; overflow: auto;
+
+}
+
+.terms-body h4 { margin: 12px 0 8px; color: #7c6243; font-weight: 700; }
+.terms-body p { margin: 6px 0 10px; line-height: 1.6; }
+.terms-body .list { padding-left: 18px; list-style: disc; }
+.terms-body .list li { margin: 6px 0; line-height: 1.5; }
+
+.modal-footer {
+  display: flex; justify-content: flex-end; gap: 8px;
+  padding: 12px 16px; background: #f9f5ee; border-top: 1px solid #e6dfd4;
+}
+
+.btn-primary, .btn-secondary {
+  padding: 10px 14px; border-radius: 8px; font-weight: 600; cursor: pointer; border: none;
+}
+.btn-primary { background: #7c6243; color: #f7f3e9; }
+.btn-primary:hover { background: #5a4a2a; }
+.btn-secondary { background: #e8e1d5; color: #5a4a2a; }
+.btn-secondary:hover { background: #ddd2c1; }
+
+/* 체크박스 포커스 접근성 */
+#termsCheckbox:focus-visible { outline: 2px solid #7c6243; outline-offset: 2px; }
 </style>
+
+<script>
+(function() {
+  const modal = document.getElementById('termsModal');
+  const openLink = document.getElementById('openTermsLink');
+  const checkbox = document.getElementById('termsCheckbox');
+  const btnAgree = document.getElementById('termsAgree');
+  const btnDecline = document.getElementById('termsDecline');
+  const btnClose = document.getElementById('termsClose');
+  const backdrop = modal.querySelector('.modal-backdrop');
+
+  function openModal() {
+    modal.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeModal() {
+    modal.classList.add('hidden');
+    document.body.style.overflow = '';
+  }
+
+  // 텍스트(링크) 클릭 → 모달
+  openLink.addEventListener('click', function(e) {
+    e.preventDefault();
+    openModal();
+  });
+
+  // 체크박스 클릭/탭 → 토글 막고 모달
+  checkbox.addEventListener('click', function(e) {
+    // 사용자가 체크하려 할 때 먼저 약관 확인
+    e.preventDefault();
+    openModal();
+  });
+
+  // 동의하지 않음 → 체크 해제 + 닫기
+  btnDecline.addEventListener('click', function() {
+    checkbox.checked = false;
+    closeModal();
+    checkbox.focus();
+  });
+
+  // 동의하기 → 체크 + 닫기
+  btnAgree.addEventListener('click', function() {
+    checkbox.checked = true;
+    closeModal();
+    checkbox.focus();
+  });
+
+  // X 버튼, 배경 클릭 → 닫기(체크 유지 안함)
+  btnClose.addEventListener('click', closeModal);
+  backdrop.addEventListener('click', closeModal);
+
+  // ESC 닫기
+  document.addEventListener('keydown', function(e) {
+    if (!modal.classList.contains('hidden') && e.key === 'Escape') {
+      closeModal();
+    }
+  });
+
+  // 폼 제출 전 검증(브라우저 기본 required에 더해 안전망)
+  const form = document.getElementById('signupForm');
+  form.addEventListener('submit', function(e) {
+    if (!checkbox.checked) {
+      e.preventDefault();
+      openModal();
+    }
+  });
+})();
+</script>
