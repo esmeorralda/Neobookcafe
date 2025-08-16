@@ -8,7 +8,7 @@
 
 
   <% if @books.blank? || @books.all? { |book| book.notes.blank? } %>
- <div class="mt-20">
+ <div class="mt-8">
   <div class="flex min-h-[40vh] flex-col items-center justify-center text-center">
     <p class="text-lg text-gray-500">아직 작성된 독서 기록이 없습니다.</p>
     <%= link_to "독서 기록 추가하기",
