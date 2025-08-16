@@ -277,24 +277,40 @@
 
 </style><script>
 (function () {
-  // ===================== 공통: 페이지 이탈 경고(한 번만 바인딩) =====================
-  if (!window.__post_form_dirty_guard_bound) {
-    window.__post_form_dirty_guard_bound = true;
+// ===================== 페이지 이탈 경고 (정상 제출/리다이렉트는 예외) =====================
+if (!window.__post_form_dirty_guard_bound) {
+  window.__post_form_dirty_guard_bound = true;
 
-    let isFormDirty = false;
-    document.addEventListener("input", (e) => {
-      if (e.target.closest("form")) isFormDirty = true;
-    });
+  let isFormDirty = false;
+  let bypassUnload = false; // 폼 제출/터보 내비게이션 등 정상 이동이면 true
 
-    window.addEventListener("beforeunload", function (e) {
-      if (isFormDirty) {
-        const message = "작성 중인 내용이 사라집니다. 페이지를 떠나시겠습니까?";
-        e.preventDefault();
-        e.returnValue = message;
-        return message;
-      }
-    });
-  }
+  // 어떤 form 내부라도 입력이 발생하면 더러운 상태로 간주
+  document.addEventListener("input", (e) => {
+    if (e.target.closest("form")) isFormDirty = true;
+  }, { capture: true });
+
+  // 정상 제출/리다이렉트 시엔 언로드 경고 우회
+  const cancelGuard = () => { bypassUnload = true; isFormDirty = false; };
+
+  // 순수 HTML submit에도 동작
+  document.addEventListener("submit", (e) => {
+    if (e.target && e.target.matches("form")) cancelGuard();
+  }, { capture: true });
+
+  // Turbo 사용 시: 제출 시작/방문 직전에도 우회 플래그
+  document.addEventListener("turbo:submit-start", cancelGuard);
+  document.addEventListener("turbo:before-visit", cancelGuard);
+
+  // 실제 떠나기 직전 경고
+  window.addEventListener("beforeunload", (e) => {
+    if (!isFormDirty || bypassUnload) return;
+    const msg = "작성 중인 내용이 사라집니다. 페이지를 떠나시겠습니까?";
+    e.preventDefault();
+    e.returnValue = msg;
+    return msg;
+  });
+}
+
 
   // ===================== 장르 스켈레톤 =====================
   const GENRE_SKELETON_HTML = `

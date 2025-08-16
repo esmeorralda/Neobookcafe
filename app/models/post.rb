@@ -66,6 +66,44 @@ def self.book_genre_korean
   }
 end
 
+def self.book_genre_groups
+    {
+      default: { # 감상문/논설문
+        philosophy: "철학",
+        literature: "문학",
+        history: "역사",
+        society: "사회",
+        economy: "경제",
+        science_technology: "과학/기술"
+      },
+      creation: { # 창작물
+        poetry: "시",
+        essay: "에세이",
+        novel: "소설"
+      },
+      board: { # 자유게시판
+        book_recommendation: "책 추천",
+        book_promotion: "책 홍보",
+        author_story: "작가 이야기",
+        reading_tips: "독서팁/습관",
+        event_promotion: "책 관련 행사 홍보",
+        book_qna: "책 Q&A",
+        others: "기타"
+      }
+    }
+  end
+
+  def self.book_genres_for(category)
+    case category.to_s
+    when "creation"        then book_genre_groups[:creation]
+    when "board"           then book_genre_groups[:board]
+    when "thought","discussion" then book_genre_groups[:default]
+    else
+      # 카테고리 미선택(전체)일 때: 전부 합쳐 보여주기
+      book_genre_groups.values.reduce(&:merge)
+    end
+  end
+
   def self.category_korean
     {
       thought: "감상문",

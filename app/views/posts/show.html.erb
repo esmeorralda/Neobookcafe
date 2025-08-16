@@ -260,13 +260,13 @@
       </div>
 
       <!-- 본문 영역 -->
-      <div id="post-content" class="space-y-6 text-base leading-relaxed" style="font-family: 'Noto Serif KR', serif;">
+      <div id="post-content" class="space-y-3 text-base leading-relaxed" style="font-family: 'Noto Serif KR', serif;">
         <% @post.post_blocks.order(:position).each do |block| %>
           <div class="relative flex items-start" id="post-block-wrapper-<%= block.id %>">
             <div class="flex-1">
               <% case block.block_type %>
               <% when 'paragraph' %>
-                <p id="post-block-<%= block.id %>" data-block-id="<%= block.id %>" class="post-block mt-0 leading-relaxed">
+                <p id="post-block-<%= block.id %>" data-block-id="<%= block.id %>" class="post-block mt-1 leading-relaxed">
                   <%= raw(block.content.gsub(/\r?\n/, '<br>')) %>
                 </p>
               <% when 'subtitle' %>
@@ -274,7 +274,7 @@
                   <%= block.content %>
                 </h2>
               <% when 'quote' %>
-                <blockquote id="post-block-<%= block.id %>" data-block-id="<%= block.id %>" class="post-block pl-4 border-l-4 border-[#2c1a0d] italic text-[#2c1a0d] mt-1">
+                <blockquote id="post-block-<%= block.id %>" data-block-id="<%= block.id %>" class="post-block pl-4 border-l-4 border-[#5d3b2e] italic text-[#2c1a0d] mt-1">
                   “<%= block.content %>”
                 </blockquote>
               <% else %>
