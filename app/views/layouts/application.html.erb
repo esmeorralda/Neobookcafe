@@ -3,8 +3,8 @@
 
   <head>
     <%# <%= favicon_link_tag 'favicon.png'  %>
-<%= favicon_link_tag "#{request.base_url}#{asset_path('favicon.svg')}",
-                     rel: 'icon', type: 'image/svg+xml' %>
+<%= favicon_link_tag asset_url('favicon.svg'), rel: 'icon', type: 'image/svg+xml' %>
+
 
    <%= javascript_importmap_tags %> 
 
