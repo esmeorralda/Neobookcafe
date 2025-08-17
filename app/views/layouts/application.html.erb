@@ -3,7 +3,9 @@
 
 <head>
   <%# Favicon %>
-  <%= favicon_link_tag 'favicon.svg', rel: 'icon', type: 'image/svg+xml' %>
+  <%= favicon_link_tag asset_url('favicon.svg', host: request.base_url),
+                     rel: 'icon', type: 'image/svg+xml' %>
+
 
   <%# JS(Importmap) — 한 번만 남기기 %>
   <%= javascript_importmap_tags %>
