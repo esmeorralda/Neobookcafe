@@ -1,22 +1,17 @@
 <!DOCTYPE html>
 <html>
 
-  <head>
-    <%# <%= favicon_link_tag 'favicon.png'  %>
+<head>
+  <%# Favicon %>
   <%= favicon_link_tag 'favicon.svg', rel: 'icon', type: 'image/svg+xml' %>
 
+  <%# JS(Importmap) — 한 번만 남기기 %>
+  <%= javascript_importmap_tags %>
 
-   <%= javascript_importmap_tags %> 
-
-
-        <title>네오북카페 | NeoBookCafe – 독서 토론·기록</title>
-
-
-  <title><%= content_for?(:title) ? yield(:title) : "네오북카페 | 온라인 독서 토론 플랫폼" %></title>
+  <%# Title — 하나만 남기고 기본값은 기존 문구 유지 %>
+  <title><%= content_for?(:title) ? yield(:title) : "네오북카페 | NeoBookCafe – 독서 토론·기록" %></title>
 
   <meta name="description" content="<%= content_for?(:description) ? yield(:description) : "독서 모임의 미래: 시간과 공간, 한계를 넘어 — 온라인으로 무료 독서 토론에 참여하세요. 주제별 토론장, 독서기록장, 자유게시판 제공." %>">
-
- 
   <meta name="keywords" content="<%= content_for?(:keywords) ? yield(:keywords) : "네오북카페, 온라인 독서 토론, 무료 독서토론, 독서 모임, 비대면 토론, 독서 토론" %>">
 
   <!-- 권장: OG/Twitter도 같은 값 재사용 -->
@@ -27,25 +22,28 @@
   <meta property="og:image" content="https://neobookcafe.com/og-default.png">
   <meta name="twitter:card" content="summary_large_image">
 
-    <%= csrf_meta_tags %>
-    <%= csp_meta_tag %>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap" rel="stylesheet">
+  <%= csrf_meta_tags %>
+  <%= csp_meta_tag %>
 
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
-<!-- Noto Serif KR -->
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;700&display=swap" rel="stylesheet">
+  <%# --- ↓↓↓ 폰트: 그대로 유지(수정 안 함) ↓↓↓ --- %>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap" rel="stylesheet">
 
-    <%= stylesheet_link_tag "tailwind", "data-turbo-track": "reload" %>
-    <%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
-    <%= javascript_include_tag "application", "data-turbo-track": "reload", defer: true %>
-    <%= javascript_importmap_tags %>
-  </head>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
+
+  <!-- Noto Serif KR -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;700&display=swap" rel="stylesheet">
+  <%# --- ↑↑↑ 폰트: 그대로 유지 ↑↑↑ --- %>
+
+  <%= stylesheet_link_tag "tailwind", "data-turbo-track": "reload" %>
+  <%# ⚠ application.css가 실제로 있을 때만 유지하세요. 없다면 아래 줄 삭제 %>
+  <%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
+</head>
 
 <body data-signed-in="<%= user_signed_in? %>">
 
