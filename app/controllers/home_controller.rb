@@ -11,7 +11,7 @@ class HomeController < ApplicationController
     count_key= "home:index:count:sort=#{sort}:v=#{version}"
 
     # Build the relation for this sort (no includes/preload here; we’ll hydrate after)
-    scope    = Post.where(draft: [false, nil])
+    scope    = Post.where(draft: [ false, nil ])
     relation = relation_for_sort(scope, sort)
 
     # Cache the count (avoid GROUP BY side effects)
@@ -65,12 +65,12 @@ end
 
   # ---- Cache version seed (bumps when relevant data changes) ----
   def cache_version_for(sort)
-    base = Post.where(draft: [false, nil]).maximum(:updated_at)&.to_i || 0
+    base = Post.where(draft: [ false, nil ]).maximum(:updated_at)&.to_i || 0
     case sort
     when "most_likes", "popular"
-      [base, Like.maximum(:updated_at)&.to_i || 0].max
+      [ base, Like.maximum(:updated_at)&.to_i || 0 ].max
     when "most_comments"
-      [base, Comment.maximum(:updated_at)&.to_i || 0].max
+      [ base, Comment.maximum(:updated_at)&.to_i || 0 ].max
     when "most_views"
       # If you frequently update view_count in-place, base is enough; adjust if you track view events separately.
       base

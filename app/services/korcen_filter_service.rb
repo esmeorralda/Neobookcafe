@@ -1,7 +1,7 @@
 # app/services/korcen_filter_service.rb
-require 'open3'
-require 'shellwords'
-require 'json'
+require "open3"
+require "shellwords"
+require "json"
 module KorcenFilterService
   class << self
     def analyze_sentence(sentence)

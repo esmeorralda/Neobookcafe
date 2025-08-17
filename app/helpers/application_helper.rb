@@ -1,5 +1,4 @@
 module ApplicationHelper
-
   def resource_name
     :user
   end
@@ -13,7 +12,7 @@ module ApplicationHelper
   end
     def time_ago_in_korean(time)
         seconds = Time.current - time
-    
+
         case seconds
         when 0..59
            "방금 전"

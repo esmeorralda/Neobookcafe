@@ -1,6 +1,6 @@
-require 'open3'
-require 'shellwords'
-require 'json'
+require "open3"
+require "shellwords"
+require "json"
 
 class FiltersController < ApplicationController
   def check
@@ -74,7 +74,7 @@ class FiltersController < ApplicationController
       end
     else
       @flagged = false
-      @reasons = ["Node.js 실행 오류: #{stderr}"]
+      @reasons = [ "Node.js 실행 오류: #{stderr}" ]
     end
   end
 end

@@ -17,6 +17,4 @@ private
 def report_params
   params.require(:report).permit(:content, :reason, :post_id)
 end
-
-
 end

@@ -1,11 +1,10 @@
 class UsersController < ApplicationController
   def show
-    
   @show_sidebar = true
   @user = User.find(params[:id])
   per_page = 10
 
-  # 각 카테고리별 1페이지(10개) 초기 로드
+ # 각 카테고리별 1페이지(10개) 초기 로드
  @my_posts = @user.posts.where(draft: false).order(created_at: :desc).page(1).per(per_page)
   @liked_posts = @user.liked_posts.order(created_at: :desc).page(1).per(per_page)
   @saved_posts = @user.bookmarked_posts.order(created_at: :desc).page(1).per(per_page)
@@ -20,7 +19,7 @@ class UsersController < ApplicationController
 end
 def settings
   if request.xhr?
-    render partial: 'users/settings_modal_content' # AJAX 요청이면 부분뷰 렌더
+    render partial: "users/settings_modal_content" # AJAX 요청이면 부분뷰 렌더
   else
     # 일반 요청일 경우 페이지 렌더링
   end
@@ -29,7 +28,7 @@ end
 
   def edit
   end
-  
+
   def new
     @user = User.new
   end
@@ -88,26 +87,26 @@ def update
   end
 end
 
-  # def create
-  #   @user = User.new(user_params)
+# def create
+#   @user = User.new(user_params)
 
-  #   if @user.save
-  #     session[:user_id] = @user.id
-  #     redirect_to root_path, notice: "회원가입이 완료되었습니다."
-  #   else
-  #     render :new, status: :unprocessable_entity
-  #   end
-  # end
+#   if @user.save
+#     session[:user_id] = @user.id
+#     redirect_to root_path, notice: "회원가입이 완료되었습니다."
+#   else
+#     render :new, status: :unprocessable_entity
+#   end
+# end
 
-  # def destroy
-  #   @user = User.find(params[:id])
-  #   @user.destroy
-  #   reset_session
-  #   redirect_to root_path, notice: "회원 탈퇴가 완료되었습니다."
-  # end
+# def destroy
+#   @user = User.find(params[:id])
+#   @user.destroy
+#   reset_session
+#   redirect_to root_path, notice: "회원 탈퇴가 완료되었습니다."
+# end
 def my_posts
   page = params[:page] || 1
-  @posts = current_user.posts.where(draft: [false, nil]).order(created_at: :desc).page(page).per(10)
+  @posts = current_user.posts.where(draft: [ false, nil ]).order(created_at: :desc).page(page).per(10)
   @total_pages = @posts.total_pages
   @current_page = @posts.current_page
   render partial: "users/posts_with_pagination", locals: { posts: @posts, page_no: @current_page, total_pages: @total_pages, tab: "my_posts" }

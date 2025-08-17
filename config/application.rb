@@ -16,7 +16,7 @@ module Neobookcafe
     # Common ones are `templates`, `generators`, or `middleware`, for example.
     config.autoload_lib(ignore: %w[assets tasks])
     config.i18n.default_locale = :ko
-     config.autoload_paths << Rails.root.join('app/services')
+     config.autoload_paths << Rails.root.join("app/services")
 
     # Configuration for the application, engines, and railties goes here.
     #

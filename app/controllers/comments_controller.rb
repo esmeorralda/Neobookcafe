@@ -2,7 +2,7 @@ class CommentsController < ApplicationController
     before_action :authenticate_user!
 
 
-  before_action :set_comment, only: [:edit, :update, :destroy]
+  before_action :set_comment, only: [ :edit, :update, :destroy ]
     # def create
     #   @comment = Comment.new(comment_params)
     #   @comment.user = current_user
@@ -19,7 +19,7 @@ class CommentsController < ApplicationController
   def update
     @comment.assign_attributes(comment_params)
     full_text = @comment.content.to_s
-  
+
     # --- profanity (Korcen) ---
     if (results = KorcenFilterService.analyze_text(full_text)).any?
       flash[:alert] = build_korcen_alert(results)
@@ -28,7 +28,7 @@ class CommentsController < ApplicationController
       flash[:edit_comment_draft]  = full_text
       return redirect_to post_path(@comment.post)
     end
-  
+
     # --- moderation (OpenAI wrapper) ---
     if (flagged = ModerationChecker.check(full_text))
       flash[:alert] = build_moderation_alert(flagged)
@@ -36,7 +36,7 @@ class CommentsController < ApplicationController
       flash[:edit_comment_draft] = full_text
       return redirect_to post_path(@comment.post)
     end
-  
+
     if @comment.save
       redirect_to post_path(@comment.post), notice: "댓글이 성공적으로 수정되었습니다."
     else
@@ -44,7 +44,7 @@ class CommentsController < ApplicationController
       redirect_to post_path(@comment.post)
     end
   end
-  
+
 
 
 def destroy
@@ -54,7 +54,6 @@ def destroy
     format.html { redirect_to @comment.post, notice: "댓글이 삭제되었습니다." }
     format.json { head :no_content }
   end
-  
 end
 
 def create
@@ -102,10 +101,10 @@ end
       end.join("\n\n")
       "비속어가 포함된 문장이 감지되었습니다:\n\n#{details}\n\n이는 청소년 보호 정책의 일환으로 제한됩니다. 문장을 수정하여 다시 시도해 주세요."
     end
-    
+
     def build_moderation_alert(flagged)
       translations = moderation_category_translations
-      list = (flagged.is_a?(Array) && flagged.first.is_a?(Array) ? flagged : [flagged])
+      list = (flagged.is_a?(Array) && flagged.first.is_a?(Array) ? flagged : [ flagged ])
       cats = list.map { |cat, score| "#{translations[cat]} (#{(score.to_f * 100).round(1)}%)" }.compact
       "⚠️ 다음과 같은 유해 콘텐츠가 포함되어 있습니다: #{cats.join(', ')}. 수정 후 다시 시도해 주세요."
     end
@@ -157,9 +156,8 @@ def clean_sentence(text)
       .strip                   # 앞뒤 공백 제거
 end
 
-  
+
     def comment_params
       params.require(:comment).permit(:content, :post_id, :post_block_id, :parent_id)
-    end    
-  end
-  
+    end
+end

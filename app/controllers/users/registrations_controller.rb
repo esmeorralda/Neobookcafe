@@ -3,7 +3,7 @@ class Users::RegistrationsController < Devise::RegistrationsController
     # 비번 변경 후 flash 타입/문구와 이동 경로를 원하는 대로
     def update
       self.resource = resource_class.to_adapter.get!(send(:"current_#{resource_name}").to_key)
-  
+
       if update_resource(resource, account_update_params)
         # ✅ 기본은 notice지만, alert로 띄우고 싶다면 이렇게:
         flash[:alert] = I18n.t("devise.registrations.updated") # 문구는 아래 i18n에서 수정 가능
@@ -16,10 +16,10 @@ class Users::RegistrationsController < Devise::RegistrationsController
         respond_with resource
       end
     end
-  
+
     def create
       build_resource(sign_up_params)
-      if resource.name.present? && User.where('LOWER(name) = ?', resource.name.downcase).exists?
+      if resource.name.present? && User.where("LOWER(name) = ?", resource.name.downcase).exists?
         resource.errors.add(:name, :taken)
       end
 
@@ -34,7 +34,7 @@ class Users::RegistrationsController < Devise::RegistrationsController
           end
         return render :new, status: :unprocessable_entity
       end
-    
+
 
       if resource.save
         flash[:alert] = I18n.t("devise.registrations.signed_up", default: "회원가입이 완료되었습니다.")
@@ -49,15 +49,14 @@ class Users::RegistrationsController < Devise::RegistrationsController
         else
           flash.now[:alert] = resource.errors.full_messages.join("\n")
         end
-  
+
         render :new, status: :unprocessable_entity
       end
     end
     protected
-  
+
     # ✅ 리다이렉트 위치 커스텀(원하는 경로로)
     def after_update_path_for(resource)
       root_path
     end
-  end
-  
+end

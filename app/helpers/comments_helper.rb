@@ -1,5 +1,4 @@
 module CommentsHelper
-
     def reply_count_for(comment)
     if comment.post_block_id.nil?
       # 일반 댓글: 자식 댓글 중 블럭 연결이 없는 것만
@@ -13,5 +12,4 @@ module CommentsHelper
 def total_comments_count(post)
   Comment.where(post_id: post.id).count
 end
-
 end

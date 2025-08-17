@@ -96,7 +96,7 @@
 #   book_title: "노동의 종말",
 #   book_author: "제레미 리프킨",
 #   category: "discussion",
-#   book_genre: "economy",  
+#   book_genre: "economy",
 #    user: User.find(7),
 #   allow_comments: true,
 #   draft: false,

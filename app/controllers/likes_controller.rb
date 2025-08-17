@@ -13,7 +13,7 @@ class LikesController < ApplicationController
         format.turbo_stream do
           render turbo_stream: turbo_stream.replace(
             dom_id(likeable, :like_button),
-            partial: 'posts/comment_like',  # partial 경로 확인!
+            partial: "posts/comment_like",  # partial 경로 확인!
             locals: { likeable: likeable }
           )
         end
@@ -44,7 +44,7 @@ def destroy
     format.turbo_stream do
       render turbo_stream: turbo_stream.replace(
         dom_id(likeable, :like_button),
-        partial: 'posts/comment_like',  # partial 경로 확인!
+        partial: "posts/comment_like",  # partial 경로 확인!
         locals: { likeable: likeable }
       )
     end

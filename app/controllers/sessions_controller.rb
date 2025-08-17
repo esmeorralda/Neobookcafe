@@ -20,8 +20,8 @@ class SessionsController < Devise::SessionsController
 
         format.json do
           # 🔥 로그인 직후 상태 기준으로 부분 뷰를 HTML로 뽑아서 실어 보냄
-          nav_html   = render_to_string(partial: "layouts/nav_links", formats: [:html])
-          notif_html = render_to_string(partial: "layouts/notification", formats: [:html])
+          nav_html   = render_to_string(partial: "layouts/nav_links", formats: [ :html ])
+          notif_html = render_to_string(partial: "layouts/notification", formats: [ :html ])
 
           response.set_header("X-Auth-Result", "success")
           render json: {
@@ -41,7 +41,7 @@ class SessionsController < Devise::SessionsController
 
         format.json do
           response.set_header("X-Auth-Result", "failure")
-          render json: { success: false, errors: [error_msg] }, status: :unauthorized
+          render json: { success: false, errors: [ error_msg ] }, status: :unauthorized
         end
       end
     end

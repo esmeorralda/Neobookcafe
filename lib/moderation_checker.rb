@@ -30,7 +30,7 @@ module ModerationChecker
     if result && result["results"]
       scores = result["results"][0]["category_scores"]
       flagged = scores.find { |_, score| score.to_f >= 0.10 }
-      return flagged # [category_name, score] 또는 nil
+      flagged # [category_name, score] 또는 nil
     else
       nil
     end

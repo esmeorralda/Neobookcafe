@@ -20,7 +20,7 @@ nicknames = [
   "시네마틱",    # 영화적인
   "헤르모",      # 그리스 신 Hermes 변형
   "푸른책",    # 감성
-  "오르페",      # 그리스 신 Orpheus 변형
+  "오르페"      # 그리스 신 Orpheus 변형
 ]
 
 20.times do |i|

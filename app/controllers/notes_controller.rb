@@ -1,7 +1,6 @@
 class NotesController < ApplicationController
   before_action :authenticate_user!
 def index
- 
   @notes = current_user.notes.includes(:book)
 end
 
@@ -39,13 +38,13 @@ def create
     last_position = @book.notes.maximum(:position) || 0
     # 노트 생성
     @saved_note = @book.notes.create!(
-      user_id: current_user.id, 
+      user_id: current_user.id,
       chapter: @chapter,
       page_from: params[:note][:page_from],
       page_to: params[:note][:page_to],
       memo: params[:note][:memo],
       color: params[:note][:color],
-      position: last_position + 1 
+      position: last_position + 1
     )
   end
 
@@ -79,20 +78,20 @@ end
   def show
     @note = Note.find(params[:id])
   end
-  
+
   def destroy
     @note = current_user.notes.find(params[:id])
     book = @note.book
     @note.destroy
-  
+
     # 노트 삭제 후 해당 책에 노트가 하나도 없으면 책도 삭제
     if book.notes.count.zero?
       book.destroy
     else
       update_book_current_page(book)
     end
-  
-   redirect_to books_path, notice: "노트가 삭제되었습니다." 
+
+   redirect_to books_path, notice: "노트가 삭제되었습니다."
   end
 
   def edit
@@ -102,7 +101,7 @@ end
 
 def update
   @note = current_user.notes.find(params[:id])
-  
+
   if params[:note][:chapter_id] == "new_chapter"
     chapter = @note.book.chapters.create!(title: params[:note][:chapter_title])
     params[:note][:chapter_id] = chapter.id
@@ -118,7 +117,7 @@ def update
   end
 end
 
-  
+
   private
 
 def note_params
@@ -138,5 +137,4 @@ def update_book_current_page(book)
     book.update(current_page: max_page_to)
   end
 end
-
 end

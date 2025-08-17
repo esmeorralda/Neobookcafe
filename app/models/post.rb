@@ -29,14 +29,14 @@ enum :book_genre, [
 ]
 
 
-  accepts_nested_attributes_for :post_blocks, allow_destroy: true, reject_if: proc { |attributes| attributes['content'].blank? }
+  accepts_nested_attributes_for :post_blocks, allow_destroy: true, reject_if: proc { |attributes| attributes["content"].blank? }
   after_commit :clear_post_cache
   validates :title, presence: true, unless: :draft?
   validates :category, presence: true, unless: :draft?
   validates :book_genre, presence: true, unless: :draft?
 
   pg_search_scope :pg_search,
-    against: [:title, :book_title, :book_author],
+    against: [ :title, :book_title, :book_author ],
     associated_against: {
       user: :name,
       post_blocks: :content
@@ -45,7 +45,7 @@ enum :book_genre, [
       tsearch: { prefix: true, dictionary: "simple" }
     }
 
-    
+
 def self.book_genre_korean
   {
     philosophy: "철학",
@@ -98,7 +98,7 @@ def self.book_genre_groups
     case category.to_s
     when "creation"        then book_genre_groups[:creation]
     when "board"           then book_genre_groups[:board]
-    when "thought","discussion" then book_genre_groups[:default]
+    when "thought", "discussion" then book_genre_groups[:default]
     else
       # 카테고리 미선택(전체)일 때: 전부 합쳐 보여주기
       book_genre_groups.values.reduce(&:merge)
@@ -118,15 +118,15 @@ def self.book_genre_groups
     return nil unless book_genre
     Post.book_genre_korean[book_genre.to_sym]
   end
-  
+
   def category_kr
     return nil unless category
     Post.category_korean[category.to_sym]
   end
-  
+
   def clear_post_cache
     Rails.cache.delete_matched("posts/*")
-  end 
+  end
 
   # Check if post is bookmarked by a specific user
   def bookmarked_by?(user)
