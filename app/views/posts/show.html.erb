@@ -180,7 +180,9 @@
 <body>
 <div class="mx-auto min-h-screen py-10 px-4 font-serif">
   <!-- 본문 + 댓글 사이드바 컨테이너 -->
-  <div id="post-container" class="max-w-4xl mx-auto relative">
+<div id="post-container"
+     class="max-w-4xl mx-auto relative
+            lg:grid lg:grid-cols-[minmax(0,1fr)_600px] lg:gap-8 lg:items-start">
     <div id="left-column" class="space-y-6 text-gray-800">
       <!-- 제목 / 메타 정보 -->
       <div>
@@ -233,9 +235,15 @@
           <span></span>
         </p>
 
-        <p class="text-sm text-gray-900 mb-2 text-right">
-          <%= @post.user.name %> 씀, <%= @post.created_at.strftime('%Y년 %-m월 %-d일') %>
-        </p>
+       <p class="text-sm text-gray-900 mb-2 text-right">
+  <%= link_to @post.user.name,
+              user_path(@post.user),
+              class: "hover:underline underline-offset-2",
+              rel: "author",
+              aria: { label: "#{@post.user.name} 프로필로 이동" } %> 씀,
+  <%= @post.created_at.strftime('%Y년 %-m월 %-d일') %>
+</p>
+
 
         <% if @post.draft %>
           <p class="text-sm space-x-3 mb-2 font-medium">이 글은 작성 중입니다.</p>
@@ -281,9 +289,8 @@
                 <p id="post-block-<%= block.id %>" data-block-id="<%= block.id %>"><%= simple_format(block.content) %></p>
               <% end %>
             </div>
-
-            <% if @post.category.in?(%w[discussion thought]) && block.block_type == 'subtitle' && @post.draft != true %>
-  <div class="ml-3 mt-4 flex-shrink-0">
+<% if @post.category.in?(%w[discussion thought]) && block.block_type == 'subtitle' && @post.draft != true %>
+  <div class="ml-3 mt-4 flex-shrink-0 js-comment-toggle-container">
     <button type="button"
       class="text-xs px-2 py-0 border border-gray-300 rounded text-gray-600 hover:bg-gray-100 comment-view-btn interactive"
       style="font-family: 'Inter', sans-serif;"
@@ -292,6 +299,7 @@
     </button>
   </div>
 <% end %>
+
           </div>
         <% end %>
       </div>
@@ -527,8 +535,13 @@
       <% end %>
     </div>
 
-    <!-- 오른쪽 컬럼 : 댓글 사이드바 -->
-    <div id="comment-sidebar" class="hidden">
+ <div id="comment-sidebar"
+     class="hidden lg:block
+            lg:sticky lg:top-20
+            lg:w-[clamp(240px,28vw,380px)]
+            xl:w-[clamp(260px,26vw,420px)]
+            lg:max-h-[85vh] lg:overflow-y-auto
+            lg:bg-[#f9f6f2] lg:p-4 lg:rounded-lg lg:shadow-inner">
       <div>
         <h3 class="text-lg" style="font-family: 'Inter', sans-serif;">댓글</h3>
         <button id="close-comment-sidebar" aria-label="댓글 사이드바 닫기">&times;</button>
@@ -1018,6 +1031,36 @@ if (rt) {
     const editBlockId = edit?.dataset.blockId;
     if (editId) openEditAndPrefill(editId, editText, editBlockId);
   }
+
+  function initCommentToggle() {
+    const containers = document.querySelectorAll('.js-comment-toggle-container');
+    if (!containers.length) return;
+
+    // 기준(초기) 창 너비
+    const baseline = window.innerWidth;
+
+    const update = () => {
+      const now = window.innerWidth;
+      const hide = now <= baseline * 0.5; // 반 이하로 줄면 숨김
+      containers.forEach(el => {
+        el.classList.toggle('hidden', hide);
+        const btn = el.querySelector('.comment-view-btn');
+        if (btn) btn.setAttribute('aria-hidden', hide ? 'true' : 'false');
+      });
+    };
+
+    update();
+    // 과도한 호출 방지: 간단한 디바운스
+    let t = null;
+    window.addEventListener('resize', () => {
+      clearTimeout(t);
+      t = setTimeout(update, 120);
+    });
+  }
+
+  // 일반/Hotwire 모두 대응
+  document.addEventListener('DOMContentLoaded', initCommentToggle);
+  document.addEventListener('turbo:load', initCommentToggle);
 })();
 
 </script>

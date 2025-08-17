@@ -244,6 +244,7 @@
 </div>
 <% end %>
 <!-- 헤더(로고 근처)에 배치) -->
+<% if @show_sidebar %>
 <button id="sidebar-toggle"
         class="lg:hidden inline-flex items-center justify-center p-2 rounded-md
                bg-[#7b5845] text-white shadow
@@ -258,7 +259,7 @@
     <path d="M3 6h18v2H3V6zm0 5h18v2H3v-2zm0 5h18v2H3v-2z"/>
   </svg>
 </button>
-
+<% end %>
 
 
 
