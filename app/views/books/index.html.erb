@@ -1,146 +1,176 @@
 <div class="max-w-4xl mx-auto mt-10 p-8">
-<div class="mb-10  overflow-y-auto pr-1">
-  <h1 class="text-3xl font-bold ">독서 기록장</h1>
-  <p class="text-sm text-gray-500 mt-1">
-    개인적으로 책을 읽으며 남기는 메모 공간입니다.
-  </p>
-</div>
-
-
-  <% if @books.blank? || @books.all? { |book| book.notes.blank? } %>
- <div class="mt-8">
-  <div class="flex min-h-[40vh] flex-col items-center justify-center text-center">
-    <p class="text-lg text-gray-500">아직 작성된 독서 기록이 없습니다.</p>
-    <%= link_to "독서 기록 추가하기",
-      new_note_path,
-      class: "mt-3 text-black text-sm hover:underline underline-offset-2 focus:underline focus:outline-none" %>
+  <!-- 헤더 -->
+  <div class="mb-10 overflow-y-auto pr-1">
+    <h1 class="text-3xl font-bold">독서 기록장</h1>
+    <p class="text-sm text-gray-500 mt-1">개인적으로 책을 읽으며 남기는 메모 공간입니다.</p>
   </div>
-</div>
 
+  <% if @books.blank? || @books.all? { |b| b.notes.blank? } %>
+    <!-- 빈 상태 -->
+    <div class="mt-10">
+      <div class="flex min-h-[40vh] flex-col items-center justify-center text-center">
+        <p class="text-lg text-gray-500">아직 작성된 독서 기록이 없습니다.</p>
+        <%= link_to "독서 기록 추가하기",
+                    new_note_path,
+                    class: "mt-3 text-black text-sm hover:underline underline-offset-2 focus:underline focus:outline-none" %>
+      </div>
+    </div>
 
   <% else %>
     <% @books.each do |book| %>
-      <% recent_notes = book.notes.order(position: :desc).limit(3) %>
-<div>
-  <!-- 책 제목 + 전체 쪽수 + 진행률 -->
-  <div class="flex justify-between items-center mb-4">
-    <div class="text-xl font-semibold text-gray-800 flex items-center">
-      <%= book.title %>
+      <% recent_notes   = book.notes.order(position: :desc).limit(3) %>
+      <% total_pages    = book.total_pages.to_i %>
+      <% current_page   = book.current_page.to_i %>
+      <% progress_ratio = (total_pages > 0 ? current_page.to_f / total_pages : 0.0) %>
+      <% progress_pct   = (progress_ratio * 100).round %>
 
-      <% total_pages = book.total_pages || 0 %>
-      <% current_page = book.current_page || 0 %>
+      <!-- 책 타이틀/진행률 -->
+      <div class="flex justify-between items-center mb-4">
+        <div class="text-xl font-semibold text-gray-800 flex items-center">
+          <%= book.title %>
 
-     <!-- 진행률 텍스트 + 차트 감싸는 flex 박스 -->
-<span class="ml-4 text-sm flex items-center" style="color: #815e4e; font-weight: 350;">
-  <%= current_page %>쪽 · 
-  <%= total_pages > 0 ? number_to_percentage((current_page.to_f / total_pages) * 100, precision: 0) : "0%" %> ·
-<% progress_percent = total_pages > 0 ? (current_page.to_f / total_pages * 100) : 0 %>
-  <!-- div 대신 span 으로 변경 -->
-  <span id="progress1" class="ml-1 inline-block" style="width: 20px; height: 20px;" 
-        data-current-page="<%= current_page %>" 
-        data-total-pages="<%= total_pages %>">
-  </span>
+          <span class="ml-4 text-sm flex items-center" style="color:#815e4e;font-weight:350;">
+            <%= current_page %>쪽 · <%= total_pages > 0 ? number_to_percentage(progress_pct, precision: 0) : "0%" %> ·
+            <span data-progress-circle
+                  class="ml-1 inline-block align-middle"
+                  style="width:20px;height:20px;"
+                  data-current-page="<%= current_page %>"
+                  data-total-pages="<%= total_pages %>"></span>
 
-  <% if progress_percent >= 85 %>
-   <!-- app/views/books/show.html.erb (혹은 index.html.erb 등) -->
-<button class="export-btn ml-3 px-2 py-1 text-black text-xs bg-white rounded hover:bg-[#6b4f3f] border border-gray" 
-        data-book-id="<%= book.id %>" 
-        data-book-title="<%= j book.title %>">
-  노트 내보내기
-</button>
+            <% if progress_pct >= 85 %>
+              <button class="export-btn ml-3 px-2 py-1 text-black text-xs bg-white rounded hover:bg-[#6b4f3f] border border-gray-300"
+                      data-book-id="<%= book.id %>"
+                      data-book-title="<%= j book.title %>">
+                노트 내보내기
+              </button>
+            <% end %>
+          </span>
+        </div>
 
-  <% end %>
-</span>
-
-    </div>
-
-    <%= link_to "더보기 »", book_path(book), class: "text-sm text-gray-500 hover:underline" %>
-  </div>
-</div>
-
-<div class="flex flex-wrap gap-6 relative ">
-<% fold_px = 28 %> <!-- 접힌 모서리 크기 (px) -->
-<% corner_map = {
-     '#FFFFCD' => '#E0E0A7', # 노랑
-     '#E3FFDC' => '#B5D3AE', # 연두
-     '#FFF0F8' => '#EDC6DB', # 핑크
-     '#E1FAFF' => '#B1D6DD'  # 하늘
-   } %>
-
-<% recent_notes.each_with_index do |note, index| %>
-  <!-- 메모지 카드 -->
-   <% bg = (note.color || '#f7f7cf') %>
-   <% corner = corner_map[bg.to_s.upcase] || '#e5e5d7' %>
-   
-   <%= link_to note_path(note), 
-   class: "relative shadow-md block w-56 aspect-square p-5 pt-10 pb-8 font-serif overflow-hidden shadow-[0_10px_20px_rgba(0,0,0,0.25)]",
-   style: "
-     background-color: #{note.color || '#f7f7cf'};
-     clip-path: polygon(
-       0 0,
-       100% 0,
-       100% calc(100% - 40px),
-       calc(100% - 40px) 100%,
-       0 100%
-     );
-   " do %>
-
-    <!-- 상단 메타 -->
-    <div class="absolute top-3 left-3 text-[13px] text-gray-600 font-medium">
-      <% if note.page_from && note.page_to %>
-        <%= note.page_from %>~<%= note.page_to %>쪽
-      <% elsif note.page_from %>
-        <%= note.page_from %>쪽
-      <% end %>
-    </div>
-    <div class="absolute top-3 right-3 text-[13px] text-gray-600">
-      <%= note.created_at.strftime('%d/%m/%Y') %>
-    </div>
-
-    <!-- 내용 -->
-    <div class="whitespace-pre-line text-gray-800 text-sm leading-relaxed overflow-hidden text-ellipsis line-clamp-8">
-      <%= truncate(note.memo, length: 300) %>
-    </div>
-
-    <!-- 하단 바닥 그림자 (자연스러운 떠있는 느낌) -->
-    <div class="pointer-events-none absolute -bottom-2 left-3 right-10 h-3 rounded-full bg-black/10 blur-md"></div>
-
-    <!-- 접힌 모서리: 본체 -->
-    <div
-      class="absolute bottom-0 right-0 w-10 h-10
-             [clip-path:polygon(0_0,100%_0,100%_100%)]
-             bg-[#e5e5d7]
-             shadow-[inset_0_1px_0_rgba(0,0,0,0.12),inset_1px_0_0_rgba(0,0,0,0.10)]"
-             style="
-             background-color: <%= corner %>;
-           
-           "
-    ></div>
-    <!-- 접힌 모서리: 하이라이트/그라데이션 -->
-    <div
-      class="pointer-events-none absolute bottom-0 right-0 w-10 h-10
-             [clip-path:polygon(0_0,100%_0,100%_100%)]
-             bg-gradient-to-br from-white/45 via-transparent to-black/25"
-    ></div>
-
-
-  <%end%>
-
-  <% if index == 2 && book.notes.count > 3 %>
-    <div class="flex items-center text-xl text-gray-500">...</div>
-  <% end %>
-<% end %>
-</div>
-
-        <hr class="my-10 border-t border-gray-300">
+        <%= link_to "더보기 »", book_path(book), class: "text-sm text-gray-500 hover:underline" %>
       </div>
+
+      <!-- 최근 노트 3개 (첨부 스타일 적용) -->
+      <div class="notes-grid">
+        <% fold_px = 28 %> <!-- 첨부 이미지와 유사한 접힘 크기 -->
+        <% corner_map = {
+             '#FFFFCD' => '#E0E0A7', # 노랑
+             '#E3FFDC' => '#B5D3AE', # 연두
+             '#FFF0F8' => '#EDC6DB', # 핑크
+             '#E1FAFF' => '#B1D6DD'  # 하늘
+           } %>
+
+        <% recent_notes.each_with_index do |note, idx| %>
+          <% bg_hex  = (note.color.presence || '#FFFFCD').to_s.upcase %>
+          <% corner = corner_map[bg_hex] || '#E5E5D7' %>
+
+          <!-- 랩퍼: 접힌 모서리는 랩퍼 기준으로 포개기 -->
+          <div class="sticky-wrap" style="--fold:<%= fold_px %>px; --note-bg:<%= bg_hex %>; --corner:<%= corner %>;">
+            <!-- 카드(클릭 영역) -->
+            <%= link_to note_path(note), class: "sticky" do %>
+              <!-- 상단 메타 -->
+              <div class="meta-left">
+                <% if note.page_from && note.page_to %>
+                  <%= note.page_from %>~<%= note.page_to %>쪽
+                <% elsif note.page_from %>
+                  <%= note.page_from %>쪽
+                <% end %>
+              </div>
+              <div class="meta-right"><%= note.created_at.strftime('%d/%m/%Y') %></div>
+
+              <!-- 내용 -->
+              <div class="content">
+                <%= truncate(note.memo.presence || note.try(:content), length: 300) %>
+              </div>
+
+              <!-- 바닥 그림자 (카드 자체) -->
+              <div class="sticky-shadow"></div>
+            <% end %>
+
+            <!-- 접힌 모서리: 본체(카드 우하단 안쪽) -->
+            <span class="fold-core"></span>
+           <span class="fold-under"></span>
+          </div>
+
+          <% if idx == 2 && book.notes.size > 3 %>
+            <div class="more-dots">...</div>
+          <% end %>
+        <% end %>
+      </div>
+
+      <hr class="my-10 border-t border-gray-300">
     <% end %>
   <% end %>
 </div>
 
 <style>
+/* --- Sticky Note 스타일 (첨부 이미지 룩) --- */
+.notes-grid { display:flex; flex-wrap:wrap; gap:24px; }
 
+/* 랩퍼: 접힌 삼각형을 카드에 정확히 포개기 */
+.sticky-wrap { position:relative; width:220px; }
+
+/* 메모 본체 */
+.sticky{
+  position:relative; display:block;
+  width:220px; aspect-ratio:1 / 1;
+  padding:20px 22px 24px 22px;
+  font-family: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+  background: var(--note-bg, #FFFFCD);
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - var(--fold,28px)),
+                     calc(100% - var(--fold,28px)) 100%, 0 100%);
+  box-shadow: 0 10px 20px rgba(0,0,0,.22); /* 첨부 이미지와 유사한 섀도우 */
+}
+
+/* 상단 메타 */
+.sticky .meta-left{
+  position:absolute; top:12px; left:12px;
+  font-size:13px; color:#6b7280; font-weight:500;
+}
+.sticky .meta-right{
+  position:absolute; top:12px; right:12px;
+  font-size:13px; color:#6b7280;
+}
+
+/* 본문 텍스트 */
+.sticky .content{
+  color:#1f2937; font-size:14px; line-height:1.75;
+  white-space:pre-line; overflow:hidden;
+  display:-webkit-box; -webkit-line-clamp:8; -webkit-box-orient:vertical;
+}
+
+/* 카드 아래 그림자(자연스러운 떠있는 느낌) */
+.sticky-shadow{
+  pointer-events:none;
+  position:absolute; left:12px; right:40px; bottom:-6px; height:10px;
+  border-radius:9999px; background:rgba(0,0,0,.10); filter:blur(6px);
+}
+
+/* 접힌 삼각형: 본체(카드 우하단 안쪽) */
+.fold-core{
+  position:absolute; right:0; bottom:0;
+  width:var(--fold,28px); height:var(--fold,28px);
+  background:var(--corner, #E0E0A7);
+  clip-path:polygon(0 0, 100% 0, 100% 100%);
+   transform:rotate(-90deg);
+  filter: drop-shadow(0 1px 0 rgba(0,0,0,0.12)) drop-shadow(1px 0 0 rgba(0,0,0,0.10));
+}
+
+.fold-under{
+  position:absolute; right:0; bottom:0;
+  width:calc(var(--fold,40px) );
+  height:calc(var(--fold,40px) );
+  clip-path:polygon(0 100%, 100% 0, 100% 100%);
+  background:linear-gradient(135deg, #ffffff 12%, #ffffff 48%, rgba(0,0,0,.18) 100%);
+  transform:translate(2px,2px);
+     transform:rotate(-180deg);
+  opacity:.95; mix-blend-mode:multiply; z-index:0;
+}
+/* 더보기 표식 */
+.more-dots{ display:flex; align-items:center; color:#6b7280; font-size:20px; }
 </style>
+
+
 <script src="https://cdn.jsdelivr.net/npm/progressbar.js"></script>
 
 <script>

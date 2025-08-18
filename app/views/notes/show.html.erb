@@ -15,9 +15,9 @@
     '#E1FAFF' => '#B1D6DD'  # 하늘
   } %>
   <% fold_px = 40 %>
-  <% bg = (@note.color || '#f7f7cf').to_s.upcase %>
-  <% corner = corner_map[bg] || '#e5e5d7' %>
-  <% base_bg = @note.color.presence || '#f7f7cf' %>
+  <% bg_hex  = (@note.color.presence || '#FFFFCD').to_s.upcase %>
+  <% corner  = corner_map[bg_hex] || '#E5E5D7' %>
+  <% base_bg = @note.color.presence || '#FFFFCD' %>
 
   <!-- 편집/삭제 버튼 (메모지 바깥) -->
   <div class="absolute top-0 -right-20 flex flex-col space-y-2">
@@ -30,55 +30,78 @@
   </div>
 
   <!-- 메모지 카드 (접힌 모서리 포함) -->
-  <div class="relative p-8 mt-10 shadow-md font-serif overflow-hidden"
-       style="
-         background-color:<%= base_bg %>;
-         clip-path: polygon(
-           0 0,
-           100% 0,
-           100% calc(100% - <%= fold_px %>px),
-           calc(100% - <%= fold_px %>px) 100%,
-           0 100%
-         );
-       ">
-    <!-- 상단 메타: 쪽수 / 날짜 -->
-    <div class="flex justify-between items-start mb-6">
-      <p class="text-sm text-gray-600">
-        <% if @note.page_from && @note.page_to %>
-          <%= @note.page_from %>~<%= @note.page_to %>쪽
-        <% elsif @note.page_from %>
-          <%= @note.page_from %>쪽
-        <% end %>
-      </p>
-      <p class="text-sm text-gray-600"><%= @note.created_at.strftime('%d/%m/%Y') %></p>
+  <div class="note-wrap mt-10"
+       style="--fold:<%= fold_px %>px; --note-bg:<%= base_bg %>; --corner:<%= corner %>;">
+    <div class="note p-8 shadow-md font-serif overflow-hidden">
+      <!-- 상단 메타: 쪽수 / 날짜 -->
+      <div class="flex justify-between items-start mb-6">
+        <p class="text-sm text-gray-600">
+          <% if @note.page_from && @note.page_to %>
+            <%= @note.page_from %>~<%= @note.page_to %>쪽
+          <% elsif @note.page_from %>
+            <%= @note.page_from %>쪽
+          <% end %>
+        </p>
+        <p class="text-sm text-gray-600"><%= @note.created_at.strftime('%d/%m/%Y') %></p>
+      </div>
+
+      <!-- 메모 내용 -->
+      <div class="whitespace-pre-wrap text-black leading-relaxed space-y-2">
+        <%= @note.memo %>
+      </div>
+
+      <!-- 바닥 그림자(부드럽게 떠있는 느낌) -->
+      <div class="note-shadow"></div>
     </div>
 
-    <!-- 메모 내용 -->
-    <div class="whitespace-pre-wrap text-black leading-relaxed space-y-2">
-      <%= @note.memo %>
-    </div>
-
-    <!-- 바닥 그림자(부드럽게 떠있는 느낌) -->
-    <div class="pointer-events-none absolute -bottom-2 left-3 right-10 h-3 rounded-full bg-black/10 blur-md"></div>
-
-    <!-- 접힌 모서리: 본체 -->
-    <div
-    class="absolute bottom-0 right-0 w-10 h-10
-           [clip-path:polygon(0_0,100%_0,100%_100%)]
-           bg-[#e5e5d7]
-           shadow-[inset_0_1px_0_rgba(0,0,0,0.12),inset_1px_0_0_rgba(0,0,0,0.10)]"
-           style="
-           background-color: <%= corner %>;
-         
-         "
-  ></div>
-
-    <!-- 접힌 모서리: 하이라이트 -->
-    <div
-    class="pointer-events-none absolute bottom-0 right-0 w-10 h-10
-           [clip-path:polygon(0_0,100%_0,100%_100%)]
-           bg-gradient-to-br from-white/45 via-transparent to-black/25"
-  ></div>
-
+    <!-- 접힌 모서리: 앞면(코너 색) + 뒷면(종이면) -->
+    <span class="fold-core"></span>
+    <span class="fold-under"></span>
   </div>
 </div>
+
+<style>
+/* 랩퍼: 카드와 코너를 정확히 포개기 */
+.note-wrap{ position:relative; }
+
+/* 카드 본체: 우하단을 잘라 코너 공간 확보 (fold=CSS 변수) */
+.note{
+  position:relative; background:var(--note-bg,#FFFFCD); border-radius:2px;
+  /* 원하는 비율이 있다면 아래 줄 추가: aspect-ratio: 1 / 1; */
+  clip-path:polygon(
+    0 0, 100% 0,
+    100% calc(100% - var(--fold,40px)),
+    calc(100% - var(--fold,40px)) 100%,
+    0 100%
+  );
+  box-shadow:0 12px 24px rgba(0,0,0,.22);
+}
+
+/* 바닥 타원 그림자 */
+.note-shadow{
+  pointer-events:none; position:absolute; left:18px; right:calc(var(--fold,40px) + 12px);
+  bottom:-8px; height:12px; border-radius:9999px;
+  background:rgba(0,0,0,.10); filter:blur(8px);
+}
+
+/* 접힌 삼각형: 본체(카드 우하단 안쪽) */
+.fold-core{
+  position:absolute; right:0; bottom:0;
+  width:var(--fold,28px); height:var(--fold,28px);
+  background:var(--corner, #E0E0A7);
+  clip-path:polygon(0 0, 100% 0, 100% 100%);
+   transform:rotate(-90deg);
+  filter: drop-shadow(0 1px 0 rgba(0,0,0,0.12)) drop-shadow(1px 0 0 rgba(0,0,0,0.10));
+}
+.fold-under{
+  position:absolute; right:0; bottom:0;
+  width:calc(var(--fold,40px) );
+  height:calc(var(--fold,40px) );
+  clip-path:polygon(0 100%, 100% 0, 100% 100%);
+  background:linear-gradient(135deg, #ffffff 12%, #ffffff 48%, rgba(0,0,0,.18) 100%);
+  transform:translate(2px,2px);
+     transform:rotate(-180deg);
+  opacity:.95; mix-blend-mode:multiply; z-index:0;
+}
+
+</style>
