@@ -173,7 +173,8 @@
 <body>
 <div class="mx-auto min-h-screen py-10 px-4 font-serif">
   <!-- 본문 + 댓글 사이드바 컨테이너 -->
- <div id="post-container" class="max-w-4xl mx-auto relative">
+<div id="post-container" class="max-w-2xl md:max-w-[52rem] lg:max-w-3xl mx-auto relative">
+
     <div id="left-column" class="space-y-6 text-gray-800">
       <!-- 제목 / 메타 정보 -->
       <div>
@@ -185,7 +186,10 @@
           <div class="flex space-x-2" style="font-family: 'Inter', sans-serif;">
             <% if user_signed_in? && @post.user_id == current_user.id %>
   
-      <button
+     
+
+<div class="flex flex-col sm:flex-row items-stretch gap-2 w-full sm:w-auto">
+ <button
   id="copy-link-btn"
   data-url="<%= post_url(@post) %>"
   class="inline-flex items-center justify-center w-9 h-9 px-2 rounded-md border border-gray-300 bg-white hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-[#b88b65]/60 focus:ring-offset-1 interactive"
@@ -196,16 +200,16 @@
         alt: "" %>
 </button>
 
-
-
-             <%= link_to "편집", edit_post_path(@post),
-      class: "inline-flex items-center justify-center h-9 px-3 text-sm rounded bg-[#b88b65] text-white hover:bg-[#a27958]" %>
+  <%= link_to "편집", edit_post_path(@post),
+      class: "inline-flex items-center justify-center h-9 px-3 w-full sm:w-auto text-sm rounded bg-[#b88b65] text-white hover:bg-[#a27958] whitespace-nowrap" %>
 
   <%= button_to "삭제", post_path(@post),
       method: :delete,
       data: { confirm: "정말 삭제하시겠습니까?" },
-      form: { class: "inline-block m-0" },
-      class: "inline-flex items-center justify-center h-9 px-3 text-sm rounded border border-gray-300 bg-white hover:bg-red-100" %>
+      form: { class: "inline-block m-0 w-full sm:w-auto" },
+      class: "inline-flex items-center justify-center h-9 px-3 w-full sm:w-auto text-sm rounded border border-gray-300 bg-white hover:bg-red-100 whitespace-nowrap" %>
+</div>
+
             <% elsif user_signed_in? && current_user.bookmarked_posts.exists?(@post.id) %>
               <%= button_to post_unbookmark_path(@post), method: :delete, class: "flex items-center interactive" do %>
                 <%= image_tag "icon/post/Vector 41.svg", class: "w-4 h-6 fill-current text-[#2c1a0d]" %>
@@ -530,6 +534,8 @@
       <% end %>
     </div>
 
+    
+
  <div id="comment-sidebar"
      class="hidden lg:block
             lg:sticky lg:top-20
@@ -538,6 +544,8 @@
             lg:max-h-[85vh] lg:overflow-y-auto
             lg:bg-[#f9f6f2] lg:p-4 lg:rounded-lg lg:shadow-inner">
       <div>
+
+      
         <h3 class="text-lg" style="font-family: 'Inter', sans-serif;">댓글</h3>
         <button id="close-comment-sidebar" aria-label="댓글 사이드바 닫기">&times;</button>
       </div>
