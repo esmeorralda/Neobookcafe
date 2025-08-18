@@ -198,10 +198,14 @@
 
 
 
-              <%= link_to "편집", edit_post_path(@post), class: "bg-[#b88b65] text-white px-3 py-1 text-sm hover:bg-[#a27958] interactive" %>
-              <%= button_to post_path(@post), method: :delete, data: { confirm: "정말 삭제하시겠습니까?" }, class: "border border-gray-300 bg-white px-3 py-1 text-sm hover:bg-red-100 interactive" do %>
-                삭제
-              <% end %>
+             <%= link_to "편집", edit_post_path(@post),
+      class: "inline-flex items-center justify-center h-9 px-3 text-sm rounded bg-[#b88b65] text-white hover:bg-[#a27958]" %>
+
+  <%= button_to "삭제", post_path(@post),
+      method: :delete,
+      data: { confirm: "정말 삭제하시겠습니까?" },
+      form: { class: "inline-block m-0" },
+      class: "inline-flex items-center justify-center h-9 px-3 text-sm rounded border border-gray-300 bg-white hover:bg-red-100" %>
             <% elsif user_signed_in? && current_user.bookmarked_posts.exists?(@post.id) %>
               <%= button_to post_unbookmark_path(@post), method: :delete, class: "flex items-center interactive" do %>
                 <%= image_tag "icon/post/Vector 41.svg", class: "w-4 h-6 fill-current text-[#2c1a0d]" %>
