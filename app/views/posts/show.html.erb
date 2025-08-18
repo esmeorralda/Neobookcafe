@@ -213,11 +213,13 @@
             <% elsif user_signed_in? && current_user.bookmarked_posts.exists?(@post.id) %>
               <%= button_to post_unbookmark_path(@post), method: :delete, class: "flex items-center interactive" do %>
                 <%= image_tag "icon/post/Vector 41.svg", class: "w-4 h-6 fill-current text-[#2c1a0d]" %>
-              <% end %>
+<% end %>
+
             <% elsif user_signed_in? %>
               <%= button_to post_bookmark_path(@post), method: :post, class: "flex items-center interactive" do %>
-                <%= image_tag "icon/post/Vector 40.svg", class: "w-4 h-6 fill-current text-gray-400" %>
-              <% end %>
+  <%= image_tag "icon/post/Vector 40.svg", class: "w-4 h-6 fill-current text-gray-400" %>
+<% end %>
+               
             <% end %>
           </div>
         </div>
@@ -382,7 +384,7 @@
 
           <!-- 댓글 리스트 -->
           <div class="space-y-4">
-            <% @comments.where(parent_id: nil).each do |comment| %>
+           <% @comments.each do |comment| %>
               <div class="comment rounded-md p-4 bg-white shadow-sm" data-comment-id="<%= comment.id %>">
                 <!-- 유저 이름 + 날짜 + 좋아요 + 버튼 -->
                 <div class="flex justify-between items-start">
@@ -403,11 +405,16 @@
                           class: 'edit-comment-button text-xs hover:underline interactive',
                           data: { comment_id: comment.id },
                           style: "font-family: 'Inter', sans-serif;" %>
-                      <%= link_to '삭제', comment_path(comment),
-                          method: :delete,
-                          data: { confirm: '정말 삭제하시겠습니까?' },
-                          class: 'text-xs text-red-500 hover:underline',
-                          style: 'font-family: Inter, sans-serif;' %>
+              <%= button_to '삭제', comment_path(comment),
+  method: :delete,
+  # turbo_confirm 제거, 대신 커스텀 JS로 2-step 삭제
+  form:  { class: 'inline-block m-0 js-two-step-delete',
+           data:  { confirm_label: '한번 더 누르면 삭제', timeout: 4000 } },
+  class: 'text-xs text-red-600 hover:text-red-700 hover:underline js-two-step-delete-btn',
+  style: 'color:#dc2626 !important; background:none; border:0; padding:0;'
+%>
+
+
                     <% end %>
                   </div>
                 </div>
@@ -481,11 +488,14 @@
                            class: 'edit-comment-button text-xs hover:underline interactive',
                            data: { comment_id: reply.id },
                            style: "font-family: 'Inter', sans-serif;" %>
-                       <%= link_to '삭제', comment_path(reply),
-                           method: :delete,
-                           data: { confirm: '정말 삭제하시겠습니까?' },
-                           class: 'text-xs text-red-500 hover:underline',
-                           style: 'font-family: Inter, sans-serif;' %>
+                           <%= button_to '삭제', comment_path(comment),
+  method: :delete,
+  # turbo_confirm 제거, 대신 커스텀 JS로 2-step 삭제
+  form:  { class: 'inline-block m-0 js-two-step-delete',
+           data:  { confirm_label: '한번 더 누르면 삭제', timeout: 4000 } },
+  class: 'text-xs text-red-600 hover:text-red-700 hover:underline js-two-step-delete-btn',
+  style: 'color:#dc2626 !important; background:none; border:0; padding:0;'
+%>
                      <% end %>
                    </div>
                  </div>
@@ -556,94 +566,110 @@
   </div>
 
   <!-- 숨겨진 댓글 폼들 (초기에는 숨김) -->
-  <div id="hidden-comment-forms" class="hidden">
-    <% @post.post_blocks.order(:position).each do |block| %>
-      <div id="comment-form-<%= block.id %>" class="hidden mt-2 mb-10 rounded p-4 bg-[#f9f6f2]">
-        <% comments = Comment.where(post_block_id: block.id).order(created_at: :asc) %>
-        <% if comments.any? %>
-          <div class="space-y-3 overflow-y-auto pb-3" style="max-height: 500px;">
-            <% comments.each do |comment| %>
-              <div class="comment border-b border-[#d1c4b2] pb-2 mb-2">
-                <!-- 상단: 유저이름 / 날짜 + 하트 -->
-                <div class="flex justify-between items-start">
-                  <p class="font-semibold text-gray-800 text-sm" style="font-family: 'Noto Serif KR', serif;"><%= comment.user.name %></p>
-                  <div class="flex items-center space-x-2" style="line-height: 1.25; font-size: 0.75rem; font-family: 'Inter', sans-serif;">
-                    <p class="text-xs text-gray-500"><%= comment.created_at.strftime('%Y년 %-m월 %-d일 %H:%M') %></p>
-                    <%= render partial: 'comment_like', locals: { likeable: comment } %>
-                    <div class="flex items-center space-x-2">
-                      <%= button_tag '편집',
-                          type: 'button',
-                          class: 'edit-comment-button text-xs hover:underline interactive',
-                          data: { comment_id: comment.id },
-                          style: "font-family: 'Inter', sans-serif;" %>
-                      <%= link_to '삭제', comment_path(comment), method: :delete, data: { confirm: '정말 삭제하시겠습니까?' }, class: 'text-xs text-red-500 hover:underline' %>
-                    </div>
+<div id="hidden-comment-forms" class="hidden">
+  <% @post.post_blocks.order(:position).each do |block| %>
+    <div id="comment-form-<%= block.id %>" class="hidden mt-2 mb-10 rounded p-4 bg-[#f9f6f2]">
+      <% comments = (@comments_by_block && @comments_by_block[block.id]) || [] %>
+
+      <% if comments.any? %>
+        <div class="space-y-3 overflow-y-auto pb-3" style="max-height: 500px;">
+          <% comments.each do |comment| %>
+            <div class="comment border-b border-[#d1c4b2] pb-2 mb-2">
+              <!-- 상단: 유저이름 / 날짜 + 하트 -->
+              <div class="flex justify-between items-start">
+                <p class="font-semibold text-gray-800 text-sm" style="font-family: 'Noto Serif KR', serif;">
+                  <%= comment.user.name %>
+                </p>
+                <div class="flex items-center space-x-2" style="line-height: 1.25; font-size: 0.75rem; font-family: 'Inter', sans-serif;">
+                  <p class="text-xs text-gray-500"><%= comment.created_at.strftime('%Y년 %-m월 %-d일 %H:%M') %></p>
+                  <%= render partial: 'comment_like', locals: { likeable: comment } %>
+                  <div class="flex items-center space-x-2">
+                    <%= button_tag '편집',
+                        type: 'button',
+                        class: 'edit-comment-button text-xs hover:underline interactive',
+                        data: { comment_id: comment.id },
+                        style: "font-family: 'Inter', sans-serif;" %>
+                <%= button_to '삭제', comment_path(comment),
+  method: :delete,
+  form:  { class: 'inline-block m-0 js-two-step-delete',
+           data:  { confirm_label: '한번 더 누르면 삭제', timeout: 4000 } },
+  class: 'js-two-step-delete-btn text-red-600 hover:text-red-700 hover:underline leading-none',
+  style: 'font-family: Inter, sans-serif; font-size: 12px !important; line-height: 1 !important; color:#dc2626 !important; background:transparent !important; border:0 !important; padding:0 !important;'
+%>
+
                   </div>
                 </div>
-
-                <!-- 본문 -->
-                <p id="comment-content-<%= comment.id %>" class="comment-content text-sm mt-2 text-gray-700">
-                  <%= comment.content %>
-                </p>
-
-                <%
-                  line_height = 22
-                  max_chars_per_line = 50
-                  content_text = (comment.content || "").to_s
-                  lines = content_text.split("\n")
-                  total_lines = lines.inject(0) do |acc, line|
-                    if line.strip.empty?
-                      acc + 1
-                    else
-                      line_len = line.gsub("\t", "    ").length
-                      acc + (line_len / max_chars_per_line.to_f).ceil
-                    end
-                  end
-                  estimated_lines = [2, total_lines].max
-                  initial_height = estimated_lines * line_height
-                %>
-
-                <div id="comment-edit-form-<%= comment.id %>" class="comment-edit-form hidden mt-2">
-                  <%= form_with model: comment, url: comment_path(comment), method: :patch do |f| %>
-                   <%= f.text_area :content,
-    value: content_text,
-    style: "height: #{initial_height}px; min-height: #{2*line_height}px; resize: vertical;",
-    class: "w-full p-2 border border-[#d1c4b2] rounded text-sm focus:outline-none focus:ring-1 focus:ring-[#b88b65] mb-2 auto-resize-textarea" %>
-
-                    <div class="w-full flex justify-end space-x-2">
-                      <%= f.submit '저장', class: "px-2 py-1 bg-[#5d3b2e] text-white rounded text-xs cursor-pointer" %>
-                      <button type="button" class="cancel-edit-btn px-2 py-1 bg-gray-300 rounded text-xs cursor-pointer">취소</button>
-                    </div>
-                  <% end %>
-                </div>
               </div>
-            <% end %>
-          </div>
-        <% else %>
-          <p class="text-gray-500 text-sm italic mb-4">
-  소주제 ‘<%= h(truncate(block.content.to_s, length: 40)) %>’에 대한 댓글을 자유롭게 달아보세요.
-</p>
 
-        <% end %>
+              <!-- 본문 -->
+              <p id="comment-content-<%= comment.id %>" class="comment-content text-sm mt-2 text-gray-700">
+                <%= comment.content %>
+              </p>
 
-        <!-- ⚠️ 중복 id 방지: 폼 id를 블록별로 고유하게 -->
-        <%= form_with model: Comment.new, url: post_comments_path(@post), local: true, html: { id: "hidden-comment-form-for-#{block.id}" } do |f| %>
-          <%= f.hidden_field :post_block_id, value: block.id %>
-          <%= f.hidden_field :post_id, value: @post.id %>
-          <div class="mb-1 comment-content">
+              <%
+                line_height = 22
+                max_chars_per_line = 50
+                content_text = (comment.content || "").to_s
+                lines = content_text.split("\n")
+                total_lines = lines.inject(0) do |acc, line|
+                  if line.strip.empty?
+                    acc + 1
+                  else
+                    line_len = line.gsub("\t", "    ").length
+                    acc + (line_len / max_chars_per_line.to_f).ceil
+                  end
+                end
+                estimated_lines = [2, total_lines].max
+                initial_height = estimated_lines * line_height
+              %>
+
+              <div id="comment-edit-form-<%= comment.id %>" class="comment-edit-form hidden mt-2">
+                <%= form_with model: comment, url: comment_path(comment), method: :patch do |f| %>
+                  <%= f.text_area :content,
+                      value: content_text,
+                      style: "height: #{initial_height}px; min-height: #{2*line_height}px; resize: vertical;",
+                      class: "w-full p-2 border border-[#d1c4b2] rounded text-sm focus:outline-none focus:ring-1 focus:ring-[#b88b65] mb-2 auto-resize-textarea" %>
+
+                  <div class="w-full flex justify-end space-x-2">
+                    <%= f.submit '저장', class: "px-2 py-1 bg-[#5d3b2e] text-white rounded text-xs cursor-pointer" %>
+                    <button type="button" class="cancel-edit-btn px-2 py-1 bg-gray-300 rounded text-xs cursor-pointer">취소</button>
+                  </div>
+                <% end %>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      <% else %>
+        <p class="text-gray-500 text-sm italic mb-4">
+          소주제 ‘<%= h(truncate(block.content.to_s, length: 40)) %>’에 대한 댓글을 자유롭게 달아보세요.
+        </p>
+      <% end %>
+
+      <!-- ⚠️ 중복 id 방지: 폼 id를 블록별로 고유하게 -->
+      <%= form_with model: Comment.new,
+      url: post_comments_path(@post),
+      local: true,
+      html: {
+        id:   "hidden-comment-form-for-#{block.id}",
+        data: { role: "block-new-comment", block_id: block.id } 
+      } do |f| %>
+        <%= f.hidden_field :post_block_id, value: block.id %>
+        <%= f.hidden_field :post_id, value: @post.id %>
+        <div class="mb-1 comment-content">
           <% block_new_draft =
-       (flash[:new_comment_draft] if flash[:draft_post_block_id].to_i == block.id && flash[:draft_parent_id].blank?) %>
-            <%= f.text_area :content,  value: block_new_draft, placeholder: "댓글을 작성해주세요", rows: 3, style: "min-height: 6rem;", class: "auto-resize-textarea w-full p-2 border border-[#d1c4b2] rounded text-sm focus:outline-none focus:ring-1 focus:ring-[#b88b65]" %>
-          </div>
-          <div class="flex justify-end mt-0" data-requires-auth="true">
-            <button type="submit" class="px-4 py-2 bg-[#5d3b2e] text-white rounded text-sm" style="font-family: 'Inter', sans-serif;">
-              댓글 등록
-            </button>
-          </div>
-        <% end %>
-      </div>
-    <% end %>
-  </div>
+              (flash[:new_comment_draft] if flash[:draft_post_block_id].to_i == block.id && flash[:draft_parent_id].blank?) %>
+          <%= f.text_area :content, value: block_new_draft, placeholder: "댓글을 작성해주세요", rows: 3, style: "min-height: 6rem;", class: "auto-resize-textarea w-full p-2 border border-[#d1c4b2] rounded text-sm focus:outline-none focus:ring-1 focus:ring-[#b88b65]" %>
+        </div>
+        <div class="flex justify-end mt-0" data-requires-auth="true">
+          <button type="submit" class="px-4 py-2 bg-[#5d3b2e] text-white rounded text-sm" style="font-family: 'Inter', sans-serif;">
+            댓글 등록
+          </button>
+        </div>
+      <% end %>
+    </div>
+  <% end %>
+</div>
+
 </div>
 
 <div id="rehydrate-sidebar-draft"
@@ -786,32 +812,35 @@ document.addEventListener('click', function (e) {
               .querySelectorAll('textarea.auto-resize-textarea')
               .forEach(autoResize);
 
-            // Optional: keep AJAX submit; if server returns {redirect_url}, follow it to show flash
-            const form = commentSidebarContent.querySelector('form');
-            if (form && !form.dataset.bound) {
-              form.dataset.bound = '1';
-              form.addEventListener('submit', async (e) => {
-                e.preventDefault();
-                const token = document.querySelector('meta[name="csrf-token"]').content;
-                const res = await fetch(form.action, {
-                  method: form.method.toUpperCase(),
-                  headers: { 'Accept': 'application/json', 'X-CSRF-Token': token },
-                  body: new FormData(form)
-                });
-                const data = await res.json().catch(() => ({}));
-                if (res.ok && data.redirect_url) {
-                  window.location.href = data.redirect_url; // let server flash render
-                } else if (res.ok) {
-                  window.location.reload();
-                } else {
-                  if (data.redirect_url) {
-                    window.location.href = data.redirect_url;
-                  } else {
-                    alert((data.errors && data.errors.join(', ')) || '댓글 등록 실패');
-                  }
-                }
-              });
-            }
+// (사이드바 열기 직후) 폼 바인딩
+const form = commentSidebarContent.querySelector(
+  `form[data-role="block-new-comment"][data-block-id="${blockId}"]`
+);
+if (form && !form.dataset.bound) {
+  form.dataset.bound = '1';
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const token = document.querySelector('meta[name="csrf-token"]').content;
+    const res = await fetch(form.action, {
+      method: (form.method || 'post').toUpperCase(),
+      // ★ HTML로 요청해서 서버 302 리다이렉트를 정상 추종하게 한다
+      headers: { 'Accept': 'text/html', 'X-CSRF-Token': token },
+      body: new FormData(form),
+      redirect: 'follow' // (기본값이지만 명시)
+    });
+
+    // 서버가 302→/posts/:id 로 보냈으면 여기서 res.redirected가 true
+    if (res.redirected) {
+      window.location.href = res.url; // 플래시/새 댓글 포함한 HTML로 이동
+    } else if (res.ok) {
+      window.location.reload();        // 혹시 200 반환이면 새로고침
+    } else {
+      alert('댓글 등록 실패');
+    }
+  });
+}
+
           });
         } else {
           // (Optional) Fallback: fetch partial from server if template isn't present
@@ -1066,6 +1095,55 @@ if (rt) {
   document.addEventListener('turbo:load', initCommentToggle);
 })();
 
+</script>
+<script>
+(function(){
+  // 첫 클릭: 무력화 + 라벨 변경, 두 번째 클릭: 실제 submit
+  document.addEventListener('click', function(e){
+    const btn  = e.target.closest('.js-two-step-delete-btn');
+    if (!btn) return;
+
+    const form = btn.closest('form.js-two-step-delete');
+    if (!form) return;
+
+    // 이미 무장(armed) 상태면 그대로 제출(두 번째 클릭)
+    if (form.dataset.armed === '1') return;
+
+    // 첫 클릭: 제출 막고 안내 라벨로 변경
+    e.preventDefault();
+    form.dataset.armed = '1';
+
+    const orig = btn.dataset.origText || (btn.dataset.origText = btn.textContent.trim());
+    btn.textContent = form.dataset.confirmLabel || '한번 더 누르면 삭제';
+    btn.classList.add('underline');
+
+    // 일정 시간 지나면 자동 원복
+    const ms = parseInt(form.dataset.timeout || '4000', 10);
+    const tid = setTimeout(function(){
+      if (form.dataset.armed === '1') {
+        form.dataset.armed = '0';
+        btn.textContent = orig;
+        btn.classList.remove('underline');
+      }
+    }, ms);
+    form.dataset.armTimeoutId = tid;
+  }, true);
+
+  // submit 시(두 번째 클릭 상태) 타이머 정리
+  document.addEventListener('submit', function(e){
+    const f = e.target.closest('form.js-two-step-delete');
+    if (!f) return;
+
+    // 무장 상태(두 번째 클릭)만 허용, 아니면 차단
+    if (f.dataset.armed === '1') {
+      if (f.dataset.armTimeoutId) clearTimeout(f.dataset.armTimeoutId);
+      // 통과 → 실제 삭제 진행
+      return;
+    } else {
+      e.preventDefault();
+    }
+  }, true);
+})();
 </script>
 
 </body>

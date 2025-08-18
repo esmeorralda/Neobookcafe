@@ -82,17 +82,27 @@ end
 end
 
   def show
-  @post = Post.find(params[:id])
+@post = Post.find(params[:id])
 
-  session[:viewed_posts] ||= []
-  @comments = @post.comments.where(parent_id: nil, post_block_id: nil).reorder(created_at: :desc)
-Rails.logger.debug "@comments order: #{@comments.pluck(:created_at)}"
+  @post_level_comments =
+    @post.comments.where(parent_id: nil, post_block_id: nil)
+         .includes(:user, :likes)   # likes 연관이 있다면 N+1 회피용
+         .order(created_at: :desc)
+         .to_a
+
+  @comments = @post_level_comments  # ✅ 뷰 호환용 별칭
+
+  # 블록 댓글도 필요하다면 여기서 준비…
+  @comments_by_block =
+    @post.comments.where(parent_id: nil).where.not(post_block_id: nil)
+         .includes(:user).order(:created_at).group_by(&:post_block_id)
 
   unless session[:viewed_posts].include?(@post.id)
     @post.increment!(:view_count)
     session[:viewed_posts] << @post.id
   end
 end
+
 
 def index
     @show_sidebar = true
