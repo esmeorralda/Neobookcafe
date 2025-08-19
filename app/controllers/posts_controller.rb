@@ -103,59 +103,72 @@ end
   end
 end
 
-
 def index
-    @show_sidebar = true
+  @show_sidebar = true
 
-    sort       = params[:sort].presence || "newest"
-    page       = page_no
-    per        = per_page
-    category   = params[:category].presence
-    book_genre = book_genre_param
-    version    = cache_version_for(sort)
+  sort       = params[:sort].presence || "newest"
+  page       = page_no
+  per        = per_page
+  category   = params[:category].presence
+  book_genre = book_genre_param
 
-    ids_key   = "posts:index:ids:cat=#{category || 'all'}:genre=#{book_genre || 'all'}:sort=#{sort}:v=#{version}:page=#{page}:per=#{per}"
-    count_key = "posts:index:count:cat=#{category || 'all'}:genre=#{book_genre || 'all'}:sort=#{sort}:v=#{version}"
+  # ---- Base scope (draft 제외) + 필터 ----
+  scope = Post.where(draft: [false, nil])
+  scope = scope.where(category: category)     if category
+  scope = scope.where(book_genre: book_genre) if book_genre
 
-    # ---- Base scope (draft 제외) + 필터 ----
-    scope = Post.where(draft: [ false, nil ])
-    scope = scope.where(category: category)     if category
-    scope = scope.where(book_genre: book_genre) if book_genre
+  # ---- 정렬은 DB가 처리 ----
+  relation = relation_for_sort(scope, sort)
 
-    # ---- 정렬은 DB가 처리 ----
-    relation = relation_for_sort(scope, sort)
+  # ---- 캐시 키 (버전 키 방식) ----
+  count_key = CacheKeyHelper.vposts_key(
+    "index:count",
+    sort: sort, category: category, book_genre: book_genre
+  )
+  ids_key = CacheKeyHelper.vposts_key(
+    "index:ids",
+    sort: sort, category: category, book_genre: book_genre, page: page, per: per
+  )
 
-    # ---- 전체 개수 캐시 (GROUP BY 부작용 피하려면 except(:order)) ----
-    total_count = Rails.cache.fetch(count_key, expires_in: ttl_for(sort)) do
-      if %w[most_likes popular most_comments].include?(sort)
-        scope.count
-      else
-        relation.except(:order).count
-      end
-    end
-    @total_pages = (total_count / per.to_f).ceil
-
-    # ---- 페이지별 ID 캐시 ----
-    ids = Rails.cache.fetch(ids_key, expires_in: ttl_for(sort)) do
-      offset = (page - 1) * per
-      relation.limit(per).offset(offset).pluck(Arel.sql("posts.id"))
-    end
-
-    # ---- 하이드레이션 (원래 순서 유지) ----
-    posts_by_id = Post.where(id: ids).includes(:user, :post_blocks).index_by(&:id)
-    @posts = ids.map { |id| posts_by_id[id] }.compact
-
-    # ---- 장르 탭 표시 규칙 (이전 로직과 동일) ----
-    if category.present?
-      @show_genre_tap = category != "board"
+  # ---- 총 개수 (GROUP BY 부작용 회피) ----
+  total_count = Rails.cache.fetch(count_key, expires_in: ttl_for(sort)) do
+    if %w[most_likes popular most_comments].include?(sort)
+      scope.count
     else
-      @show_genre_tap = !@posts.all? { |p| p.respond_to?(:category) && p.category == "board" }
+      relation.except(:order).count
     end
-
-    Rails.logger.debug "page_no: #{page}, per_page: #{per}, total_pages: #{@total_pages}"
-    Rails.logger.debug "category: #{category}, book_genre: #{book_genre}, sort: #{sort}"
   end
 
+  @total_pages = (total_count / per.to_f).ceil
+
+  # 페이지가 범위를 벗어나면 보정
+  page = @page = [[page, @total_pages].min, 1].max
+  # 보정된 페이지로 키 재생성
+  ids_key = CacheKeyHelper.vposts_key(
+    "index:ids",
+    sort: sort, category: category, book_genre: book_genre, page: page, per: per
+  )
+
+  # ---- 페이지의 ID 목록 캐시 ----
+  ids = Rails.cache.fetch(ids_key, expires_in: ttl_for(sort)) do
+    offset = (page - 1) * per
+    relation.limit(per).offset(offset).reselect("posts.id").pluck(:id)
+  end
+
+  # ---- ID 순서대로 하이드레이트 ----
+  posts_by_id = Post.where(id: ids).includes(:user).index_by(&:id)
+  @posts = ids.map { |id| posts_by_id[id] }.compact
+
+  # ---- 장르 탭 표시 규칙 ----
+  if category.present?
+    @show_genre_tap = (category != "board")
+  else
+    @show_genre_tap = !@posts.all? { |p| p.respond_to?(:category) && p.category == "board" }
+  end
+
+  Rails.logger.debug "page_no: #{page}, per_page: #{per}, total_pages: #{@total_pages}"
+  Rails.logger.debug "category: #{category}, book_genre: #{book_genre}, sort: #{sort}"
+end
 
 
 def search
@@ -441,13 +454,21 @@ def fetch_cached_posts
     category = params[:category].presence || "all"
     book_genre    = params[:book_genre].presence || "all"
 
-    cache_key = "posts/#{category}/#{book_genre}/published"
+    list_key = CacheKeyHelper.vposts_key(
+  "list",
+  category: category, book_genre: book_genre
+)
 
-    Rails.cache.fetch(cache_key, expires_in: 10.minutes) do
-      scope = Post.where(draft: false).or(Post.where(draft: nil))
-      scope = scope.where(category: category) unless category == "all"
-      scope = scope.where(book_genre: book_genre) unless book_genre == "all"
-      scope.order(created_at: :desc).to_a
+Rails.cache.fetch(list_key, expires_in: 10.minutes) do
+  scope = Post.where(draft: false).or(Post.where(draft: nil))
+  scope = scope.where(category: category)      unless category == "all"
+  scope = scope.where(book_genre: book_genre)  unless book_genre == "all"
+  scope.order(created_at: :desc).pluck(:id) # ← 객체 배열 대신 ID 배열 캐시 권장
+end.then do |ids|
+  posts_by_id = Post.where(id: ids).index_by(&:id)
+  @posts = ids.map { |id| posts_by_id[id] }.compact
+
+
     end
   end
 

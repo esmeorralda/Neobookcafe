@@ -1,41 +1,47 @@
 class HomeController < ApplicationController
-  def index
-    @show_sidebar = true
-     @show_genre_tap = true
+def index
+  @show_sidebar = true
+  @show_genre_tap = true
 
-    sort     = params[:sort].presence || "newest"
-    page     = page_no
-    per      = per_page
-    version  = cache_version_for(sort)
-    ids_key  = "home:index:ids:sort=#{sort}:v=#{version}:page=#{page}:per=#{per}"
-    count_key= "home:index:count:sort=#{sort}:v=#{version}"
+  sort = params[:sort].presence || "newest"
+  page = page_no
+  per  = per_page
 
-    # Build the relation for this sort (no includes/preload here; we’ll hydrate after)
-    scope    = Post.where(draft: [ false, nil ])
-    relation = relation_for_sort(scope, sort)
+  scope    = Post.where(draft: [false, nil])
+  relation = relation_for_sort(scope, sort)
 
-    # Cache the count (avoid GROUP BY side effects)
-    total_count = Rails.cache.fetch(count_key, expires_in: ttl_for(sort)) do
-      if %w[most_likes popular most_comments].include?(sort)
-        scope.count # base scope count
-      else
-        relation.except(:order).count
-      end
+  # ✅ params를 바로 써서 undefined 방지
+  count_key = CacheKeyHelper.vposts_key(
+    "home:index:count",
+    sort: sort, category: params[:category], book_genre: params[:book_genre]
+  )
+
+  ids_key = CacheKeyHelper.vposts_key(
+    "home:index:ids",
+    sort: sort, category: params[:category], book_genre: params[:book_genre], page: page, per: per
+  )
+
+  # 총 개수 캐시
+  total_count = Rails.cache.fetch(count_key, expires_in: ttl_for(sort)) do
+    if %w[most_likes popular most_comments].include?(sort)
+      scope.count
+    else
+      relation.except(:order).count
     end
-
-    @total_pages = (total_count / per.to_f).ceil
-
-    # Cache the page’s ordered IDs
-    ids = Rails.cache.fetch(ids_key, expires_in: ttl_for(sort)) do
-      offset = (page - 1) * per
-      # Make sure we pluck explicit posts.id in case the relation has custom SELECTs
-      relation.limit(per).offset(offset).pluck(Arel.sql("posts.id"))
-    end
-
-    # Hydrate and preserve order
-    posts_by_id = Post.where(id: ids).includes(:user, :post_blocks).index_by(&:id)
-    @posts = ids.map { |id| posts_by_id[id] }.compact
   end
+  @total_pages = (total_count / per.to_f).ceil
+
+  # 해당 페이지의 ID 목록 캐시
+  ids = Rails.cache.fetch(ids_key, expires_in: ttl_for(sort)) do
+    offset = (page - 1) * per
+    relation.limit(per).offset(offset).reselect("posts.id").pluck(:id)
+  end
+
+  # ID 순서대로 객체 하이드레이트
+  posts_by_id = Post.where(id: ids).index_by(&:id)
+  @posts = ids.map { |id| posts_by_id[id] }.compact
+end
+
 
   private
 

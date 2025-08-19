@@ -2,9 +2,12 @@
   <!-- 책 제목 + 목차 -->
   <h2 class="text-2xl font-semibold text-black mt-5">
     <%= @note.book.title %>
-    <span class="text-sm text-[#926f6f]">
-      #<%= @note.chapter.position %> <%= @note.chapter.title %>
-    </span>
+ <% if @note.chapter.present? %>
+  <span class="text-sm text-[#926f6f]">
+    #<%= @note.chapter.position %> <%= @note.chapter.title %>
+  </span>
+<% end %>
+
   </h2>
 
   <%# 접힌 모서리 색상 매핑 + 파라미터 %>
@@ -23,10 +26,12 @@
   <div class="absolute top-0 -right-20 flex flex-col space-y-2">
     <%= link_to "편집", edit_note_path(@note),
         class: "border border-gray-400 text-gray-800 px-3 py-1 rounded hover:bg-gray-100 text-sm" %>
-    <%= link_to "삭제", note_path(@note),
-        method: :delete,
-        data: { confirm: "정말 삭제하시겠습니까?" },
-        class: "border border-gray-400 text-gray-800 px-3 py-1 rounded hover:bg-red-50 text-sm" %>
+<%= button_to "삭제", note_path(@note),
+  method: :delete,
+  data: { turbo_confirm: "정말 삭제하시겠습니까?" },
+  form: { class: "inline" },
+  class: "border border-gray-400 text-gray-800 px-3 py-1 rounded hover:bg-red-50 text-sm" %>
+
   </div>
 
   <!-- 메모지 카드 (접힌 모서리 포함) -->

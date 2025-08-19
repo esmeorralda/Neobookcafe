@@ -89,7 +89,10 @@
           <!-- 버튼 영역 -->
           <div class="flex justify-end gap-4 w-full max-w-[600px]">
             <%= f.submit "완료", class: "bg-[#644536] rounded text-white py-2 px-4 rounded-sm" %>
-            <%= link_to "취소", new_note_path, class: "rounded border bg-gray-300 hover:bg-gray-400 text-gray-800 py-2 px-4 rounded-sm flex items-center justify-center" %>
+           <%= link_to "취소",
+            (request.referer || books_path),
+            class: "border bg-gray-300 hover:bg-gray-400 text-gray-800 py-2 px-4 rounded-sm flex items-center justify-center" %>
+
           </div>
         </div>
 

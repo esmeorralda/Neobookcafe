@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_08_04_105122) do
+ActiveRecord::Schema[8.0].define(version: 2025_08_19_033607) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -97,7 +97,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_08_04_105122) do
     t.text "memo"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.integer "chapter_id", null: false
+    t.integer "chapter_id"
     t.integer "position"
     t.bigint "user_id", null: false
     t.index ["book_id"], name: "index_notes_on_book_id"

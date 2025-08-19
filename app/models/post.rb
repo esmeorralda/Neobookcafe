@@ -30,7 +30,7 @@ enum :book_genre, [
 
 
   accepts_nested_attributes_for :post_blocks, allow_destroy: true, reject_if: proc { |attributes| attributes["content"].blank? }
-  after_commit :clear_post_cache
+ after_commit :clear_post_cache
   validates :title, presence: true, unless: :draft?
   validates :category, presence: true, unless: :draft?
   validates :book_genre, presence: true, unless: :draft?
@@ -124,9 +124,10 @@ def self.book_genre_groups
     Post.category_korean[category.to_sym]
   end
 
-  def clear_post_cache
-    Rails.cache.delete_matched("posts/*")
-  end
+ def clear_post_cache
+  # delete_matched 미지원이므로 전역 버전만 올려 키를 바꿔치기
+   CacheVersion.bump!(:posts)
+ end
 
   # Check if post is bookmarked by a specific user
   def bookmarked_by?(user)
