@@ -1,4 +1,19 @@
 module ApplicationHelper
+  def show_dashboard_link?
+    return false unless user_signed_in?
+
+    # 1) credentials 우선
+    creds = Rails.application.credentials.dig(:admin_emails)
+    # 2) 없으면 ENV 사용
+    envs  = ENV.fetch("ADMIN_EMAILS", "")
+               .split(",")
+               .map { |e| e.strip.downcase }
+               .reject(&:blank?)
+
+    allowed = Array(creds).map(&:downcase) + envs
+    allowed.include?(current_user.email.to_s.downcase)
+  end
+  
   def resource_name
     :user
   end

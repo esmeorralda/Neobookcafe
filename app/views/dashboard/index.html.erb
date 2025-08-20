@@ -1,0 +1,190 @@
+<!-- app/views/dashboard/index.html.erb -->
+<style>
+  .dash-wrap { max-width: 1200px; margin: 0 auto; padding: 16px; }
+  .stats { display:flex; gap:16px; flex-wrap: wrap; margin: 12px 0 20px; }
+  .stat { background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:12px 16px; box-shadow:0 1px 2px rgba(0,0,0,.05); }
+  .tables { display:grid; grid-template-columns: 1fr; gap:16px; }
+  @media (min-width: 1024px) { .tables { grid-template-columns: 1fr 1fr; } }
+
+  .card { background:#fff; border:1px solid #e5e7eb; border-radius:14px; box-shadow:0 1px 3px rgba(0,0,0,.06); overflow: hidden; }
+  .card-hd { padding:12px 16px; font-weight:700; color:#111827; border-bottom:1px solid #f3f4f6; background:#fafafa; }
+  .card-bd { height:25vh; overflow:auto; }
+
+  table { width:100%; border-collapse:separate; border-spacing:0; table-layout: fixed; font-size:14px; color:#111827; }
+  thead th { position: sticky; top: 0; background:#f9fafb; z-index: 1; }
+  th, td { padding:10px 12px; border-bottom:1px solid #f3f4f6; vertical-align: top; }
+  tbody tr:nth-child(odd) { background:#fcfcfd; }
+
+  .col-id { width: 80px; }
+  .col-name { width: auto; }
+  .col-author { width: 160px; }
+  .col-title { width: 220px; }
+  .col-content { width: auto; }
+  .col-date { width: 120px; }
+
+  .ellipsis { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+</style>
+
+<div class="dash-wrap">
+  <h1 style="font-size:22px; font-weight:800; color:#111827; margin-bottom:8px;">Dashboard</h1>
+
+  <section class="stats">
+    <div class="stat"><strong>총 유저수:</strong> <%= number_with_delimiter(@user_count) %></div>
+    <div class="stat"><strong>총 피드백수:</strong> <%= number_with_delimiter(@feedbacks_count) %></div>
+  </section>
+
+  <div class="tables">
+    <!-- Users -->
+    <div class="card" aria-label="Users table">
+      <div class="card-hd">Users</div>
+      <div class="card-bd">
+        <table>
+          <thead>
+            <tr>
+              <th class="col-id">ID</th>
+              <th class="col-name">이름/이메일</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% @users.each do |u| %>
+              <tr>
+                <td><%= u.id %></td>
+                <td class="ellipsis" title="<%= u.name.presence || u.email %>">
+                  <%= u.name.presence || u.email %>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Feedbacks -->
+    <div class="card" aria-label="Feedbacks table">
+      <div class="card-hd">Feedbacks (최근 100개)</div>
+      <div class="card-bd">
+        <table>
+          <thead>
+            <tr>
+              <th class="col-id">ID</th>
+              <th class="col-author">작성자</th>
+              <th class="col-title">제목</th>
+              <th class="col-content">내용</th>
+              <th class="col-date">작성일</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% @feedbacks.each do |f| %>
+              <tr>
+                <td><%= f.id %></td>
+                <td class="ellipsis" title="<%= (f.user&.name.presence || f.user&.email || '-') %>">
+                  <%= (f.user&.name.presence || f.user&.email || '-') %>
+                </td>
+                <td class="ellipsis" title="<%= f.title %>"><%= f.title %></td>
+                <td class="ellipsis" title="<%= f.content %>"><%= truncate(f.content, length: 80) %></td>
+                <td><%= l(f.created_at, format: :short) %></td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- app/views/dashboard/index.html.erb -->
+<style>
+  .dash-wrap { max-width: 1200px; margin: 0 auto; padding: 16px; }
+  .stats { display:flex; gap:16px; flex-wrap: wrap; margin: 12px 0 20px; }
+  .stat { background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:12px 16px; box-shadow:0 1px 2px rgba(0,0,0,.05); }
+  .tables { display:grid; grid-template-columns: 1fr; gap:16px; }
+  @media (min-width: 1024px) { .tables { grid-template-columns: 1fr 1fr; } }
+
+  .card { background:#fff; border:1px solid #e5e7eb; border-radius:14px; box-shadow:0 1px 3px rgba(0,0,0,.06); overflow: hidden; }
+  .card-hd { padding:12px 16px; font-weight:700; color:#111827; border-bottom:1px solid #f3f4f6; background:#fafafa; }
+  .card-bd { height:25vh; overflow:auto; }
+
+  table { width:100%; border-collapse:separate; border-spacing:0; table-layout: fixed; font-size:14px; color:#111827; }
+  thead th { position: sticky; top: 0; background:#f9fafb; z-index: 1; }
+  th, td { padding:10px 12px; border-bottom:1px solid #f3f4f6; vertical-align: top; }
+  tbody tr:nth-child(odd) { background:#fcfcfd; }
+
+  .col-id { width: 84px; }
+  .col-name { width: auto; }
+  .col-author { width: 200px; }
+  .col-date { width: 140px; }
+
+  .ellipsis { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+</style>
+
+<div class="dash-wrap">
+
+
+  <section class="stats">
+    <!-- ✅ 추가된 집계 -->
+    <div class="stat"><strong>총 포스트수:</strong> <%= number_with_delimiter(@posts_count) %></div>
+    <div class="stat"><strong>총 노트수:</strong> <%= number_with_delimiter(@notes_count) %></div>
+  </section>
+
+  <div class="tables">
+    <!-- 기존 Users 카드 ... -->
+    <!-- 기존 Feedbacks 카드 ... -->
+
+    <!-- ✅ Posts -->
+    <div class="card" aria-label="Posts table">
+      <div class="card-hd">Posts (최근 100개, 내용 제외)</div>
+      <div class="card-bd">
+        <table>
+          <thead>
+            <tr>
+              <th class="col-id">ID</th>
+              <th class="col-author">작성자 (user_id / name or email)</th>
+              <th class="col-date">작성일</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% @posts.each do |p| %>
+              <tr>
+                <td><%= p.id %></td>
+                <td class="ellipsis"
+                    title="user_id=<%= p.user_id %> • <%= (p.user&.name.presence || p.user&.email || '-') %>">
+                  <%= p.user_id %> / <%= (p.user&.name.presence || p.user&.email || '-') %>
+                </td>
+            
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ✅ Notes -->
+    <div class="card" aria-label="Notes table">
+      <div class="card-hd">Notes (최근 100개, 내용 제외)</div>
+      <div class="card-bd">
+        <table>
+          <thead>
+            <tr>
+              <th class="col-id">ID</th>
+              <th class="col-author">작성자 (user_id / name or email)</th>
+              <th class="col-date">작성일</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% @notes.each do |n| %>
+              <tr>
+                <td><%= n.id %></td>
+                <td class="ellipsis"
+                    title="user_id=<%= n.user_id %> • <%= (n.user&.name.presence || n.user&.email || '-') %>">
+                  <%= n.user_id %> / <%= (n.user&.name.presence || n.user&.email || '-') %>
+                </td>
+              
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</div>

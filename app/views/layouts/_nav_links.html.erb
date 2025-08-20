@@ -15,6 +15,11 @@
       class: "open-settings-modal text-[14px] text-[#333] underline",
       data: { url: settings_path } %>
 
+    
+<% if user_signed_in? && ["gsun51234@gmail.com"].include?(current_user.email) %>
+  <%= link_to "대쉬보드", dashboard_path %>
+<% end %>
+
   <!-- 로그아웃 -->
   <%= button_to "로그아웃",
         destroy_user_session_path,
