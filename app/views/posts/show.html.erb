@@ -1172,17 +1172,5 @@ if (rt) {
   });
 })();
 </script>
-<% content_for :json_ld do %>
-<script type="application/ld+json">
-{
-  "@context":"https://schema.org",
-  "@type":"Article",
-  "headline": "<%= j @post.title %>",
-  "author": {"@type":"Person", "name":"<%= j @post.user.name %>"},
-  "datePublished": "<%= @post.created_at.iso8601 %>",
-  "dateModified": "<%= @post.updated_at.iso8601 %>",
-  "mainEntityOfPage": "<%= post_url(@post) %>",
-  "image": "<%= @post.cover_image.attached? ? url_for(@post.cover_image) : image_url('og-default.png') %>"
-}
-</script>
+
 </body>
