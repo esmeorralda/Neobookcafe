@@ -1,6 +1,6 @@
 # app/controllers/sessions_controller.rb
 class SessionsController < Devise::SessionsController
-  respond_to :html, :json, :js
+    respond_to :html   # 강제로 HTML만 응답
 
   def create
     scope = :user

@@ -1,5 +1,6 @@
 # app/controllers/users/registrations_controller.rb
 class Users::RegistrationsController < Devise::RegistrationsController
+   respond_to :html
     # 비번 변경 후 flash 타입/문구와 이동 경로를 원하는 대로
     def update
       self.resource = resource_class.to_adapter.get!(send(:"current_#{resource_name}").to_key)
