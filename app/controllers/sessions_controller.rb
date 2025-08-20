@@ -3,8 +3,10 @@ class SessionsController < Devise::SessionsController
     respond_to :html   # 강제로 HTML만 응답
 
   def create
+    Rails.logger.info "SessionsController#create - Parameters: #{params.inspect}"
     scope = :user
     self.resource = warden.authenticate(scope: scope)
+    Rails.logger.info "SessionsController#create - Authentication result: #{resource ? 'SUCCESS' : 'FAILED'}"
 
     success_msg = I18n.t("devise.sessions.signed_in", default: "성공적으로 로그인했습니다!")
     error_msg   = I18n.t("devise.failure.invalid",    default: "이메일 또는 비밀번호가 올바르지 않습니다.")
@@ -14,11 +16,13 @@ class SessionsController < Devise::SessionsController
         sign_in(scope, resource)
 
         format.html do
+          Rails.logger.info "SessionsController#create - HTML success redirect to root_path"
           flash[:alert] = success_msg
           redirect_to root_path, status: :see_other
         end
 
         format.json do
+          Rails.logger.info "SessionsController#create - JSON success response"
           # 🔥 로그인 직후 상태 기준으로 부분 뷰를 HTML로 뽑아서 실어 보냄
           nav_html   = render_to_string(partial: "layouts/nav_links", formats: [ :html ])
           notif_html = render_to_string(partial: "layouts/notification", formats: [ :html ])
@@ -35,11 +39,13 @@ class SessionsController < Devise::SessionsController
         end
       else
         format.html do
+          Rails.logger.info "SessionsController#create - HTML failure redirect to root_path"
           flash[:alert] = error_msg
           redirect_to root_path, status: :see_other
         end
 
         format.json do
+          Rails.logger.info "SessionsController#create - JSON failure response"
           response.set_header("X-Auth-Result", "failure")
           render json: { success: false, errors: [ error_msg ] }, status: :unauthorized
         end
