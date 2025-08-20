@@ -1,16 +1,16 @@
 <!DOCTYPE html>
-<html>
+<html lang="ko">
 
 <head>
   <%# Favicon %>
   <%= favicon_link_tag asset_url('favicon.svg', host: request.base_url),
                      rel: 'icon', type: 'image/svg+xml' %>
-   <link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="alternate" type="application/rss+xml"
+      title="네오북카페 최신 글" href="<%= feed_posts_url(format: :rss) %>">
 
 
   <%= javascript_importmap_tags %>
 
-  <%# Title — 하나만 남기고 기본값은 기존 문구 유지 %>
   <title><%= content_for?(:title) ? yield(:title) : "네오북카페 | NeoBookCafe – 독서 토론·기록" %></title>
 
   <meta name="description" content="<%= content_for?(:description) ? yield(:description) : "독서 모임의 미래: 시간과 공간, 한계를 넘어 — 온라인으로 무료 독서 토론에 참여하세요. 주제별 토론장, 독서기록장, 자유게시판 제공." %>">
@@ -23,6 +23,7 @@
   <meta property="og:type" content="website">
   <meta property="og:url" content="<%= request.original_url %>">
   <meta property="og:image" content="https://neobookcafe.com/og-default.png">
+  <meta property="og:locale" content="ko_KR">
   <meta name="twitter:card" content="summary_large_image">
 
   <%= csrf_meta_tags %>
@@ -46,6 +47,32 @@
   <%= stylesheet_link_tag "tailwind", "data-turbo-track": "reload" %>
   <%# ⚠ application.css가 실제로 있을 때만 유지하세요. 없다면 아래 줄 삭제 %>
   <%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
+
+  <%= yield :json_ld %>
+  <script type="application/ld+json">
+  {
+    "@context":"https://schema.org",
+    "@type":"Organization",
+    "name":"네오북카페",
+    "alternateName":["NeoBookCafe","네오 북카페"],
+    "url":"https://neobookcafe.com/",
+    "logo":"https://neobookcafe.com/og-default.png"
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context":"https://schema.org",
+    "@type":"WebSite",
+    "url":"https://neobookcafe.com/",
+    "name":"네오북카페",
+    "inLanguage":"ko-KR",
+    "potentialAction":{
+      "@type":"SearchAction",
+      "target":"https://neobookcafe.com/search?q={search_term_string}",
+      "query-input":"required name=search_term_string"
+    }
+  }
+  </script>
 </head>
 
 <body data-signed-in="<%= user_signed_in? %>">
@@ -663,7 +690,7 @@
   document.addEventListener('DOMContentLoaded', bindSidebarToggle);
 })();
 </script>
-=
+
 
 
 <%# Put flash messages into a single global only once so Turbo doesn't double-fire %>
@@ -676,7 +703,6 @@
   </script>
 <% end %>
 <% end %>
-
 <style>
   #notification-panel .notif-link:hover .notif-text,
   #notification-panel .notif-link:focus .notif-text{

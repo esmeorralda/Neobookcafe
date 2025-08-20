@@ -2,6 +2,10 @@
 class PostsController < ApplicationController
   before_action :authenticate_user!, except: [ :show, :index, :search ]
 
+  def feed
+  @posts = Post.order(created_at: :desc).limit(20)
+end
+
     def new
       @post = Post.new
     end

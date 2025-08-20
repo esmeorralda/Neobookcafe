@@ -7,6 +7,13 @@ Rails.application.routes.draw do
   get "feedbacks/index"
   get "chapters/index"
   get "/users/sign_out", to: redirect("/"), as: nil
+get "/sitemap.xml", to: "sitemaps#index", defaults: { format: "xml" }
+# config/routes.rb
+resources :posts do
+  collection { get :feed, defaults: { format: :rss } }
+end
+
+
 # config/routes.rb
 devise_for :users, controllers: {
   sessions: "sessions",
