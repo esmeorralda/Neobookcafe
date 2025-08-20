@@ -72,7 +72,7 @@ class SessionsController < Devise::SessionsController
   protected
 
   # ✅ 혹시 다른 경로에서 sign_in이 호출되더라도 루트로
-  def after_sign_in_path_for(_resource)
+  def after_sign_in_path_for(resource)
     root_path
   end
 end
