@@ -80,26 +80,26 @@ end
   render :new, status: :unprocessable_entity
  end
 end
-
-  def show
-@post = Post.find(params[:id])
+def show
+  @post = Post.find(params[:id])
 
   @post_level_comments =
     @post.comments.where(parent_id: nil, post_block_id: nil)
-         .includes(:user, :likes)   # likes 연관이 있다면 N+1 회피용
-         .order(created_at: :desc)
-         .to_a
+         .includes(:user, :likes)
+         .order(created_at: :desc).to_a
+  @comments = @post_level_comments
 
-  @comments = @post_level_comments  # ✅ 뷰 호환용 별칭
-
-  # 블록 댓글도 필요하다면 여기서 준비…
   @comments_by_block =
     @post.comments.where(parent_id: nil).where.not(post_block_id: nil)
          .includes(:user).order(:created_at).group_by(&:post_block_id)
 
+  # ✅ 세션 배열 안전 초기화(+정수화)
+  session[:viewed_posts] = Array(session[:viewed_posts]).map!(&:to_i)
+
   unless session[:viewed_posts].include?(@post.id)
     @post.increment!(:view_count)
     session[:viewed_posts] << @post.id
+    session[:viewed_posts] = session[:viewed_posts].last(100)  # 용량 보호
   end
 end
 
