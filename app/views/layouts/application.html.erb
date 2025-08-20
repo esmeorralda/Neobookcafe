@@ -6,9 +6,7 @@
   <%= favicon_link_tag asset_url('favicon.svg', host: request.base_url),
                      rel: 'icon', type: 'image/svg+xml' %>
 
-  <link rel="alternate icon" href="/favicon.ico">
 <link rel="icon" type="image/png" sizes="48x48" href="/favicon-48.png">
-<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png">
 <link rel="alternate" type="application/rss+xml"
       title="네오북카페 최신 글" href="<%= feed_posts_url(format: :rss) %>">
 
