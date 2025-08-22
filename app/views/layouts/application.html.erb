@@ -90,42 +90,34 @@
 
     <header class="site-header">
       <div class="header-container">
-        <%# <div class="logo">
-          <%= image_tag "logo.svg", alt: "NeoBookCafe Logo", class: "logo" %>
-          <%# <span class="brand">BookCafe</span>
-        </div> %> 
-  <%= link_to root_path, class: "logo group flex items-center gap-[clamp(6px,1.2vw,10px)] min-w-0" do %>
-  <%= image_tag "logo.svg",
-      alt: "NeoBookCafe Logo",
-      class: "h-[clamp(24px,4vw,36px)] w-auto shrink-0" %>
-  <span class="brand truncate  leading-none text-[clamp(16px,2.2vw,22px)]">
-    BookCafe
-  </span>
-<% end %>
+        <%= link_to root_path, class: "logo group flex items-center gap-[clamp(6px,1.2vw,10px)] min-w-0" do %>
+          <%= image_tag "logo.svg",
+              alt: "NeoBookCafe Logo",
+              class: "h-[clamp(24px,4vw,36px)] w-auto shrink-0" %>
+          <span class="brand truncate leading-none text-[clamp(16px,2.2vw,22px)]">
+            BookCafe
+          </span>
+        <% end %>
 
+        <%= form_with url: search_path, method: :get,
+          class: "search-box flex items-center gap-2 w-[clamp(240px,50vw,700px)] min-w-[220px] max-w-[700px]",
+          data: { turbo: false } do |f| %>
 
-    
-    <%= form_with url: search_path, method: :get,
-      class: "search-box flex items-center gap-2 w-[clamp(240px,50vw,700px)] min-w-[220px] max-w-[700px]",
-      data: { turbo: false } do |f| %>
+          <%= f.text_field :q,
+                value: params[:q],
+                placeholder: "책 제목, 저자, 글 제목, 글 저자...",
+                class: "search-input flex-1 min-w-0" %>
 
-  <%= f.text_field :q,
-        value: params[:q],
-        placeholder: "책 제목, 저자, 글 제목, 글 저자...",
-        class: "search-input flex-1 min-w-0" %>
+          <%= f.button "🔍",
+                type: "submit",
+                class: "search-btn shrink-0",
+                name: nil %>
+        <% end %>
 
-  <%= f.button "🔍",
-        type: "submit",
-        class: "search-btn shrink-0",
-        name: nil %>
-<% end %>
-
-
-
-
-<div class="nav-links" id="nav-links">
-  <%= render 'layouts/nav_links' %>
-</div>
+        <div class="nav-links" id="nav-links">
+          <%= render 'layouts/nav_links' %>
+        </div>
+      </div>
 
 
 
@@ -858,4 +850,103 @@
   #test-modal .rounded-md{ border-radius: .375rem !important; }
   #test-modal .rounded-lg{ border-radius: .5rem !important; }
   #test-modal .rounded-2xl{ border-radius: 1rem !important; }
+
+  /* ═══ 모바일 반응형 CSS (기존 스타일 유지, 모바일만 적용) ═══ */
+  
+  /* 작은 화면에서 브랜드 텍스트 숨기기 */
+  @media (max-width: 640px) {
+    .brand {
+      display: none !important;
+    }
+    
+    /* 헤더 컨테이너 모바일 조정 */
+    .header-container {
+      display: flex !important;
+      align-items: center !important;
+      justify-content: space-between !important;
+      gap: 8px !important;
+      padding: 8px 12px !important;
+    }
+    
+    /* 로고 크기 조정 */
+    .logo img {
+      height: clamp(20px, 3vw, 28px) !important;
+    }
+    
+    /* 검색창 모바일 조정 */
+    .search-box {
+      width: auto !important;
+      flex: 1 !important;
+      min-width: 120px !important;
+      max-width: none !important;
+      margin: 0 8px !important;
+    }
+    
+    .search-input {
+      font-size: 14px !important;
+      padding: 6px 8px !important;
+    }
+    
+    .search-input::placeholder {
+      content: "검색..." !important;
+    }
+    
+    .search-btn {
+      padding: 6px 8px !important;
+      font-size: 14px !important;
+    }
+    
+    /* 네비게이션 모바일 조정 */
+    .nav-items {
+      display: flex !important;
+      align-items: center !important;
+      gap: 4px !important;
+    }
+    
+    .nav-item {
+      font-size: 11px !important;
+      padding: 2px 4px !important;
+      white-space: nowrap !important;
+    }
+    
+    /* 알림 아이콘 크기 조정 */
+    .nav-item img {
+      width: 16px !important;
+      height: 16px !important;
+    }
+  }
+  
+  /* 매우 작은 화면 (380px 이하) */
+  @media (max-width: 380px) {
+    .header-container {
+      gap: 4px !important;
+      padding: 6px 8px !important;
+    }
+    
+    .search-box {
+      margin: 0 4px !important;
+    }
+    
+    .nav-items {
+      gap: 2px !important;
+    }
+    
+    .nav-item {
+      font-size: 10px !important;
+      padding: 1px 2px !important;
+    }
+    
+    /* 매우 작은 화면에서 일부 네비게이션 항목 숨기기 */
+    .nav-item:nth-child(n+3) {
+      display: none !important;
+    }
+  }
+  
+  /* 중간 크기 화면에서 브랜드 텍스트 다시 표시 */
+  @media (min-width: 641px) and (max-width: 768px) {
+    .brand {
+      display: inline !important;
+      font-size: clamp(14px, 2vw, 18px) !important;
+    }
+  }
 </style>
