@@ -30,6 +30,8 @@
   </select>
 
   <button type="button" class="block-controls-right" onclick="deleteBlock(this)" title="블록 삭제">삭제</button>
+  
+  <button type="button" class="add-block-button" onclick="addBlockBelow(this)" title="블록 추가">+</button>
 
 <% current_category = (@post&.category || params.dig(:post, :category) || params[:category] || "").to_s %>
 
@@ -100,7 +102,7 @@
   /* 소제목 */
   .block-type-subtitle textarea {
     background-color: #fff;
-    font-weight: 600;
+    font-weight: 700;
     font-size: 1.125rem;
     color: #2c1a0d;
     margin: 1rem 0 0.5rem 0;
@@ -109,20 +111,97 @@
 
   #blocks-container .block:first-child { margin-top: 2rem; }
 
+  /* 포커스 또는 호버 시 보더, 그림자 - 즉시 표시 */
+  .block:hover,
+  .block.focused {
+    border-color: #d1d5db;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    transform: translateY(-1px);
+    z-index: 10;
+  }
+
+  /* 드롭다운 왼쪽 상단 - 빠른 표시 */
+  .block-controls-left {
+    position: absolute;
+    top: -1.5rem;
+    left: 0.75rem;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.15s ease-out;
+    font-size: 0.85rem;
+    background: white;
+    border-radius: 0.25rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  }
+
+  /* 삭제 버튼 오른쪽 상단 - 중간 속도 표시 */
+  .block-controls-right {
+    position: absolute;
+    top: -1.5rem;
+    right: 0.75rem;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease-out, color 0.2s ease;
+    font-size: 0.85rem;
+    color: #dc2626;
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.25rem;
+    padding: 0.25rem 0.5rem;
+    cursor: pointer;
+    font-weight: 500;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  }
+
   .block:hover .block-controls-left,
   .block:hover .block-controls-right,
+  .block:hover .add-block-button,
   .block.focused .block-controls-left,
-  .block.focused .block-controls-right { opacity: 1; pointer-events: auto; }
-
-  .block .block-type-selector,
-  .block .block-controls-right {
-    opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
+  .block.focused .block-controls-right,
+  .block.focused .add-block-button {
+    opacity: 1;
+    pointer-events: auto;
   }
-  .block:hover .block-type-selector,
-  .block:hover .block-controls-right,
-  .block:focus-within .block-type-selector,
-  .block:focus-within .block-controls-right {
-    opacity: 1; pointer-events: auto;
+
+  .block-controls-right:hover {
+    color: #b91c1c;
+  }
+
+  .add-block-button {
+    position: absolute !important;
+    bottom: -15px;
+    left: 50%;
+    transform: translateX(-50%) scale(0.8);
+    background: #815E4E !important;
+    color: white !important;
+    border: none !important;
+    border-radius: 50% !important;
+    width: 28px !important;
+    height: 28px !important;
+    font-size: 16px !important;
+    font-weight: bold !important;
+    cursor: pointer !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    box-shadow: 0 4px 8px rgba(129, 94, 78, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.5) !important;
+    z-index: 999999 !important;
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  .block:hover .add-block-button,
+  .block.focused .add-block-button {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateX(-50%) scale(1);
+  }
+  
+  .add-block-button:hover {
+    background: #6D4D3E !important;
+    transform: translateX(-50%) scale(1.1) !important;
+    box-shadow: 0 6px 12px rgba(109, 77, 62, 0.4) !important;
   }
 </style>
 <script>
@@ -164,21 +243,32 @@
 
     // 컨트롤 보이기/숨기기
     let hideTimeout;
-    block.addEventListener('focusin', () => {
+    
+    const showControls = () => {
       clearTimeout(hideTimeout);
       const left  = block.querySelector('.block-type-selector');
       const right = block.querySelector('.block-controls-right');
+      const add   = block.querySelector('.add-block-button');
       if (left)  { left.style.opacity = '1';  left.style.pointerEvents = 'auto'; }
       if (right) { right.style.opacity = '1'; right.style.pointerEvents = 'auto'; }
-    });
-    block.addEventListener('focusout', () => {
+      if (add)   { add.style.opacity = '1';   add.style.pointerEvents = 'auto'; }
+    };
+    
+    const hideControls = () => {
       hideTimeout = setTimeout(() => {
         const left  = block.querySelector('.block-type-selector');
         const right = block.querySelector('.block-controls-right');
+        const add   = block.querySelector('.add-block-button');
         if (left)  { left.style.opacity = '0';  left.style.pointerEvents = 'none'; }
         if (right) { right.style.opacity = '0'; right.style.pointerEvents = 'none'; }
+        if (add)   { add.style.opacity = '0';   add.style.pointerEvents = 'none'; }
       }, 700);
-    });
+    };
+    
+    block.addEventListener('focusin', showControls);
+    block.addEventListener('focusout', hideControls);
+    block.addEventListener('mouseenter', showControls);
+    block.addEventListener('mouseleave', hideControls);
   }
 
   function bindExistingBlocks() {
@@ -212,37 +302,58 @@
     }
   };
 
+  // 전역 중복 방지 플래그
+  window._enterKeyProcessing = false;
+
   window.handleKeyDown = function (e, textarea) {
     const blocks = Array.from(document.querySelectorAll('#blocks-container .block textarea'));
     const currentIndex = blocks.indexOf(textarea);
 
     // Enter로 블록 분할
     if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-
-      const cursorPos = textarea.selectionStart;
-      const value = textarea.value;
-      const before = value.slice(0, cursorPos);
-      const after  = value.slice(cursorPos);
-
-      textarea.value = before;
-      window.autoResizeTextarea(textarea);
-
-      const currentBlock = textarea.closest('.block');
-      const nextBlock = currentBlock.nextElementSibling;
-
-      if (nextBlock && nextBlock.classList.contains('block')) {
-        const nextTextarea = nextBlock.querySelector('textarea');
-        nextTextarea.focus();
-        nextTextarea.setSelectionRange(0, 0);
-      } else {
-        const newBlock = window.createHtmlBlock('paragraph', after);
-        currentBlock.insertAdjacentElement('afterend', newBlock);
-        updateTextareaNames();
-        const newTextarea = newBlock.querySelector('textarea');
-        newTextarea.focus();
-        window.autoResizeTextarea(newTextarea);
+      // 이미 처리 중이면 무시
+      if (window._enterKeyProcessing) {
+        e.preventDefault();
+        return;
       }
+
+      e.preventDefault();
+      
+      // 처리 시작 플래그
+      window._enterKeyProcessing = true;
+      
+      setTimeout(() => {
+        const cursorPos = textarea.selectionStart;
+        const value = textarea.value;
+        const before = value.slice(0, cursorPos);
+        const after  = value.slice(cursorPos);
+
+        textarea.value = before;
+        window.autoResizeTextarea(textarea);
+
+        const currentBlock = textarea.closest('.block');
+        const nextBlock = currentBlock.nextElementSibling;
+
+        if (nextBlock && nextBlock.classList.contains('block')) {
+          const nextTextarea = nextBlock.querySelector('textarea');
+          nextTextarea.value = after + nextTextarea.value;
+          nextTextarea.focus();
+          nextTextarea.setSelectionRange(0, 0);
+          window.autoResizeTextarea(nextTextarea);
+        } else {
+          const newBlock = window.createHtmlBlock('paragraph', after);
+          currentBlock.insertAdjacentElement('afterend', newBlock);
+          updateTextareaNames();
+          const newTextarea = newBlock.querySelector('textarea');
+          newTextarea.focus();
+          window.autoResizeTextarea(newTextarea);
+        }
+        
+        // 처리 완료 후 플래그 해제
+        setTimeout(() => {
+          window._enterKeyProcessing = false;
+        }, 50);
+      }, 0);
     }
 
     // 위/아래 이동
@@ -300,6 +411,13 @@
     delBtn.textContent = '삭제';
     delBtn.addEventListener('click', () => window.deleteBlock(delBtn));
 
+    const addBtn = document.createElement('button');
+    addBtn.type = 'button';
+    addBtn.className = 'add-block-button';
+    addBtn.title = '블록 추가';
+    addBtn.textContent = '+';
+    addBtn.addEventListener('click', () => window.addBlockBelow(addBtn));
+
     const ta = document.createElement('textarea');
     ta.name = `post[post_blocks_attributes][${index}][content]`;
     ta.placeholder = '내용을 입력하세요';
@@ -310,6 +428,7 @@
 
     wrapper.appendChild(select);
     wrapper.appendChild(delBtn);
+    wrapper.appendChild(addBtn);
     wrapper.appendChild(ta);
 
     // 선택 변경 시 즉시 스타일 교체
@@ -330,6 +449,19 @@
     if (!block) return;
     block.remove();
     updateTextareaNames();
+  };
+
+  window.addBlockBelow = function (button) {
+    const currentBlock = button.closest('.block');
+    if (!currentBlock) return;
+    
+    const newBlock = window.createHtmlBlock('paragraph', '');
+    currentBlock.insertAdjacentElement('afterend', newBlock);
+    updateTextareaNames();
+    
+    const newTextarea = newBlock.querySelector('textarea');
+    newTextarea.focus();
+    window.autoResizeTextarea(newTextarea);
   };
 
   // ----- Init (Turbo 대응 포함) -----

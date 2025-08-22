@@ -1,11 +1,20 @@
 <div class="space-y-5">
   <% if posts.present? %>
     <% posts.each do |post| %>
-      <div class="p-3 border-b border-[#ddd6ce] flex justify-between items-start mt-3">
+      <div class="p-3 border-b border-[#ddd6ce] flex justify-between items-start mt-3 relative group hover:bg-[#f6f1ea]">
+        <%# 전체 영역 클릭(비공개/초안은 클릭 비활성화) %>
+        
+          <%= link_to post_path(post),
+                class: "absolute inset-0 z-10",
+                'aria-label': "게시물 보기: #{post.title}" do %>
+     
+        <% end %>
+
         <!-- 왼쪽: 제목/메타/요약 -->
-        <div style="flex:1; min-width: 0;">
+        <div style="flex:1; min-width: 0;" class="relative z-0">
           <h3 class="text-lg font-semibold text-[#3a2d20] mb-1" style="font-family: 'Noto Serif KR', serif; font-weight: 700;">
-            <%= link_to truncate(post.title.to_s, length: 40), post_path(post), class: "hover:underline" %>
+            <%# 제목은 개별 링크 제거: 카드 전체가 링크이므로 hover 효과만 줌 %>
+            <span class="group-hover:underline"><%= truncate(post.title.to_s, length: 40) %></span>
             <% if post.book_title.present? %>
               <span class="text-sm text-[#b67c4a] ml-2" style="font-family: 'Inter', sans-serif;">
                 <%= post.book_title %>

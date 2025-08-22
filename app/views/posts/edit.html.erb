@@ -166,54 +166,103 @@
     background: white;
     border-radius: 0.375rem;
     box-shadow: 0 0 0 transparent;
-    transition: box-shadow 0.2s ease, border-color 0.2s ease;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     border: 1px solid transparent;
+    z-index: 1;
   }
 
-  /* 포커스 또는 호버 시 보더, 그림자 */
+  /* 포커스 또는 호버 시 보더, 그림자 - 즉시 표시 */
   .block:hover,
   .block.focused {
-    # box-shadow: 1px 4px 4px rgb(0 0 0 / 0.1);
-    border-color: lightgray;
+    border-color: #d1d5db;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    transform: translateY(-1px);
+    z-index: 10;
   }
 
-  /* 드롭다운 왼쪽 상단 */
+  /* 드롭다운 왼쪽 상단 - 빠른 표시 */
   .block-controls-left {
     position: absolute;
     top: -1.5rem;
     left: 0.75rem;
     opacity: 0;
     pointer-events: none;
-    transition: opacity 0.2s ease;
+    transition: opacity 0.15s ease-out;
     font-size: 0.85rem;
+    background: white;
+    border-radius: 0.25rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   }
 
-  /* 삭제 버튼 오른쪽 상단 */
+  /* 삭제 버튼 오른쪽 상단 - 중간 속도 표시 */
   .block-controls-right {
     position: absolute;
     top: -1.5rem;
     right: 0.75rem;
     opacity: 0;
     pointer-events: none;
-    transition: opacity 0.2s ease;
+    transition: opacity 0.25s ease-out, color 0.2s ease;
     font-size: 0.85rem;
     color: #dc2626;
-    background: transparent;
-    border: none;
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.25rem;
+    padding: 0.25rem 0.5rem;
     cursor: pointer;
-    font-weight: bold;
+    font-weight: 500;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   }
 
   .block:hover .block-controls-left,
   .block:hover .block-controls-right,
+  .block:hover .add-block-button,
   .block.focused .block-controls-left,
-  .block.focused .block-controls-right {
+  .block.focused .block-controls-right,
+  .block.focused .add-block-button {
     opacity: 1;
     pointer-events: auto;
   }
 
   .block-controls-right:hover {
     color: #b91c1c;
+  }
+
+
+  .add-block-button {
+    position: absolute !important;
+    bottom: -15px;
+    left: 50%;
+    transform: translateX(-50%) scale(0.8);
+    background: #815E4E !important;
+    color: white !important;
+    border: none !important;
+    border-radius: 50% !important;
+    width: 28px !important;
+    height: 28px !important;
+    font-size: 16px !important;
+    font-weight: bold !important;
+    cursor: pointer !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    box-shadow: 0 4px 8px rgba(129, 94, 78, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.5) !important;
+    z-index: 999999 !important;
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  .block:hover .add-block-button,
+  .block.focused .add-block-button {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateX(-50%) scale(1);
+  }
+  
+  .add-block-button:hover {
+    background: #6D4D3E !important;
+    transform: translateX(-50%) scale(1.1) !important;
+    box-shadow: 0 6px 12px rgba(109, 77, 62, 0.4) !important;
   }
 
   .block textarea {
@@ -247,13 +296,12 @@
     border-left: 4px solid #5d3b2e;
     padding-left: 0.5rem;
     color: #2c1a0d;
-    margin: 1rem 0 0 0;
   }
 
   /* 소제목 스타일 */
   .block-type-subtitle textarea {
     background-color: #fff;
-    font-weight: 600;
+    font-weight: 700;
     font-size: 1.125rem;
     color: #2c1a0d;
     margin: 1rem 0 0.5rem 0;
@@ -347,6 +395,148 @@ document.addEventListener("DOMContentLoaded", () => {
       block.appendChild(removeBtn);
     }
 
+    // + 버튼 추가
+    const addBtn = document.createElement("button");
+    addBtn.type = "button";
+    addBtn.textContent = "+";
+    addBtn.className = "add-block-button";
+    addBtn.title = "블록 추가";
+    addBtn.addEventListener("click", () => {
+      // 새 블록을 현재 블록 바로 아래에 삽입
+      const newBlock = document.createElement("div");
+      newBlock.classList.add("block");
+      newBlock.classList.add("block-type-paragraph");
+
+      const blocksCount = container.querySelectorAll(".block").length;
+
+      const newTextarea = document.createElement("textarea");
+      newTextarea.name = `post[post_blocks_attributes][${blocksCount}][content]`;
+      newTextarea.value = "";
+      newTextarea.placeholder = "내용을 입력하세요";
+
+      newTextarea.addEventListener("input", () => autoResizeTextarea(newTextarea));
+      newTextarea.addEventListener("paste", () => {
+        setTimeout(() => autoResizeTextarea(newTextarea), 0);
+      });
+
+      const newSelect = document.createElement("select");
+      newSelect.name = `post[post_blocks_attributes][${blocksCount}][block_type]`;
+      newSelect.className = "block-type-selector block-controls-left";
+      newSelect.style.padding = "0.2rem 0.5rem";
+      newSelect.style.border = "1px solid #ccc";
+      newSelect.style.borderRadius = "0.25rem";
+      newSelect.style.background = "white";
+
+      const options = [
+        { val: "paragraph", label: "문단" },
+        { val: "quote", label: "인용" },
+        { val: "subtitle", label: "소주제" }
+      ];
+      options.forEach(opt => {
+        const option = document.createElement("option");
+        option.value = opt.val;
+        option.textContent = opt.label;
+        if (opt.val === "paragraph") option.selected = true;
+        newSelect.appendChild(option);
+      });
+
+      newSelect.addEventListener("change", () => {
+        newBlock.classList.remove("block-type-paragraph", "block-type-quote", "block-type-subtitle");
+        newBlock.classList.add(`block-type-${newSelect.value}`);
+      });
+
+      // 삭제 버튼
+      const newRemoveBtn = document.createElement("button");
+      newRemoveBtn.type = "button";
+      newRemoveBtn.textContent = "삭제";
+      newRemoveBtn.className = "block-controls-right";
+      newRemoveBtn.title = "블록 삭제";
+      newRemoveBtn.addEventListener("click", () => {
+        container.removeChild(newBlock);
+        updateBlockNames();
+      });
+
+      // + 버튼
+      const newAddBtn = document.createElement("button");
+      newAddBtn.type = "button";
+      newAddBtn.textContent = "+";
+      newAddBtn.className = "add-block-button";
+      newAddBtn.title = "블록 추가";
+      newAddBtn.addEventListener("click", () => {
+        // 재귀적으로 동일한 로직 적용 (나중에 함수로 분리 가능)
+        console.log("New add button clicked");
+      });
+
+      newBlock.appendChild(newSelect);
+      newBlock.appendChild(newRemoveBtn);
+      newBlock.appendChild(newAddBtn);
+      newBlock.appendChild(newTextarea);
+
+      // 현재 블록 바로 다음에 삽입
+      block.parentNode.insertBefore(newBlock, block.nextSibling);
+      
+      updateBlockNames();
+      newTextarea.focus();
+      autoResizeTextarea(newTextarea);
+
+      // 새 블록에도 이벤트 리스너 추가
+      let newHideTimeout;
+      let newControlsTimeout;
+      
+      const newShowControls = () => {
+        clearTimeout(newHideTimeout);
+        clearTimeout(newControlsTimeout);
+        
+        newBlock.classList.add("focused");
+        const left = newBlock.querySelector('.block-type-selector');
+        const right = newBlock.querySelector('.block-controls-right');
+        const add = newBlock.querySelector('.add-block-button');
+        
+        // 순차적 표시
+        if (left) { 
+          left.style.opacity = '1'; 
+          left.style.pointerEvents = 'auto'; 
+        }
+        
+        setTimeout(() => {
+          if (right && newBlock.classList.contains("focused")) { 
+            right.style.opacity = '1'; 
+            right.style.pointerEvents = 'auto'; 
+          }
+        }, 50);
+        
+        setTimeout(() => {
+          if (add && newBlock.classList.contains("focused")) { 
+            add.style.opacity = '1'; 
+            add.style.pointerEvents = 'auto'; 
+          }
+        }, 100);
+      };
+      
+      const newHideControls = () => {
+        newHideTimeout = setTimeout(() => {
+          if (!newBlock.contains(document.activeElement)) {
+            newBlock.classList.remove("focused");
+            const left = newBlock.querySelector('.block-type-selector');
+            const right = newBlock.querySelector('.block-controls-right');
+            const add = newBlock.querySelector('.add-block-button');
+            
+            if (left) { left.style.opacity = '0'; left.style.pointerEvents = 'none'; }
+            if (right) { right.style.opacity = '0'; right.style.pointerEvents = 'none'; }
+            if (add) { add.style.opacity = '0'; add.style.pointerEvents = 'none'; }
+          }
+        }, 150);
+      };
+      
+      newBlock.addEventListener("mouseenter", newShowControls);
+      newBlock.addEventListener("mouseleave", newHideControls);
+      [newSelect, newTextarea].forEach(el => {
+        el.addEventListener("focus", newShowControls);
+        el.addEventListener("blur", newHideControls);
+      });
+    });
+    block.appendChild(addBtn);
+
     block.appendChild(select);
     block.appendChild(textarea);
     container.appendChild(block);
@@ -357,63 +547,66 @@ document.addEventListener("DOMContentLoaded", () => {
     autoResizeTextarea(textarea);
 
     let hideTimeout;
-    block.addEventListener("mouseleave", () => {
-      hideTimeout = setTimeout(() => block.classList.remove("focused"), 300);
-    });
-    block.addEventListener("mouseenter", () => {
+    let controlsTimeout;
+    
+    const showControls = () => {
       clearTimeout(hideTimeout);
+      clearTimeout(controlsTimeout);
+      
+      // 블록 스타일은 즉시 적용
       block.classList.add("focused");
-    });
+      
+      // 컨트롤들은 순차적으로 표시
+      const left = block.querySelector('.block-type-selector');
+      const right = block.querySelector('.block-controls-right');
+      const add = block.querySelector('.add-block-button');
+      
+      // 드롭박스 먼저 (즉시)
+      if (left) { 
+        left.style.opacity = '1'; 
+        left.style.pointerEvents = 'auto'; 
+      }
+      
+      // 삭제 버튼 (50ms 후)
+      setTimeout(() => {
+        if (right && block.classList.contains("focused")) { 
+          right.style.opacity = '1'; 
+          right.style.pointerEvents = 'auto'; 
+        }
+      }, 50);
+      
+      // + 버튼 (100ms 후)
+      setTimeout(() => {
+        if (add && block.classList.contains("focused")) { 
+          add.style.opacity = '1'; 
+          add.style.pointerEvents = 'auto'; 
+        }
+      }, 100);
+    };
+    
+    const hideControls = () => {
+      hideTimeout = setTimeout(() => {
+        if (!block.contains(document.activeElement)) {
+          block.classList.remove("focused");
+          const left = block.querySelector('.block-type-selector');
+          const right = block.querySelector('.block-controls-right');
+          const add = block.querySelector('.add-block-button');
+          
+          // 모든 컨트롤 동시에 숨김
+          if (left) { left.style.opacity = '0'; left.style.pointerEvents = 'none'; }
+          if (right) { right.style.opacity = '0'; right.style.pointerEvents = 'none'; }
+          if (add) { add.style.opacity = '0'; add.style.pointerEvents = 'none'; }
+        }
+      }, 150); // 더 짧은 지연시간
+    };
+    
+    block.addEventListener("mouseenter", showControls);
+    block.addEventListener("mouseleave", hideControls);
     [select, textarea].forEach(el => {
-      el.addEventListener("focus", () => {
-        clearTimeout(hideTimeout);
-        block.classList.add("focused");
-      });
-      el.addEventListener("blur", () => {
-        hideTimeout = setTimeout(() => {
-          if (!block.contains(document.activeElement)) {
-            block.classList.remove("focused");
-          }
-        }, 300);
-      });
+      el.addEventListener("focus", showControls);
+      el.addEventListener("blur", hideControls);
     });
 
-    block.addEventListener("mouseleave", () => {
-  hideTimeout = setTimeout(() => block.classList.remove("focused"), 300);
-});
-
-block.addEventListener("mouseenter", () => {
-  clearTimeout(hideTimeout);
-  block.classList.add("focused");
-});
-
-// 추가: select와 textarea에 마우스 enter/leave 이벤트 등록
-[select, textarea].forEach(el => {
-  el.addEventListener("mouseenter", () => {
-    clearTimeout(hideTimeout);
-    block.classList.add("focused");
-  });
-  el.addEventListener("mouseleave", () => {
-    hideTimeout = setTimeout(() => {
-      if (!block.contains(document.activeElement)) {
-        block.classList.remove("focused");
-      }
-    }, 300);
-  });
-
-  el.addEventListener("focus", () => {
-    clearTimeout(hideTimeout);
-    block.classList.add("focused");
-  });
-
-  el.addEventListener("blur", () => {
-    hideTimeout = setTimeout(() => {
-      if (!block.contains(document.activeElement)) {
-        block.classList.remove("focused");
-      }
-    }, 300);
-  });
-});
 
 
     textarea.addEventListener("keydown", (e) => {

@@ -175,15 +175,19 @@
     background: white;
     border-radius: 0.375rem;
     box-shadow: 0 0 0 transparent;
-    transition: box-shadow 0.2s ease, border-color 0.2s ease;
+    transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1), transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
     border: 1px solid transparent;
+    z-index: 1;
+    transform: translateY(0);
   }
 
   /* 포커스 또는 호버 시 보더, 그림자 */
   .block:hover,
   .block.focused {
-    # box-shadow: 1px 4px 4px rgb(0 0 0 / 0.1);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
     border-color: lightgray;
+    z-index: 10;
+    transform: translateY(-2px);
   }
 
   /* 드롭다운 왼쪽 상단 */
@@ -193,8 +197,10 @@
     left: 0.75rem;
     opacity: 0;
     pointer-events: none;
-    transition: opacity 0.2s ease;
+    transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    transition-delay: 0ms;
     font-size: 0.85rem;
+    transform: translateY(4px) scale(0.95);
   }
 
   /* 삭제 버튼 오른쪽 상단 */
@@ -204,26 +210,68 @@
     right: 0.75rem;
     opacity: 0;
     pointer-events: none;
-    transition: opacity 0.2s ease;
+    transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    transition-delay: 50ms;
     font-size: 0.85rem;
     color: #dc2626;
-    background: transparent;
+    background: none !important;
     border: none;
     cursor: pointer;
     font-weight: bold;
+    transform: translateY(4px) scale(0.95);
+    box-shadow: none !important;
+  }
+
+  /* Add button styling */
+  .add-block-button {
+    position: absolute;
+    bottom: -1.5rem;
+    left: 50%;
+    transform: translateX(-50%) scale(0.8);
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    transition-delay: 100ms;
+    background: #815E4E;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 28px;
+    height: 28px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 999999;
   }
 
   /* 포커스 혹은 호버 시 컨트롤 표시 */
   .block:hover .block-controls-left,
   .block:hover .block-controls-right,
+  .block:hover .add-block-button,
   .block.focused .block-controls-left,
-  .block.focused .block-controls-right {
+  .block.focused .block-controls-right,
+  .block.focused .add-block-button {
     opacity: 1;
     pointer-events: auto;
+    transform: translateY(0) scale(1);
+  }
+
+  .block:hover .add-block-button,
+  .block.focused .add-block-button {
+    transform: translateX(-50%) scale(1);
   }
 
   .block-controls-right:hover {
     color: #b91c1c;
+    transform: translateY(0) scale(1.1) !important;
+  }
+
+  .add-block-button:hover {
+    transform: translateX(-50%) scale(1.1) !important;
+    background: #6d4c3a;
   }
 
   .block textarea {
@@ -264,7 +312,7 @@
 /* 소제목 스타일 */
 .block-type-subtitle textarea {
   background-color: #fff;
-  font-weight: 600; /* font-semibold */
+  font-weight: 700; /* font-bold */
   font-size: 1.125rem; /* text-lg */
   color: #2c1a0d;
   margin: 1rem 0 0 0;
@@ -404,22 +452,28 @@ if (!window.__post_form_dirty_guard_bound) {
       });
     }
 
-    // 컨트롤 show/hide
+    // Enhanced hover controls with sequential timing
     let hideTimeout;
+    block.addEventListener('mouseenter', () => {
+      clearTimeout(hideTimeout);
+      block.classList.add('focused');
+    });
+    
+    block.addEventListener('mouseleave', () => {
+      hideTimeout = setTimeout(() => {
+        block.classList.remove('focused');
+      }, 200);
+    });
+    
     block.addEventListener('focusin', () => {
       clearTimeout(hideTimeout);
-      const left  = block.querySelector('.block-type-selector');
-      const right = block.querySelector('.block-controls-right');
-      if (left)  { left.style.opacity = '1';  left.style.pointerEvents = 'auto'; }
-      if (right) { right.style.opacity = '1'; right.style.pointerEvents = 'auto'; }
+      block.classList.add('focused');
     });
+    
     block.addEventListener('focusout', () => {
       hideTimeout = setTimeout(() => {
-        const left  = block.querySelector('.block-type-selector');
-        const right = block.querySelector('.block-controls-right');
-        if (left)  { left.style.opacity = '0';  left.style.pointerEvents = 'none'; }
-        if (right) { right.style.opacity = '0'; right.style.pointerEvents = 'none'; }
-      }, 700);
+        block.classList.remove('focused');
+      }, 300);
     });
   }
 
@@ -455,56 +509,47 @@ if (!window.__post_form_dirty_guard_bound) {
   };
 
   window.handleKeyDown = function (e, textarea) {
-    const container = document.getElementById('blocks-container');
-    if (!container) return;
-    const blocks = Array.from(container.querySelectorAll('.block textarea'));
-    const currentIndex = blocks.indexOf(textarea);
-
-    // Enter로 블록 분할 (Shift+Enter 제외)
     if (e.key === 'Enter' && !e.shiftKey) {
+      // Chrome에서 중복 실행 방지
+      if (window._enterKeyProcessing) return;
+      window._enterKeyProcessing = true;
+      
       e.preventDefault();
-
-      const cursorPos = textarea.selectionStart;
-      const value = textarea.value;
-      const before = value.slice(0, cursorPos);
-      const after  = value.slice(cursorPos);
-
-      textarea.value = before;
-      window.autoResizeTextarea(textarea);
-
+      
       const currentBlock = textarea.closest('.block');
-      const nextBlock = currentBlock.nextElementSibling;
-
-      if (nextBlock && nextBlock.classList.contains('block')) {
-        const nextTextarea = nextBlock.querySelector('textarea');
-        nextTextarea.focus();
-        nextTextarea.setSelectionRange(0, 0);
-      } else {
-        const newBlock = window.createHtmlBlock('paragraph', after);
-        currentBlock.insertAdjacentElement('afterend', newBlock);
-        updateTextareaNames();
-        const newTextarea = newBlock.querySelector('textarea');
+      if (!currentBlock) {
+        window._enterKeyProcessing = false;
+        return;
+      }
+      
+      const cursorPos = textarea.selectionStart;
+      const textValue = textarea.value;
+      const beforeCursor = textValue.substring(0, cursorPos);
+      const afterCursor = textValue.substring(cursorPos);
+      
+      // 현재 블록의 내용을 커서 앞부분으로 업데이트
+      textarea.value = beforeCursor;
+      window.autoResizeTextarea(textarea);
+      
+      // 새 블록을 현재 블록 바로 다음에 생성
+      const newBlock = window.createHtmlBlock('paragraph', afterCursor);
+      currentBlock.insertAdjacentElement('afterend', newBlock);
+      
+      // 이름 재정렬
+      updateTextareaNames();
+      
+      // 새 블록의 textarea에 포커스
+      const newTextarea = newBlock.querySelector('textarea');
+      if (newTextarea) {
         newTextarea.focus();
+        newTextarea.setSelectionRange(0, 0);
         window.autoResizeTextarea(newTextarea);
       }
-    }
-
-    // 위/아래 이동
-    if (e.key === 'ArrowUp' && textarea.selectionStart === 0) {
-      e.preventDefault();
-      if (currentIndex > 0) {
-        const prev = blocks[currentIndex - 1];
-        prev.focus();
-        prev.setSelectionRange(prev.value.length, prev.value.length);
-      }
-    }
-    if (e.key === 'ArrowDown' && textarea.selectionStart === textarea.value.length) {
-      e.preventDefault();
-      if (currentIndex < blocks.length - 1) {
-        const next = blocks[currentIndex + 1];
-        next.focus();
-        next.setSelectionRange(0, 0);
-      }
+      
+      // 플래그 해제
+      setTimeout(() => {
+        window._enterKeyProcessing = false;
+      }, 100);
     }
   };
 
@@ -546,6 +591,14 @@ if (!window.__post_form_dirty_guard_bound) {
     delBtn.textContent = '삭제';
     delBtn.addEventListener('click', () => window.deleteBlock(delBtn));
 
+    // add button
+    const addBtn = document.createElement('button');
+    addBtn.type = 'button';
+    addBtn.className = 'add-block-button';
+    addBtn.title = '블록 추가';
+    addBtn.textContent = '+';
+    addBtn.addEventListener('click', () => window.addBlockBelow(addBtn));
+
     // textarea
     const ta = document.createElement('textarea');
     ta.name = `post[post_blocks_attributes][${index}][content]`;
@@ -558,6 +611,7 @@ if (!window.__post_form_dirty_guard_bound) {
     // assemble
     wrapper.appendChild(select);
     wrapper.appendChild(delBtn);
+    wrapper.appendChild(addBtn);
     wrapper.appendChild(ta);
 
     // behavior
@@ -576,6 +630,19 @@ if (!window.__post_form_dirty_guard_bound) {
     if (!block) return;
     block.remove();
     updateTextareaNames();
+  };
+
+  window.addBlockBelow = function (button) {
+    const currentBlock = button.closest('.block');
+    if (!currentBlock) return;
+    
+    const newBlock = window.createHtmlBlock('paragraph', '');
+    currentBlock.insertAdjacentElement('afterend', newBlock);
+    updateTextareaNames();
+    
+    const newTextarea = newBlock.querySelector('textarea');
+    newTextarea.focus();
+    window.autoResizeTextarea(newTextarea);
   };
 
   // ===================== 블록 초기화 =====================
