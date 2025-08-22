@@ -4,34 +4,6 @@
     <h2 class="login-form-title">회원가입</h2>
 
     <%= form_for(resource, as: resource_name, url: registration_path(resource_name), html: { class: "login-form", id: "signupForm" }) do |f| %>
-      <% if flash[:alert].present? %>
-        <div role="alert"
-             class="js-flash mb-4 rounded-xl border border-amber-200 bg-amber-50 text-amber-900 shadow-md">
-          <div class="relative flex items-start gap-3 p-3">
-            <!-- 아이콘 -->
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
-                 fill="currentColor" class="h-5 w-5 flex-shrink-0 text-amber-600">
-              <path fill-rule="evenodd"
-                    d="M8.257 3.099c.765-1.36 2.72-1.36 3.485 0l6.518 11.596c.73 1.298-.19 2.905-1.742 2.905H3.48c-1.553 0-2.473-1.607-1.742-2.905L8.257 3.1zM11 14a1 1 0 10-2 0 1 1 0 002 0zm-1-2a.75.75 0 01-.75-.75V8.25a.75.75 0 011.5 0v3a.75.75 0 01-.75.75z"
-                    clip-rule="evenodd" />
-            </svg>
-
-            <!-- 메시지 -->
-            <pre class="whitespace-pre-line font-sans text-sm leading-6 m-0"><%= flash[:alert] %></pre>
-
-            <!-- 닫기 버튼 -->
-            <button type="button"
-                    class="absolute right-2 top-2 inline-flex h-7 w-7 items-center justify-center rounded-full hover:bg-amber-100"
-                    aria-label="닫기"
-                    onclick="this.closest('.js-flash')?.remove()">
-              ✕
-            </button>
-          </div>
-
-          <!-- 하단 강조선 -->
-          <div class="h-1 w-full rounded-b-xl bg-gradient-to-r from-amber-400 via-amber-500 to-amber-400"></div>
-        </div>
-      <% end %>
 
       <div>
         <%= f.label :email, "이메일", class: "login-form-label" %>
@@ -151,6 +123,27 @@
   </div>
 </div>
 
+<!-- 🚨 알림 모달 -->
+<% if flash[:alert].present? %>
+<div id="alertModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="alertTitle">
+  <div class="modal-backdrop"></div>
+  <div class="modal-box" role="document">
+    <div class="modal-header">
+      <h3 id="alertTitle">⚠️ 오류</h3>
+      <button type="button" id="alertClose" class="modal-close" aria-label="닫기">✕</button>
+    </div>
+
+    <div class="modal-body">
+      <p><%= flash[:alert] %></p>
+    </div>
+
+    <div class="modal-footer">
+      <button type="button" id="alertOk" class="btn-primary">확인</button>
+    </div>
+  </div>
+</div>
+<% end %>
+
 <style>
 html, body {
   margin: 0;
@@ -231,17 +224,20 @@ html, body {
   position: fixed;
   inset: 0;
   z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .modal-backdrop {
-  position: absolute; inset: 0;
-
+  position: absolute; 
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
 }
 
 .modal-box {
   position: relative;
-  margin: 4rem auto;
-  width: min(680px, calc(100% - 2rem));
+  width: min(480px, calc(100% - 2rem));
   background: #fff;
   color: #5a4a2a;
   border-radius: 10px;
@@ -353,6 +349,36 @@ html, body {
     if (!checkbox.checked) {
       e.preventDefault();
       openModal();
+    }
+  });
+})();
+
+// 🚨 알림 모달 처리
+(function() {
+  const alertModal = document.getElementById('alertModal');
+  if (!alertModal) return;
+
+  const alertClose = document.getElementById('alertClose');
+  const alertOk = document.getElementById('alertOk');
+  const alertBackdrop = alertModal.querySelector('.modal-backdrop');
+
+  function closeAlertModal() {
+    alertModal.classList.add('hidden');
+    document.body.style.overflow = '';
+  }
+
+  // 페이지 로드 시 알림 모달 표시
+  document.body.style.overflow = 'hidden';
+
+  // 버튼 이벤트
+  alertClose.addEventListener('click', closeAlertModal);
+  alertOk.addEventListener('click', closeAlertModal);
+  alertBackdrop.addEventListener('click', closeAlertModal);
+
+  // ESC 키
+  document.addEventListener('keydown', function(e) {
+    if (!alertModal.classList.contains('hidden') && e.key === 'Escape') {
+      closeAlertModal();
     }
   });
 })();
