@@ -76,7 +76,15 @@
   }
   </script>
 </head>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=AW-17498171417"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
 
+  gtag('config', 'AW-17498171417');
+</script>
 <body data-signed-in="<%= user_signed_in? %>">
 
     <header class="site-header">
